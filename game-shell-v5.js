@@ -1,17 +1,27 @@
 /* 星轨成长舱 v5：独立全屏养成游戏外壳 */
 (function () {
   const outfitCatalog = [
-    { id:'moonlit-immortal', name:'月华仙衣', series:'东方古韵', rarity:5, price:520, preview:'assets/avatar-v5/moonlit-immortal-outfit-preview.png' },
-    { id:'crimson-ceremony', name:'赤霄华章', series:'东方古韵', rarity:5, price:560, preview:'assets/avatar-v5/crimson-ceremony-preview.png' },
-    { id:'mist-city-walk', name:'雾城漫步', series:'现代都市', rarity:5, price:460, preview:'assets/avatar-v5/mist-city-walk-preview.png' },
-    { id:'bunny-bakery', name:'月绒烘焙屋', series:'兔兔可爱', rarity:5, price:440, preview:'assets/avatar-v5/bunny-bakery-preview.png' },
-    { id:'midnight-banquet', name:'午夜星宴', series:'绅士典藏', rarity:5, price:520, preview:'assets/avatar-v5/midnight-banquet-preview.png' }
+    { id:'moonlit-immortal', name:'月华仙衣', series:'东方古韵', rarity:5, price:520, preview:'assets/avatar-v5/moonlit-immortal-outfit-preview.png?v=6' },
+    { id:'crimson-ceremony', name:'赤霄华章', series:'东方古韵', rarity:5, price:560, preview:'assets/avatar-v5/crimson-ceremony-preview.png?v=6' },
+    { id:'mist-city-walk', name:'雾城漫步', series:'现代都市', rarity:5, price:460, preview:'assets/avatar-v5/mist-city-walk-preview.png?v=6' },
+    { id:'bunny-bakery', name:'月绒烘焙屋', series:'兔兔可爱', rarity:5, price:440, preview:'assets/avatar-v5/bunny-bakery-preview.png?v=6' },
+    { id:'midnight-banquet', name:'午夜星宴', series:'绅士典藏', rarity:5, price:520, preview:'assets/avatar-v5/midnight-banquet-preview.png?v=6' }
   ];
 
   D.game = D.game || {};
   D.game.ownedV5 = D.game.ownedV5 || ['moonlit-immortal'];
+  /* Existing saves originally contained only one look, which made the wardrobe
+     appear broken. Give every save a second starter look so changing clothes
+     can be tested immediately; the remaining looks still come from the shop. */
+  if (!D.game.ownedV5.includes('moonlit-immortal')) D.game.ownedV5.unshift('moonlit-immortal');
+  if (!D.game.ownedV5.includes('mist-city-walk')) D.game.ownedV5.push('mist-city-walk');
   D.game.equippedV5 = D.game.equippedV5 || 'moonlit-immortal';
   D.game.scene = D.game.scene || 'estate';
+  D.game.garden = D.game.garden || {
+    selectedCrop: 'starbell',
+    plots: Array.from({length:4},()=>({crop:null,plantedAt:0,boostHours:0,lastWater:''})),
+    harvests: 0
+  };
 
   const app = document.createElement('section');
   app.id = 'gameAppV5';
@@ -41,6 +51,7 @@
   const sceneTitle = app.querySelector('#v5SceneTitle');
   let scene = 'estate';
   let history = [];
+  let pendingOutfit = null;
 
   function wallet(){
     app.querySelector('#v5Coins').textContent = D.coins;
@@ -49,6 +60,7 @@
 
   function go(next, options={}){
     if (!options.replace && scene !== next) history.push(scene);
+    if(scene==='wardrobe'&&next!=='wardrobe') pendingOutfit=null;
     scene = next;
     D.game.scene = next;
     save();
@@ -90,17 +102,39 @@
     if(!supported.includes(room)) return `<div class="comingScene"><div>${gameIcon('map')}</div><h2>${{study:'月影书房',dining:'银河餐厅',closet:'星回衣帽间',bath:'云雾浴室'}[room]||'新房间'}</h2><p>房间结构已经接入楼层地图，高清布景和专属家具正在制作。</p><button data-v5-scene="${room==='closet'?'wardrobe':'estate'}">${room==='closet'?'进入衣橱':'返回家园'}</button></div>`;
     setTimeout(()=>{
       const roomView=document.querySelector('#roomView');
-      if(roomView){const toolbar=document.createElement('div');toolbar.className='roomToolbar';toolbar.innerHTML=`<button data-floor="${room==='bedroom'?2:1}">${gameIcon('map')}<span>本层地图</span></button><div><small>${room==='bedroom'?'2F · PRIVATE FLOOR':'1F · LIVING FLOOR'}</small><b>${{living:'星光客厅',bedroom:'月光卧室',bunny:'兔兔房'}[room]}</b></div><button data-v5-scene="decor">${gameIcon('decor')}<span>装修</span></button>`;const hotspots=document.createElement('div');hotspots.className='roomHotspots';hotspots.innerHTML=room==='living'?'<button data-room-action="sofa"><b>云朵沙发</b><small>休息 · 恢复一点心情</small></button><button data-room-action="window"><b>月窗</b><small>看一会儿星星</small></button>':room==='bedroom'?'<button data-room-action="rest"><b>月光床</b><small>记录睡眠 · +状态</small></button><button data-room-action="study"><b>星象书桌</b><small>去完成一次专注</small></button><button data-v5-scene="wardrobe"><b>星回衣橱</b><small>全屏换装</small></button>':'<button data-v5-scene="pet"><b>月绒兔</b><small>进入兔兔照料</small></button>';sceneRoot.replaceChildren(toolbar,roomView,hotspots);roomView.hidden=false;openRoom(room);renderHouse();}
+      if(roomView){
+        const toolbar=document.createElement('div');
+        toolbar.className='roomToolbar';
+        toolbar.innerHTML=`<button data-floor="${room==='bedroom'?2:1}">${gameIcon('map')}<span>本层地图</span></button><div><small>${room==='bedroom'?'2F · PRIVATE FLOOR':'1F · LIVING FLOOR'}</small><b>${{living:'星光客厅',bedroom:'月光卧室',bunny:'兔兔房'}[room]}</b></div><button data-v5-scene="decor">${gameIcon('decor')}<span>装修</span></button>`;
+        const hotspots=document.createElement('div');
+        hotspots.className='roomHotspots';
+        hotspots.innerHTML=room==='living'?'<button data-room-action="sofa"><b>云朵沙发</b><small>休息 · 恢复一点心情</small></button><button data-room-action="window"><b>月窗</b><small>看一会儿星星</small></button>':room==='bedroom'?'<button data-room-action="rest"><b>月光床</b><small>记录睡眠 · +状态</small></button><button data-room-action="study"><b>星象书桌</b><small>去完成一次专注</small></button><button data-v5-scene="wardrobe"><b>星回衣橱</b><small>全屏换装</small></button>':'<button data-v5-scene="pet"><b>月绒兔</b><small>进入兔兔照料</small></button>';
+        const equipped=outfitCatalog.find(x=>x.id===D.game.equippedV5)||outfitCatalog[0];
+        const avatar=document.createElement('img');
+        avatar.className='roomAvatar';
+        avatar.src=equipped.preview;
+        avatar.alt='当前装扮角色';
+        sceneRoot.replaceChildren(toolbar,roomView,avatar,hotspots);
+        roomView.hidden=false;
+        openRoom(room);
+        renderHouse();
+      }
     });
     return '<div class="roomLoading"></div>';
   }
 
   function wardrobeScene(){
     const owned=outfitCatalog.filter(x=>D.game.ownedV5.includes(x.id));
-    const current=outfitCatalog.find(x=>x.id===D.game.equippedV5)||owned[0];
+    const current=outfitCatalog.find(x=>x.id===(pendingOutfit||D.game.equippedV5))||owned[0];
+    const isPreview=current.id!==D.game.equippedV5;
     return `<div class="v5Wardrobe">
-      <div class="wardrobeViewer"><div class="wardrobeHalo"></div><img src="${current.preview}" alt="${current.name}"><div class="lookName"><small>当前穿搭</small><b>${current.name}</b><span>${'★'.repeat(current.rarity)}</span></div></div>
-      <section class="wardrobeControls"><div class="v5Tabs"><button class="active">套装</button><button>发型</button><button>上装</button><button>下装</button><button>外套</button><button>鞋履</button><button>头饰</button><button>配饰</button></div><p>衣橱只展示已经拥有的物品。点击即可试穿，购买请前往服饰商城。</p><div class="v5OutfitGrid">${owned.map(x=>`<button class="v5Outfit ${x.id===current.id?'selected':''}" data-equip="${x.id}"><img src="${x.preview}" alt=""><b>${x.name}</b><small>${x.series}</small></button>`).join('')}</div></section>
+      <div class="wardrobeViewer"><div class="wardrobeHalo"></div><img src="${current.preview}" alt="${current.name}"><div class="lookName"><small>${isPreview?'正在试穿':'当前穿搭'}</small><b>${current.name}</b><span>${'★'.repeat(current.rarity)}</span></div></div>
+      <section class="wardrobeControls">
+        <div class="v5Tabs"><button class="active">套装</button><button disabled>发型</button><button disabled>上装</button><button disabled>下装</button><button disabled>外套</button><button disabled>鞋履</button><button disabled>头饰</button><button disabled>配饰</button></div>
+        <div class="wardrobeGuide"><b>选择一套已拥有的服装</b><small>先试穿，确认后才会保存并同步到房间角色。</small></div>
+        <div class="v5OutfitGrid">${owned.map(x=>`<button class="v5Outfit ${x.id===current.id?'selected':''}" data-try-outfit="${x.id}"><img src="${x.preview}" alt="${x.name}"><b>${x.name}</b><small>${x.series}${x.id==='mist-city-walk'?' · 初始赠礼':''}</small></button>`).join('')}</div>
+        <div class="wardrobeActions"><button data-cancel-outfit ${isPreview?'':'disabled'}>取消试穿</button><button class="primary" data-confirm-outfit ${isPreview?'':'disabled'}>保存这套穿搭</button></div>
+      </section>
     </div>`;
   }
 
@@ -114,10 +148,29 @@
 
   function furnitureStoreScene(){return `<div class="v5Store"><div class="storeBanner furniture"><small>HOME COLLECTION</small><h2>家具商城</h2><p>购买后送入仓库，再到房间装修中摆放。</p></div>${catalogFurniture('store')}</div>`}
   function decorScene(){return `<div class="v5Store"><div class="storeBanner decor"><small>ROOM EDITOR</small><h2>房间装修</h2><p>这里只显示已经拥有的家具。</p></div>${catalogFurniture('editor')}</div>`}
-  function petScene(){return `<div class="v5PetScene"><div class="v5PetStage"><div class="v5PetSprite"></div><div class="petSpeech">今天也陪你慢慢长大。</div></div>${petPanel()}</div>`}
+  function petScene(){return `<div class="v5PetScene"><div class="v5PetStage"><div class="v5PetSprite"></div><div class="petMood"><b>月绒兔</b><span>状态：安静陪伴</span></div></div>${petPanel()}</div>`}
   function inventoryScene(){return `<div class="v5Inventory"><div class="inventoryHero"><h2>星光仓库</h2><p>服装进入衣橱，家具进入装修；仓库负责统一查看收藏。</p></div><div class="inventorySummary"><span>家具 <b>${D.house.ownedFurniture.length}</b></span><span>服装 <b>${D.game.ownedV5.length}</b></span><span>发型 <b>1</b></span></div><h3>家具收藏</h3>${catalogFurniture('inventory')}<h3>服装收藏</h3><div class="v5OutfitGrid">${outfitCatalog.filter(x=>D.game.ownedV5.includes(x.id)).map(x=>`<article class="v5Outfit"><img src="${x.preview}" alt=""><b>${x.name}</b><small>${x.series}</small></article>`).join('')}</div></div>`}
   function achievementScene(){return `<div class="v5Achievements"><div class="achievementHero"><h2>星轨成就图鉴</h2><p>所有游戏奖励都来自现实中的持续行动。</p></div>${achievementPanel()}</div>`}
-  function gardenScene(){return `<div class="gardenScene"><div class="gardenCopy"><small>STARLIGHT GARDEN</small><h2>星梦花园</h2><p>每次现实打卡都会给花园带来一点变化。先照料一块土地，再慢慢解锁整座庭院。</p><div class="gardenActions"><button data-garden-action="seed">播种星种 <small>今日 +6 XP</small></button><button data-garden-action="water">月泉浇灌 <small>今日 +3 XP</small></button><button data-garden-action="walk">陪兔兔散步 <small>亲密度 +2</small></button><button data-v5-scene="estate">返回洋馆</button></div></div></div>`}
+  const gardenCatalog={
+    starbell:{name:'星铃花',hours:6,reward:12,color:'#c9b4ff'},
+    moonberry:{name:'月绒莓',hours:12,reward:20,color:'#f2a9ce'},
+    cloudgrass:{name:'云朵草',hours:24,reward:32,color:'#b8ddf4'}
+  };
+  function plotState(plot){
+    if(!plot.crop)return {state:'empty',progress:0,label:'空花圃'};
+    const crop=gardenCatalog[plot.crop];
+    const elapsed=(Date.now()-plot.plantedAt)/36e5+(plot.boostHours||0);
+    const progress=Math.max(0,Math.min(100,Math.floor(elapsed/crop.hours*100)));
+    return {state:progress>=100?'ready':'growing',progress,label:progress>=100?'可以收获':`生长 ${progress}%`};
+  }
+  function gardenScene(){
+    const garden=D.game.garden;
+    return `<div class="gardenScene"><div class="gardenCopy"><small>STARLIGHT GARDEN</small><h2>星梦花园</h2><p>播种、浇水、等待和收获都会保存在手机里。现实打卡获得的金币，可以继续扩建花园。</p>
+      <div class="seedPicker">${Object.entries(gardenCatalog).map(([id,c])=>`<button class="${garden.selectedCrop===id?'active':''}" data-select-crop="${id}"><i style="--seed:${c.color}"></i><b>${c.name}</b><small>${c.hours}小时成熟</small></button>`).join('')}</div>
+      <div class="gardenPlots">${garden.plots.map((plot,i)=>{const s=plotState(plot),crop=plot.crop?gardenCatalog[plot.crop]:null;return `<article class="gardenPlot ${s.state}" data-plot="${i}"><span class="plotNumber">0${i+1}</span><div class="plantVisual"><i style="--plant:${crop?.color||'#c8b8a0'}"></i></div><b>${crop?.name||'空花圃'}</b><small>${s.label}</small><div class="plantProgress"><i style="width:${s.progress}%"></i></div><div class="plotActions">${s.state==='empty'?`<button data-plant="${i}">播种</button>`:s.state==='ready'?`<button data-harvest="${i}">收获 +${crop.reward}金币</button>`:`<button data-water="${i}">浇水 · 加速2小时</button>`}</div></article>`}).join('')}</div>
+      <div class="gardenFooter"><span>累计收获 <b>${garden.harvests||0}</b> 次</span><button data-garden-action="walk">陪兔兔散步 · 亲密度 +2</button></div>
+    </div></div>`;
+  }
 
   function render(){
     const activeRoomView=sceneRoot.querySelector('#roomView');
@@ -149,14 +202,29 @@
     if(floorButton){go('floor:'+floorButton.dataset.floor);return}
     const roomButton=e.target.closest('[data-room]');
     if(roomButton){go('room:'+roomButton.dataset.room);return}
-    const equip=e.target.closest('[data-equip]');
-    if(equip){D.game.equippedV5=equip.dataset.equip;save();render();return}
+    const tryOutfit=e.target.closest('[data-try-outfit]');
+    if(tryOutfit){pendingOutfit=tryOutfit.dataset.tryOutfit;render();return}
+    if(e.target.closest('[data-cancel-outfit]')){pendingOutfit=null;render();return}
+    if(e.target.closest('[data-confirm-outfit]')){
+      if(!pendingOutfit)return;
+      D.game.equippedV5=pendingOutfit;
+      const item=outfitCatalog.find(x=>x.id===pendingOutfit);
+      pendingOutfit=null;save();render();toast(`已换上「${item?.name||'新穿搭'}」`);return
+    }
     const buy=e.target.closest('[data-buy-outfit]');
     if(buy){const item=outfitCatalog.find(x=>x.id===buy.dataset.buyOutfit);if(!item)return;if(D.coins<item.price)return toast('金币还不够，先完成现实任务');D.coins-=item.price;D.game.ownedV5.push(item.id);save();render();toast('服装已送入衣橱')}
     const bathAction=e.target.closest('[data-room-action]');
     if(bathAction){const action=bathAction.dataset.roomAction;if(action==='study'){gotoPage('focus');exitGameV5();return}if(action==='rest'){const key='rest-'+TODAY;if(D.rewarded[key])return toast('今天已经记录过休息');reward(4,2,key);toast('睡眠状态已记录');return}if(action==='bath'){const key='bath-'+TODAY;if(D.rewarded[key])return toast('今天已经完成过放松记录');reward(4,2,key);render();return}if(action==='sofa'||action==='window'){const key=action+'-'+TODAY;if(D.rewarded[key])return toast('今天已经互动过啦');reward(2,1,key);toast(action==='sofa'?'柔软的云朵接住你了':'月光落在窗边');return}}
+    const cropButton=e.target.closest('[data-select-crop]');
+    if(cropButton){D.game.garden.selectedCrop=cropButton.dataset.selectCrop;save();render();return}
+    const plantButton=e.target.closest('[data-plant]');
+    if(plantButton){const plot=D.game.garden.plots[+plantButton.dataset.plant];if(plot.crop)return;plot.crop=D.game.garden.selectedCrop;plot.plantedAt=Date.now();plot.boostHours=0;plot.lastWater='';save();render();toast('星种已经落进花圃');return}
+    const waterButton=e.target.closest('[data-water]');
+    if(waterButton){const plot=D.game.garden.plots[+waterButton.dataset.water];if(!plot.crop)return;if(plot.lastWater===TODAY)return toast('这块花圃今天已经浇过水');plot.lastWater=TODAY;plot.boostHours=(plot.boostHours||0)+2;save();render();toast('月泉让植物生长得更快了');return}
+    const harvestButton=e.target.closest('[data-harvest]');
+    if(harvestButton){const plot=D.game.garden.plots[+harvestButton.dataset.harvest],state=plotState(plot);if(state.state!=='ready')return toast('还没有成熟');const crop=gardenCatalog[plot.crop];D.coins+=crop.reward;D.xp+=6;D.game.garden.harvests=(D.game.garden.harvests||0)+1;Object.assign(plot,{crop:null,plantedAt:0,boostHours:0,lastWater:''});save();render();toast(`收获 ${crop.name}，获得 ${crop.reward} 金币`);return}
     const gardenAction=e.target.closest('[data-garden-action]');
-    if(gardenAction){const key='garden-'+gardenAction.dataset.gardenAction+'-'+TODAY;if(D.rewarded[key])return toast('今天已经照料过这一项');if(gardenAction.dataset.gardenAction==='walk')D.house.love+=2;reward(gardenAction.dataset.gardenAction==='seed'?6:3,gardenAction.dataset.gardenAction==='seed'?3:2,key);save();render();return}
+    if(gardenAction){const key='garden-'+gardenAction.dataset.gardenAction+'-'+TODAY;if(D.rewarded[key])return toast('今天已经完成过这一项');if(gardenAction.dataset.gardenAction==='walk')D.house.love+=2;reward(3,2,key);save();render();toast('兔兔在花园里开心地跑了一圈');return}
   });
   app.querySelector('.v5Back').addEventListener('click',back);
 
