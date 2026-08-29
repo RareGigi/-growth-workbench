@@ -1,5 +1,5 @@
-const CACHE='star-growth-cabin-v2';
-const ASSETS=['./','./index.html','./style-v2.css','./app-v2.js','./manifest.webmanifest','./icon.svg'];
+const CACHE='star-growth-cabin-v4';
+const ASSETS=['./','./index.html','./style-v2.css','./nav-v4.css','./house-v3.css','./game-v4.css','./app-v2.js','./house-v3.js','./game-v4.js','./manifest.webmanifest','./icon.svg'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch',event=>event.respondWith(fetch(event.request).then(response=>{const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(event.request,copy));return response}).catch(()=>caches.match(event.request))));
