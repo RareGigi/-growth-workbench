@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f6a9c5"><title>今天也在悄悄升级</title>
+<style>
+:root{--pink:#ef7fa8;--deep:#7d405d;--cream:#fff9fb;--line:#f3ccda;--green:#7bb69c}
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;background:linear-gradient(145deg,#fff7fa,#fbe7ef);color:#523648;min-height:100vh}
+.wrap{max-width:1080px;margin:auto;padding:22px 16px 90px}.hero{background:linear-gradient(135deg,#f7a7c3,#ffdce8);border:2px solid #fff;border-radius:28px;padding:25px;box-shadow:0 14px 40px #c96b8e2b;position:relative;overflow:hidden}
+.hero:after{content:"♡";position:absolute;right:24px;top:0;font-size:120px;color:#ffffff55}.hero h1{margin:0;font-size:clamp(28px,5vw,48px);color:#713b56}.hero p{margin:8px 0 0}.date{font-weight:700;color:#9d5170}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;margin-top:16px}.card{grid-column:span 4;background:#fffefa;border:1px solid var(--line);border-radius:22px;padding:18px;box-shadow:0 8px 22px #a04b7020}.wide{grid-column:span 8}.full{grid-column:1/-1}
+h2{font-size:18px;margin:0 0 13px;color:var(--deep)}.row{display:flex;gap:9px;align-items:center;margin:8px 0}.row input[type=text],.row input[type=number],textarea{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff;width:100%;font:inherit;color:inherit}textarea{min-height:95px;resize:vertical}
+button{border:0;border-radius:12px;padding:10px 14px;background:var(--pink);color:white;font-weight:700;cursor:pointer}.ghost{background:#fbe4ec;color:#8c4663}.task{display:flex;align-items:center;gap:10px;padding:9px;border-bottom:1px dashed #f3d2de}.task span{flex:1}.done{text-decoration:line-through;opacity:.5}
+.progress{height:12px;background:#f6dbe5;border-radius:10px;overflow:hidden}.bar{height:100%;background:linear-gradient(90deg,#ee87ad,#8ac4aa);width:0}.metric{font-size:30px;font-weight:800;color:#d05e89}.small{font-size:12px;color:#946b7e}.pill{display:inline-block;padding:5px 9px;border-radius:999px;background:#fae0e9;color:#9b4969;font-size:12px;margin:3px}
+footer{text-align:center;color:#a67589;margin-top:22px}
+@media(max-width:760px){.card,.wide{grid-column:1/-1}.wrap{padding:12px 12px 70px}.hero{border-radius:22px;padding:21px}.hero:after{font-size:80px}.grid{gap:12px}.card{border-radius:19px}}
+</style></head><body><main class="wrap">
+<section class="hero"><div class="date" id="date"></div><h1>今天也在悄悄升级</h1><p>不必一下子变厉害，今天向前一点点就算赢 ♡</p></section>
+<section class="grid">
+<div class="card wide"><h2>🎀 今日三件事</h2><div id="tasks"></div><div class="row"><input id="newTask" type="text" placeholder="添加今天要完成的事"><button onclick="addTask()">添加</button></div></div>
+<div class="card"><h2>✨ 今日完成度</h2><div class="metric"><span id="pct">0</span>%</div><div class="progress"><div class="bar" id="bar"></div></div><p class="small" id="cheer">先完成最小的一步。</p></div>
+<div class="card"><h2>📚 考证成长</h2><span class="pill">税务师</span><span class="pill">CPA</span><div class="row"><input id="study" type="number" min="0" placeholder="今日学习分钟"><button onclick="saveMetric('study')">记录</button></div><p>累计：<b id="studyTotal">0</b> 分钟</p></div>
+<div class="card"><h2>✍️《第五时》</h2><div class="row"><input id="words" type="number" min="0" placeholder="今日新增字数"><button onclick="saveMetric('words')">记录</button></div><p>累计：<b id="wordsTotal">0</b> 字</p></div>
+<div class="card"><h2>⚖️ 身体底盘</h2><div class="row"><input id="weight" type="number" step=".1" placeholder="今日体重 kg"><button onclick="saveWeight()">保存</button></div><p>最近：<b id="lastWeight">—</b></p></div>
+<div class="card wide"><h2>💼 求职与职业成长</h2><div class="row"><input id="career" type="text" placeholder="今天投递、面试或补足了什么"><button onclick="addCareer()">留下记录</button></div><div id="careerList"></div></div>
+<div class="card"><h2>🛡️ 防粗心清单</h2><label class="task"><input type="checkbox">数字勾稽</label><label class="task"><input type="checkbox">日期与截止</label><label class="task"><input type="checkbox">附件齐全</label><label class="task"><input type="checkbox">结论有证据</label></div>
+<div class="card full"><h2>🌙 今日复盘</h2><textarea id="review" placeholder="今天做得最好的一件事、遇到的问题、明天最小的一步……"></textarea><div class="row"><button onclick="saveReview()">保存复盘</button><span class="small" id="saved"></span></div></div>
+</section><footer>你的成长不需要大张旗鼓 🌸 数据只保存在当前浏览器</footer></main>
+<script>
+const K='quietUpgrade-v1';let d=JSON.parse(localStorage.getItem(K)||'{"tasks":[],"study":0,"words":0,"weights":[],"career":[],"reviews":{}}');
+const today=new Date().toISOString().slice(0,10);date.textContent=new Date().toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric',weekday:'long'});
+function save(){localStorage.setItem(K,JSON.stringify(d));render()}
+function addTask(){let v=newTask.value.trim();if(v){d.tasks.push({t:v,done:false,date:today});newTask.value='';save()}}
+function toggle(i){d.tasks[i].done=!d.tasks[i].done;save()}function delTask(i){d.tasks.splice(i,1);save()}
+function saveMetric(k){let el=document.getElementById(k),v=+el.value||0;d[k]+=v;el.value='';save()}
+function saveWeight(){let v=+weight.value;if(v){d.weights.push({v,date:today});weight.value='';save()}}
+function addCareer(){let v=career.value.trim();if(v){d.career.unshift({v,date:today});career.value='';save()}}
+function saveReview(){d.reviews[today]=review.value;localStorage.setItem(K,JSON.stringify(d));saved.textContent='已保存 ✓'}
+function render(){tasks.innerHTML=d.tasks.map((x,i)=>'<div class="task"><input type="checkbox" '+(x.done?'checked':'')+' onchange="toggle('+i+')"><span class="'+(x.done?'done':'')+'">'+x.t+'</span><button class="ghost" onclick="delTask('+i+')">×</button></div>').join('');let n=d.tasks.length,c=d.tasks.filter(x=>x.done).length,p=n?Math.round(c/n*100):0;pct.textContent=p;bar.style.width=p+'%';cheer.textContent=p===100?'今天的你已经满格啦！':p>=50?'已经过半，继续悄悄升级。':'先完成最小的一步。';studyTotal.textContent=d.study;wordsTotal.textContent=d.words;lastWeight.textContent=d.weights.length?d.weights.at(-1).v+' kg':'—';careerList.innerHTML=d.career.slice(0,5).map(x=>'<p>🌷 '+x.v+' <span class="small">'+x.date+'</span></p>').join('');review.value=d.reviews[today]||''}render();
+</script></body></html>
