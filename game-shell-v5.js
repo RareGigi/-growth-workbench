@@ -202,7 +202,7 @@
     wallet();
     app.classList.toggle('roomActive',scene.startsWith('room:'));
     const titles={estate:'星月洋馆','floor:1':'一层地图','floor:2':'二层地图',wardrobe:'星回衣橱',pet:'兔兔小屋',shop:'星光商城',clothingStore:'服饰商城',furnitureStore:'家具商城',decor:'房间装修',inventory:'星光仓库',achievements:'成就图鉴',garden:'星梦花园'};
-    const roomTitles={living:'一层 · 星光客厅',bedroom:'二层 · 月光卧室',bunny:'一层 · 兔兔房'};
+    const roomTitles={living:'一层 · 星光客厅',study:'一层 · 月影书房',dining:'一层 · 银河餐厅',bedroom:'二层 · 月光卧室',closet:'二层 · 星回衣帽间',bath:'二层 · 云雾浴室',bunny:'一层 · 兔兔房'};
     sceneTitle.textContent=titles[scene]||(scene.startsWith('room:')?roomTitles[scene.split(':')[1]]||'房间':'星月家园');
     if(scene==='estate')sceneRoot.innerHTML=estateScene();
     else if(scene.startsWith('floor:'))sceneRoot.innerHTML=floorScene(+scene.split(':')[1]);
