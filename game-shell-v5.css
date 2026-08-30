@@ -35,6 +35,7 @@
 }
 
 /* v7: true layered wardrobe, uncropped room avatar and visible pet feedback */
+.game-v5-active #v5Scene>.roomToolbar{display:grid!important}
 .layeredAvatar{position:relative;z-index:2;width:min(88%,620px);aspect-ratio:1;filter:drop-shadow(0 22px 26px #50447738)}
 .layeredAvatar>img,.wardrobeViewer .layeredAvatar>img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;mix-blend-mode:normal;filter:none}
 .partGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.partCard{min-width:0;padding:9px;text-align:left;border:1px solid #ffffffcc;border-radius:18px;background:#ffffffc7}.partCard.selected{outline:3px solid #806bc1;background:#f0eaff}.partThumb{display:block;aspect-ratio:1;border-radius:13px;overflow:hidden;background:radial-gradient(circle,#fff,#e8e1f7)}.partThumb img{width:100%;height:100%;object-fit:contain}.partCard b,.partCard small{display:block}.partCard small{color:#756d90}.wardrobeGuide{padding:14px 16px;margin-bottom:12px;border-radius:16px;background:#ffffffb8}.wardrobeGuide>*{display:block}.wardrobeActions{position:sticky;bottom:0;z-index:5;display:grid;grid-template-columns:1fr 1.3fr;gap:10px;padding:16px 0 0;background:linear-gradient(transparent,#ebe7f8 24%)}
