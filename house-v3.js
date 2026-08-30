@@ -6,12 +6,12 @@ const furnitureRules={
  '兔兔小窝':{slot:'petBed',rooms:['bunny']},
  '月光床':{slot:'bed',rooms:['bedroom']},
  '贝壳床':{slot:'bed',rooms:['bedroom']},
- '星象书桌':{slot:'desk',rooms:['living','bedroom','bunny']},
- '拱门书架':{slot:'shelf',rooms:['living','bedroom','bunny']},
+ '星象书桌':{slot:'desk',rooms:['living','bedroom','bunny','study']},
+ '拱门书架':{slot:'shelf',rooms:['living','bedroom','bunny','study']},
  '月光衣柜':{slot:'wardrobe',rooms:['bedroom']},
  '星尘梳妆台':{slot:'vanity',rooms:['bedroom']},
- '星星落地灯':{slot:'lamp',rooms:['living','bedroom','bunny']},
- '月光花':{slot:'plant',rooms:['living','bedroom','bunny']}
+ '星星落地灯':{slot:'lamp',rooms:['living','bedroom','bunny','study','bath']},
+ '月光花':{slot:'plant',rooms:['living','bedroom','bunny','study','bath']}
 };
 const fixedRoomFurniture={living:['云朵沙发','星星茶几'],bedroom:['月光床','星象书桌','拱门书架'],bunny:[]};
 const furniturePlacement={
@@ -34,7 +34,18 @@ function openRoom(room){if(room==='garden')return toast('花园正在生长，�
 function backHome(){D.house.room='exterior';renderHouse();localStorage.setItem(KEY,JSON.stringify(D))}
 document.querySelectorAll('[data-room]').forEach(b=>b.onclick=()=>openRoom(b.dataset.room));
 $('backHome').onclick=backHome;
-function petAction(action){if(action==='feed'&&D.coins<3)return toast('需要3金币购买胡萝卜');if(action==='feed'){D.coins-=3;D.house.food=Math.min(100,D.house.food+20);D.house.love+=2;D.house.petPose=4}else if(action==='play'){D.house.love+=3;D.house.food=Math.max(0,D.house.food-5);D.house.petPose=6}else if(action==='sleep'){D.house.petPose=3;D.house.food=Math.max(0,D.house.food-2)}else{D.house.love+=2;D.house.petPose=2}save()}
+function petAction(action){
+ if(action==='feed'&&D.coins<3)return toast('需要3金币购买胡萝卜');
+ if(action==='feed'){D.coins-=3;D.house.food=Math.min(100,D.house.food+20);D.house.love+=2;D.house.petPose=4}
+ else if(action==='play'){D.house.love+=3;D.house.food=Math.max(0,D.house.food-5);D.house.petPose=6}
+ else if(action==='sleep'){D.house.petPose=3;D.house.food=Math.max(0,D.house.food-2)}
+ else{D.house.love+=2;D.house.petPose=2}
+ D.game=D.game||{};D.game.petAction={type:action,at:Date.now()};save();
+ const words={feed:'月绒兔抱住胡萝卜认真吃了起来',play:'月绒兔追着星星球跳了两圈',sleep:'小毯子盖好了，它慢慢闭上眼睛',study:'月绒兔把小爪子搭在书页旁'};
+ toast(words[action]||'兔兔回应了你');
+ if(window.renderGameV5)window.renderGameV5();
+ setTimeout(()=>{if(D.game?.petAction?.type===action){D.game.petAction={type:'idle',at:Date.now()};save();if(window.renderGameV5)window.renderGameV5()}},2600)
+}
 document.querySelectorAll('[data-pet]').forEach(b=>b.onclick=()=>petAction(b.dataset.pet));
 function renderHouse(){let exterior=D.house.room==='exterior',room=exterior?'living':D.house.room;$('homeExterior').hidden=!exterior;$('roomView').hidden=exterior;$('houseStage').className='houseStage card '+(exterior?'exteriorRoom':room==='bedroom'?'floor2':room==='bunny'?'bunnyRoom':'floor1');document.querySelectorAll('.floorTabs [data-room]').forEach(b=>b.classList.toggle('active',b.dataset.room===room));$('petLove').textContent=D.house.love;$('petFood').textContent=D.house.food;$('slotA').hidden=true;$('slotB').hidden=true;$('characterArt').hidden=true;$('houseBunny').hidden=room!=='bunny';let active=(D.house.rooms[room]||[]).filter(name=>!furnitureRules[name]||furnitureRules[name].rooms.includes(room)),dynamic=active.filter(name=>!(fixedRoomFurniture[room]||[]).includes(name));furnitureLayer.innerHTML=exterior?'':dynamic.slice(0,10).map(name=>{let asset=decorAssets[name],p=furniturePlacement[asset];if(!asset||!p)return'';let style=['bottom:'+p.bottom+'%','width:'+p.width+'%','z-index:'+p.z];if(p.left!=null)style.push('left:'+p.left+'%');if(p.right!=null)style.push('right:'+p.right+'%');return '<img class="placedFurniture furniture-'+asset+'" alt="'+name+'" src="assets/furniture/'+asset+'.webp?v=6" decoding="async" style="'+style.join(';')+'">'}).join('');$('furnitureShop').innerHTML='<div class="empty">基础家具已经与房间光影融合；可在商城继续解锁可替换装饰。</div>'}
 const oldRenderAll=renderAll;renderAll=function(){oldRenderAll();renderHouse()};renderHouse();

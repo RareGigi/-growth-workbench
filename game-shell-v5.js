@@ -16,6 +16,13 @@
   if (!D.game.ownedV5.includes('moonlit-immortal')) D.game.ownedV5.unshift('moonlit-immortal');
   if (!D.game.ownedV5.includes('mist-city-walk')) D.game.ownedV5.push('mist-city-walk');
   D.game.equippedV5 = D.game.equippedV5 || 'moonlit-immortal';
+  D.game.wardrobeSlots = D.game.wardrobeSlots || {
+    hairBack:'moon-hair-back', base:null, hairFront:'moon-hair-front',
+    top:'moon-top', bottom:'moon-bottom', coat:'moon-coat', shoes:'moon-boots',
+    headwear:'moon-crown', neck:'moon-waist'
+  };
+  D.game.petAction = D.game.petAction || { type:'idle', at:0 };
+  D.game.decorRoom = D.game.decorRoom || 'living';
   D.game.scene = D.game.scene || 'estate';
   D.game.garden = D.game.garden || {
     selectedCrop: 'starbell',
@@ -52,6 +59,23 @@
   let scene = 'estate';
   let history = [];
   let pendingOutfit = null;
+  let wardrobeTab = 'all';
+
+  const partCatalog = [
+    ['moon-hair-back','hairBack','发型','月华后发','assets/avatar-parts/hair-back.png'],
+    ['moon-hair-front','hairFront','发型','月华前发','assets/avatar-parts/hair-front.png'],
+    ['starlight-base','base','基础','星光基础体','assets/avatar-parts/base.png'],
+    ['moon-top','top','上装','月华内衫','assets/avatar-parts/top.png'],
+    ['moon-bottom','bottom','下装','月华下装','assets/avatar-parts/bottom.png'],
+    ['moon-coat','coat','外套','流光外袍','assets/avatar-parts/coat.png'],
+    ['moon-boots','shoes','鞋履','月纹短靴','assets/avatar-parts/boots.png'],
+    ['moon-crown','headwear','头饰','弦月冠饰','assets/avatar-parts/headwear.png'],
+    ['moon-waist','neck','配饰','星月腰饰','assets/avatar-parts/waist.png']
+  ].map(([id,slot,tab,name,src])=>({id,slot,tab,name,src}));
+  const layerOrder=['hairBack','base','bottom','shoes','top','coat','neck','hairFront','headwear'];
+  function avatarLayers(selection=D.game.wardrobeSlots, cls=''){
+    return `<div class="layeredAvatar ${cls}" aria-label="当前完整人物">${layerOrder.map(slot=>{const id=selection[slot],item=partCatalog.find(x=>x.id===id);return item?`<img data-avatar-slot="${slot}" src="${item.src}?v=7" alt="">`:''}).join('')}</div>`;
+  }
 
   function wallet(){
     app.querySelector('#v5Coins').textContent = D.coins;
@@ -97,9 +121,12 @@
 
   function roomScene(room){
     const supported=['living','bedroom','bunny'];
+    if(room==='study')return `<div class="specialRoom studyRoom"><div class="specialRoomCopy"><small>1F · MOONLIGHT STUDY</small><h2>月影书房</h2><p>书桌、书架和阅读榻都有各自用途。专注记录会在这里留下星光。</p><div class="specialActions"><button data-room-action="study">开始一次专注</button><button data-room-action="read">阅读片刻 · +2 XP</button><button data-v5-scene="decor" data-decor-room="study">装饰书房</button></div></div><button class="sceneHotspot hs-desk" data-room-action="study" aria-label="星象书桌"></button><button class="sceneHotspot hs-books" data-room-action="read" aria-label="拱门书架"></button></div>`;
+    if(room==='dining')return `<div class="specialRoom diningRoom"><div class="specialRoomCopy"><small>1F · GALAXY DINING</small><h2>银河餐厅</h2><p>给自己留下一次好好吃饭的记录，也可以为兔兔准备点心。</p><div class="specialActions"><button data-room-action="meal">记录好好吃饭 · +3 XP</button><button data-v5-scene="floor:1">返回一层</button></div></div></div>`;
+    if(room==='closet')return wardrobeScene();
     if(room==='bath')return `<div class="specialRoom bathRoom"><div class="specialRoomCopy"><small>2F · CLOUD MIST BATH</small><h2>云雾浴室</h2><p>把放松也记进成长：完成一次身体复盘，就能点亮浴室的水晶灯。</p><div class="specialActions"><button data-room-action="bath">泡一会儿 · +4 XP</button><button data-v5-scene="floor:2">返回二层地图</button></div></div></div>`;
     if(room==='garden')return gardenScene();
-    if(!supported.includes(room)) return `<div class="comingScene"><div>${gameIcon('map')}</div><h2>${{study:'月影书房',dining:'银河餐厅',closet:'星回衣帽间',bath:'云雾浴室'}[room]||'新房间'}</h2><p>房间结构已经接入楼层地图，高清布景和专属家具正在制作。</p><button data-v5-scene="${room==='closet'?'wardrobe':'estate'}">${room==='closet'?'进入衣橱':'返回家园'}</button></div>`;
+    if(!supported.includes(room)) return `<div class="comingScene"><div>${gameIcon('map')}</div><h2>房间载入失败</h2><p>这个入口暂时无法读取，请返回楼层地图。</p><button data-v5-scene="estate">返回家园</button></div>`;
     setTimeout(()=>{
       const roomView=document.querySelector('#roomView');
       if(roomView){
@@ -109,11 +136,9 @@
         const hotspots=document.createElement('div');
         hotspots.className='roomHotspots';
         hotspots.innerHTML=room==='living'?'<button data-room-action="sofa"><b>云朵沙发</b><small>休息 · 恢复一点心情</small></button><button data-room-action="window"><b>月窗</b><small>看一会儿星星</small></button>':room==='bedroom'?'<button data-room-action="rest"><b>月光床</b><small>记录睡眠 · +状态</small></button><button data-room-action="study"><b>星象书桌</b><small>去完成一次专注</small></button><button data-v5-scene="wardrobe"><b>星回衣橱</b><small>全屏换装</small></button>':'<button data-v5-scene="pet"><b>月绒兔</b><small>进入兔兔照料</small></button>';
-        const equipped=outfitCatalog.find(x=>x.id===D.game.equippedV5)||outfitCatalog[0];
-        const avatar=document.createElement('img');
+        const avatar=document.createElement('div');
         avatar.className='roomAvatar';
-        avatar.src=equipped.preview;
-        avatar.alt='当前装扮角色';
+        avatar.innerHTML=avatarLayers(D.game.wardrobeSlots,'roomAvatarLayers');
         sceneRoot.replaceChildren(toolbar,roomView,avatar,hotspots);
         roomView.hidden=false;
         openRoom(room);
@@ -124,16 +149,15 @@
   }
 
   function wardrobeScene(){
-    const owned=outfitCatalog.filter(x=>D.game.ownedV5.includes(x.id));
-    const current=outfitCatalog.find(x=>x.id===(pendingOutfit||D.game.equippedV5))||owned[0];
-    const isPreview=current.id!==D.game.equippedV5;
+    const tabs=['全部','发型','上装','下装','外套','鞋履','头饰','配饰'];
+    const visible=partCatalog.filter(x=>wardrobeTab==='all'||x.tab===wardrobeTab);
     return `<div class="v5Wardrobe">
-      <div class="wardrobeViewer"><div class="wardrobeHalo"></div><img src="${current.preview}" alt="${current.name}"><div class="lookName"><small>${isPreview?'正在试穿':'当前穿搭'}</small><b>${current.name}</b><span>${'★'.repeat(current.rarity)}</span></div></div>
+      <div class="wardrobeViewer"><div class="wardrobeHalo"></div>${avatarLayers()}<div class="lookName"><small>整体人物展示</small><b>当前混搭</b><span>发型、服装与配饰均可单独更换</span></div></div>
       <section class="wardrobeControls">
-        <div class="v5Tabs"><button class="active">套装</button><button disabled>发型</button><button disabled>上装</button><button disabled>下装</button><button disabled>外套</button><button disabled>鞋履</button><button disabled>头饰</button><button disabled>配饰</button></div>
-        <div class="wardrobeGuide"><b>选择一套已拥有的服装</b><small>先试穿，确认后才会保存并同步到房间角色。</small></div>
-        <div class="v5OutfitGrid">${owned.map(x=>`<button class="v5Outfit ${x.id===current.id?'selected':''}" data-try-outfit="${x.id}"><img src="${x.preview}" alt="${x.name}"><b>${x.name}</b><small>${x.series}${x.id==='mist-city-walk'?' · 初始赠礼':''}</small></button>`).join('')}</div>
-        <div class="wardrobeActions"><button data-cancel-outfit ${isPreview?'':'disabled'}>取消试穿</button><button class="primary" data-confirm-outfit ${isPreview?'':'disabled'}>保存这套穿搭</button></div>
+        <div class="v5Tabs">${tabs.map(t=>`<button data-wardrobe-tab="${t==='全部'?'all':t}" class="${wardrobeTab===(t==='全部'?'all':t)?'active':''}">${t}</button>`).join('')}</div>
+        <div class="wardrobeGuide"><b>逐件选择已拥有的服饰</b><small>每一项都是独立透明图层，点击即可试穿；保存后同步到家园。</small></div>
+        <div class="partGrid">${visible.map(x=>`<button class="partCard ${D.game.wardrobeSlots[x.slot]===x.id?'selected':''}" data-equip-part="${x.id}"><span class="partThumb"><img src="${x.src}?v=7" alt="${x.name}"></span><b>${x.name}</b><small>${x.tab}</small></button>`).join('')}</div>
+        <div class="wardrobeActions"><button data-reset-look>恢复月华整套</button><button class="primary" data-save-look>保存当前穿搭</button></div>
       </section>
     </div>`;
   }
@@ -147,8 +171,8 @@
   }
 
   function furnitureStoreScene(){return `<div class="v5Store"><div class="storeBanner furniture"><small>HOME COLLECTION</small><h2>家具商城</h2><p>购买后送入仓库，再到房间装修中摆放。</p></div>${catalogFurniture('store')}</div>`}
-  function decorScene(){return `<div class="v5Store"><div class="storeBanner decor"><small>ROOM EDITOR</small><h2>房间装修</h2><p>这里只显示已经拥有的家具。</p></div>${catalogFurniture('editor')}</div>`}
-  function petScene(){return `<div class="v5PetScene"><div class="v5PetStage"><div class="v5PetSprite"></div><div class="petMood"><b>月绒兔</b><span>状态：安静陪伴</span></div></div>${petPanel()}</div>`}
+  function decorScene(){const room=D.game.decorRoom||D.house.room||'living';return `<div class="v5Store decorWorkspace"><div class="storeBanner decor"><small>ROOM EDITOR · ${room.toUpperCase()}</small><h2>房间装修</h2><p>点击家具先在固定位置预览，再确认保存；同类家具会自动替换。</p><button data-return-room="${room}">完成并返回房间</button></div><div class="decorPreview" data-decor-preview="${room}"></div>${catalogFurniture('editor')}</div>`}
+  function petScene(){const a=D.game.petAction||{type:'idle'};const labels={idle:'安静陪伴',feed:'正在吃胡萝卜',play:'开心地扑向星星球',sleep:'盖好小毯子睡着了',study:'挨着你一起读书'};return `<div class="v5PetScene"><div class="v5PetStage pet-${a.type}"><div class="v5PetSprite"></div><div class="petFx" aria-hidden="true"></div><div class="petMood"><b>月绒兔</b><span>状态：${labels[a.type]||labels.idle}</span></div></div>${petPanel()}</div>`}
   function inventoryScene(){return `<div class="v5Inventory"><div class="inventoryHero"><h2>星光仓库</h2><p>服装进入衣橱，家具进入装修；仓库负责统一查看收藏。</p></div><div class="inventorySummary"><span>家具 <b>${D.house.ownedFurniture.length}</b></span><span>服装 <b>${D.game.ownedV5.length}</b></span><span>发型 <b>1</b></span></div><h3>家具收藏</h3>${catalogFurniture('inventory')}<h3>服装收藏</h3><div class="v5OutfitGrid">${outfitCatalog.filter(x=>D.game.ownedV5.includes(x.id)).map(x=>`<article class="v5Outfit"><img src="${x.preview}" alt=""><b>${x.name}</b><small>${x.series}</small></article>`).join('')}</div></div>`}
   function achievementScene(){return `<div class="v5Achievements"><div class="achievementHero"><h2>星轨成就图鉴</h2><p>所有游戏奖励都来自现实中的持续行动。</p></div>${achievementPanel()}</div>`}
   const gardenCatalog={
@@ -197,7 +221,7 @@
 
   app.addEventListener('click',e=>{
     const sceneButton=e.target.closest('[data-v5-scene]');
-    if(sceneButton){go(sceneButton.dataset.v5Scene);return}
+    if(sceneButton){if(sceneButton.dataset.v5Scene==='decor'){D.game.decorRoom=sceneButton.dataset.decorRoom||(D.house.room==='exterior'?'living':D.house.room)}go(sceneButton.dataset.v5Scene);return}
     const floorButton=e.target.closest('[data-floor]');
     if(floorButton){go('floor:'+floorButton.dataset.floor);return}
     const roomButton=e.target.closest('[data-room]');
@@ -211,10 +235,18 @@
       const item=outfitCatalog.find(x=>x.id===pendingOutfit);
       pendingOutfit=null;save();render();toast(`已换上「${item?.name||'新穿搭'}」`);return
     }
+    const tab=e.target.closest('[data-wardrobe-tab]');
+    if(tab){wardrobeTab=tab.dataset.wardrobeTab;render();return}
+    const part=e.target.closest('[data-equip-part]');
+    if(part){const item=partCatalog.find(x=>x.id===part.dataset.equipPart);if(item){D.game.wardrobeSlots[item.slot]=item.id;render()}return}
+    if(e.target.closest('[data-reset-look]')){D.game.wardrobeSlots={hairBack:'moon-hair-back',base:null,hairFront:'moon-hair-front',top:'moon-top',bottom:'moon-bottom',coat:'moon-coat',shoes:'moon-boots',headwear:'moon-crown',neck:'moon-waist'};render();return}
+    if(e.target.closest('[data-save-look]')){save();toast('当前分层穿搭已保存，并同步到家园');return}
+    const returnRoom=e.target.closest('[data-return-room]');
+    if(returnRoom){go('room:'+returnRoom.dataset.returnRoom);return}
     const buy=e.target.closest('[data-buy-outfit]');
     if(buy){const item=outfitCatalog.find(x=>x.id===buy.dataset.buyOutfit);if(!item)return;if(D.coins<item.price)return toast('金币还不够，先完成现实任务');D.coins-=item.price;D.game.ownedV5.push(item.id);save();render();toast('服装已送入衣橱')}
     const bathAction=e.target.closest('[data-room-action]');
-    if(bathAction){const action=bathAction.dataset.roomAction;if(action==='study'){gotoPage('focus');exitGameV5();return}if(action==='rest'){const key='rest-'+TODAY;if(D.rewarded[key])return toast('今天已经记录过休息');reward(4,2,key);toast('睡眠状态已记录');return}if(action==='bath'){const key='bath-'+TODAY;if(D.rewarded[key])return toast('今天已经完成过放松记录');reward(4,2,key);render();return}if(action==='sofa'||action==='window'){const key=action+'-'+TODAY;if(D.rewarded[key])return toast('今天已经互动过啦');reward(2,1,key);toast(action==='sofa'?'柔软的云朵接住你了':'月光落在窗边');return}}
+    if(bathAction){const action=bathAction.dataset.roomAction;if(action==='study'){gotoPage('focus');exitGameV5();return}if(action==='read'||action==='meal'){const key=action+'-'+TODAY;if(D.rewarded[key])return toast('今天已经记录过了');reward(action==='meal'?3:2,1,key);render();toast(action==='meal'?'好好吃饭也值得一颗星':'书页翻过了一小段');return}if(action==='rest'){const key='rest-'+TODAY;if(D.rewarded[key])return toast('今天已经记录过休息');reward(4,2,key);toast('睡眠状态已记录');return}if(action==='bath'){const key='bath-'+TODAY;if(D.rewarded[key])return toast('今天已经完成过放松记录');reward(4,2,key);render();toast('水晶灯被点亮，放松状态已记录');return}if(action==='sofa'||action==='window'){const key=action+'-'+TODAY;if(D.rewarded[key])return toast('今天已经互动过啦');reward(2,1,key);toast(action==='sofa'?'柔软的云朵接住你了':'月光落在窗边');return}}
     const cropButton=e.target.closest('[data-select-crop]');
     if(cropButton){D.game.garden.selectedCrop=cropButton.dataset.selectCrop;save();render();return}
     const plantButton=e.target.closest('[data-plant]');
@@ -244,4 +276,5 @@
   leaveGame=exitGameV5;
   window.enterGameV5=enterGameV5;
   window.exitGameV5=exitGameV5;
+  window.renderGameV5=render;
 })();
