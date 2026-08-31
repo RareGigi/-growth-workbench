@@ -1,7 +1,7 @@
 :root{--dress-ink:#302b49;--dress-muted:#7b7394;--dress-purple:#7662b7;--dress-pale:#f1edfb;--dress-card:#ffffffd9;--dress-gold:#e1ad4b}
 .gameAppV5{display:none;position:fixed;inset:0;z-index:300;background:#ede9f8;color:var(--dress-ink);overflow:hidden;font-family:inherit}
 .gameAppV5.open{display:block}
-.dressup-v9-active>.gameHud,.dressup-v9-active>.gameDock,.dressup-v9-active>.gameSheet{display:none!important}
+.dressup-v10-active>.gameHud,.dressup-v10-active>.gameDock,.dressup-v10-active>.gameSheet{display:none!important}
 .dressupApp *{box-sizing:border-box;writing-mode:horizontal-tb;word-break:normal;overflow-wrap:break-word}
 .dressupApp button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .dressupApp button:disabled{cursor:default}
@@ -19,7 +19,10 @@
 .dressScene{position:absolute;top:calc(66px + env(safe-area-inset-top));bottom:calc(72px + env(safe-area-inset-bottom));left:0;right:0;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;background:radial-gradient(circle at 50% 8%,#fff 0,#f3effb 34%,#e5e0f3 100%)}
 .dressNav{position:absolute;z-index:20;left:0;right:0;bottom:0;height:calc(72px + env(safe-area-inset-bottom));padding:6px 9px env(safe-area-inset-bottom);display:grid;grid-template-columns:repeat(4,1fr);gap:5px;background:#302848;color:#ddd5f4;border-top:1px solid #ffffff3d;box-shadow:0 -8px 25px #33284d38}
 .dressNav button{min-width:0;border:0;border-radius:16px;background:transparent;color:inherit;display:grid;place-content:center;justify-items:center;gap:1px;padding:4px}
-.dressNav svg{width:27px;height:27px}
+.dressNav svg{width:27px;height:27px;overflow:visible}
+.dressNavIcon{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.dressNavIcon .iconTint{fill:currentColor;fill-opacity:.14;stroke:none}
+.dressNav button.active .dressNavIcon .iconTint{fill-opacity:.22}
 .dressNav span{font-size:10px;white-space:nowrap}
 .dressNav button.active{background:linear-gradient(145deg,#8e77d5,#6c57ac);color:#fff;box-shadow:0 6px 18px #17102e52}
 .fallbackIcon{font-size:24px}
@@ -31,7 +34,7 @@
 .characterPanel:after{width:8px;height:8px;top:15%;right:18%;background:#ffe7a7;box-shadow:42px 80px 0 2px #fff, -230px 130px 0 1px #fff}
 .characterGlow{position:absolute;inset:auto 14% 4%;height:17%;border-radius:50%;background:#7864ad28;filter:blur(20px)}
 .dressAvatar{position:relative;z-index:2;width:min(94vw,500px);height:100%;aspect-ratio:1}
-.dressAvatar>img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center;user-select:none;-webkit-user-drag:none}
+.dressAvatar>img,.dressAvatar>svg{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center;user-select:none;-webkit-user-drag:none}
 .dressBase{z-index:1}.layer-shoes{z-index:2}.layer-bottom{z-index:3}.layer-top{z-index:4}.layer-coat{z-index:5}
 .lookSummary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;background:#fffc;border-top:1px solid #fff;border-bottom:1px solid #d8d0e7}
 .lookSummary small,.lookSummary b{display:block}.lookSummary small{font-size:10px;color:var(--dress-muted)}.lookSummary b{font-size:17px}.lookSummary>span{font-size:10px;color:#ba8640;text-align:right}
@@ -44,11 +47,11 @@
 .pieceCard{min-width:0;padding:8px;border:1px solid #ffffffdd;border-radius:19px;background:var(--dress-card);text-align:left;box-shadow:0 8px 22px #4d3f6816}
 .pieceCard.selected{outline:3px solid #806bc2;background:#f5f0ff}
 .pieceArt{height:132px;border-radius:14px;display:grid;place-items:center;overflow:hidden;background:radial-gradient(circle,#fff,#e9e3f5)}
-.pieceArt img{width:100%;height:100%;object-fit:contain}
-.pieceArt.fixedHair img{transform:scale(1.28);transform-origin:50% 28%}
+.pieceArt img,.pieceArt svg{width:100%;height:100%;object-fit:contain}
 .pieceCard>b,.pieceCard>small,.pieceCard>em{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pieceCard>b{margin-top:8px;font-size:15px}.pieceCard>small{font-size:10px;color:var(--dress-muted)}.pieceCard>em{margin-top:5px;font-size:10px;font-style:normal;color:#9a79c7}
 .emptyPiece{display:grid;place-items:center;width:68px;height:68px;border:1px dashed #a89ac5;border-radius:50%;font-size:12px;color:#877b9d;background:#fff9}
+.layerHint{margin:0 2px 11px;padding:10px 12px;border:1px solid #ffffffd9;border-radius:13px;background:#ffffff8f;color:#746b88;font-size:11px;line-height:1.55}
 .dressActions{position:sticky;z-index:12;bottom:0;display:grid;grid-template-columns:.9fr 1.25fr;gap:9px;padding:13px 12px 14px;background:linear-gradient(transparent,#ebe6f5 22%);backdrop-filter:blur(9px)}
 .dressActions button{min-height:48px;border:1px solid #d6cee6;border-radius:15px;background:#ffffffd9}
 .dressActions .primary{border-color:#725db4;background:linear-gradient(135deg,#8873cd,#6e59ad);color:#fff;box-shadow:0 9px 20px #614c9b35}
@@ -65,7 +68,7 @@
 .storeGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .storeCard{min-width:0;padding:9px;border:1px solid #fff;border-radius:19px;background:#ffffffd8;box-shadow:0 8px 22px #4d3f6815}
 .storeArt{height:138px;display:grid;place-items:center;border-radius:14px;overflow:hidden;background:radial-gradient(circle,#fff,#eae5f6)}
-.storeArt img{width:100%;height:100%;object-fit:contain}
+.storeArt img,.storeArt svg{width:100%;height:100%;object-fit:contain}
 .storeCard div{min-height:48px;padding:7px 2px 3px}.storeCard small,.storeCard b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.storeCard small{font-size:9px;color:#9b719f}.storeCard b{font-size:14px}
 .storeCard button{width:100%;min-height:39px;border:0;border-radius:12px;background:#725eb4;color:#fff}.storeCard button:disabled{background:#e8e2f0;color:#877f96}
 .comingSeries{margin-top:13px;padding:18px;border:1px solid #fff;border-radius:20px;background:#ffffffa8}.comingSeries small{color:#9e78af}.comingSeries h3{margin:5px 0;font-size:16px}.comingSeries p{margin:0;color:var(--dress-muted);font-size:11px;line-height:1.6}

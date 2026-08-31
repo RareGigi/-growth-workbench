@@ -1,46 +1,38 @@
-/* 星轨成长舱 v9：手机优先的纯平面换装游戏。 */
+/* 星轨成长舱 v10：固定基础内搭 + 可独立穿脱的平面服饰。 */
 (function () {
-  const VERSION = 9;
+  const VERSION = 10;
   const ASSET = `?v=${VERSION}`;
   const BASE = 'assets/dressup-2d/base-approved.webp';
   const layerOrder = ['shoes', 'bottom', 'top', 'coat'];
-  const tabs = ['全部', '发型', '上装', '下装', '外套', '鞋履'];
+  const paintOrder = ['bottom', 'top', 'shoes', 'coat'];
+  const tabs = ['全部', '上装', '下装', '外套', '鞋履'];
+  let svgSerial = 0;
 
   const items = [
-    { id:'hair-default', slot:'hair', tab:'发型', name:'星雾短发', series:'基础造型', price:0, fixed:true, thumb:BASE },
-    { id:'top-base', slot:'top', tab:'上装', name:'云白内搭', series:'基础造型', price:0, empty:true, thumb:BASE },
-    { id:'bottom-base', slot:'bottom', tab:'下装', name:'云白短裤', series:'基础造型', price:0, empty:true, thumb:BASE },
-    { id:'coat-none', slot:'coat', tab:'外套', name:'不穿外套', series:'基础选项', price:0, empty:true },
-    { id:'shoes-base', slot:'shoes', tab:'鞋履', name:'云白短袜', series:'基础造型', price:0, empty:true, thumb:BASE },
-
-    { id:'mist-top', slot:'top', tab:'上装', name:'雾白针织衫', series:'雾城漫步', price:72, src:'assets/dressup-2d/mist-top.webp', thumb:'assets/dressup-2d/thumbs/mist-top.webp' },
-    { id:'mist-bottom', slot:'bottom', tab:'下装', name:'星链长裤', series:'雾城漫步', price:88, src:'assets/dressup-2d/mist-bottom.webp', thumb:'assets/dressup-2d/thumbs/mist-bottom.webp' },
-    { id:'mist-coat', slot:'coat', tab:'外套', name:'流雾风衣', series:'雾城漫步', price:148, src:'assets/dressup-2d/mist-coat.webp', thumb:'assets/dressup-2d/thumbs/mist-coat.webp' },
-    { id:'mist-shoes', slot:'shoes', tab:'鞋履', name:'星屿球鞋', series:'雾城漫步', price:64, src:'assets/dressup-2d/mist-shoes.webp', thumb:'assets/dressup-2d/thumbs/mist-shoes.webp' },
-
-    { id:'dawn-top', slot:'top', tab:'上装', name:'晨雾针织衫', series:'晨星变奏', price:62, src:'assets/dressup-2d/dawn-top.webp', thumb:'assets/dressup-2d/thumbs/dawn-top.webp' },
-    { id:'night-bottom', slot:'bottom', tab:'下装', name:'夜幕星链裤', series:'晨星变奏', price:76, src:'assets/dressup-2d/night-bottom.webp', thumb:'assets/dressup-2d/thumbs/night-bottom.webp' },
-    { id:'rose-coat', slot:'coat', tab:'外套', name:'蔷薇流雾风衣', series:'晨星变奏', price:132, src:'assets/dressup-2d/rose-coat.webp', thumb:'assets/dressup-2d/thumbs/rose-coat.webp' },
-    { id:'lilac-shoes', slot:'shoes', tab:'鞋履', name:'紫藤星屿鞋', series:'晨星变奏', price:58, src:'assets/dressup-2d/lilac-shoes.webp', thumb:'assets/dressup-2d/thumbs/lilac-shoes.webp' }
+    { id:'mist-top', slot:'top', tab:'上装', name:'雾白针织衫', series:'雾城漫步', price:72, src:'assets/dressup-2d/mist-top.webp', thumb:'assets/dressup-2d/thumbs/mist-top.webp', baseCut:'top' },
+    { id:'mist-bottom', slot:'bottom', tab:'下装', name:'星链长裤', series:'雾城漫步', price:88, src:'assets/dressup-2d/mist-bottom.webp', thumb:'assets/dressup-2d/thumbs/mist-bottom.webp', baseCut:'bottom' },
+    { id:'mist-coat', slot:'coat', tab:'外套', name:'流雾风衣', series:'雾城漫步', price:148, src:'assets/dressup-2d/mist-coat.webp', thumb:'assets/dressup-2d/thumbs/mist-coat.webp', selfCut:'openCoat' },
+    { id:'mist-shoes', slot:'shoes', tab:'鞋履', name:'星屿球鞋', series:'雾城漫步', price:64, src:'assets/dressup-2d/mist-shoes.webp', thumb:'assets/dressup-2d/thumbs/mist-shoes.webp', baseCut:'shoes' },
+    { id:'lilac-shoes', slot:'shoes', tab:'鞋履', name:'紫藤星屿鞋', series:'晨星变奏', price:58, src:'assets/dressup-2d/lilac-shoes.webp', thumb:'assets/dressup-2d/thumbs/lilac-shoes.webp', baseCut:'shoes' }
   ];
 
-  const baseIds = ['hair-default', 'top-base', 'bottom-base', 'coat-none', 'shoes-base'];
   const mistIds = ['mist-top', 'mist-bottom', 'mist-coat', 'mist-shoes'];
-  const defaultLook = { hair:'hair-default', top:'top-base', bottom:'bottom-base', coat:'coat-none', shoes:'shoes-base' };
-  const mistLook = { hair:'hair-default', top:'mist-top', bottom:'mist-bottom', coat:'mist-coat', shoes:'mist-shoes' };
+  const defaultLook = { top:null, bottom:null, coat:null, shoes:null };
+  const mistLook = { top:'mist-top', bottom:'mist-bottom', coat:'mist-coat', shoes:'mist-shoes' };
+  const legacyBaseIds = new Set(['hair-default', 'top-base', 'bottom-base', 'coat-none', 'shoes-base']);
 
   D.game2d = D.game2d || {};
   const state = D.game2d;
   state.owned = Array.isArray(state.owned) ? state.owned : [];
-  baseIds.forEach(id => { if (!state.owned.includes(id)) state.owned.push(id); });
+  state.owned = state.owned.filter(id => !legacyBaseIds.has(id));
   /* Every existing save gets one genuinely separated starter set so all
      categories can be tested immediately. Future pieces still cost coins. */
   if (!state.starterGranted) {
     mistIds.forEach(id => { if (!state.owned.includes(id)) state.owned.push(id); });
     state.starterGranted = true;
   }
-  state.equipped = Object.assign({}, defaultLook, state.equipped || mistLook);
-  state.looks = Array.isArray(state.looks) ? state.looks : [];
+  state.equipped = sanitizeLook(state.equipped || mistLook);
+  state.looks = (Array.isArray(state.looks) ? state.looks : []).map(look => Object.assign({}, look, { slots:sanitizeLook(look.slots) }));
   state.version = VERSION;
 
   const app = document.createElement('section');
@@ -55,10 +47,10 @@
     </header>
     <main class="dressScene" id="dressScene"></main>
     <nav class="dressNav" aria-label="换装游戏导航">
-      <button data-dress-scene="wardrobe">${safeIcon('wardrobe')}<span>衣橱</span></button>
-      <button data-dress-scene="shop">${safeIcon('shop')}<span>商城</span></button>
-      <button data-dress-scene="looks">${safeIcon('bag')}<span>穿搭</span></button>
-      <button data-dress-scene="rewards">${safeIcon('award')}<span>奖励</span></button>
+      <button data-dress-scene="wardrobe">${dressNavIcon('wardrobe')}<span>衣橱</span></button>
+      <button data-dress-scene="shop">${dressNavIcon('shop')}<span>商城</span></button>
+      <button data-dress-scene="looks">${dressNavIcon('looks')}<span>穿搭</span></button>
+      <button data-dress-scene="rewards">${dressNavIcon('rewards')}<span>奖励</span></button>
     </nav>`;
   document.body.appendChild(app);
 
@@ -67,29 +59,71 @@
   let scene = 'wardrobe';
   let wardrobeTab = '全部';
   let shopTab = '全部';
-  let draft = Object.assign({}, state.equipped);
+  let draft = sanitizeLook(state.equipped);
 
-  function safeIcon(name) {
-    if (typeof gameIcon === 'function') return gameIcon(name);
-    return `<span class="fallbackIcon">✦</span>`;
+  function dressNavIcon(name) {
+    const icons = {
+      wardrobe:`<path class="iconTint" d="M11.4 5.4 8 6.8 3.8 11l3.7 4 2.2-1.7V27h12.6V13.3l2.2 1.7 3.7-4L24 6.8l-3.4-1.4C19.7 7.3 18.2 8.3 16 8.3s-3.7-1-4.6-2.9Z"/><path d="M11.4 5.4 8 6.8 3.8 11l3.7 4 2.2-1.7V27h12.6V13.3l2.2 1.7 3.7-4L24 6.8l-3.4-1.4C19.7 7.3 18.2 8.3 16 8.3s-3.7-1-4.6-2.9Z"/><path d="M11.4 5.4c.9 1.9 2.4 2.9 4.6 2.9s3.7-1 4.6-2.9"/>`,
+      shop:`<path class="iconTint" d="M6.5 10.5h19L24.2 27H7.8Z"/><path d="M6.5 10.5h19L24.2 27H7.8Z"/><path d="M11.5 11V8.5a4.5 4.5 0 0 1 9 0V11"/><path d="M12 16.5h8"/>`,
+      looks:`<rect class="iconTint" x="8" y="5" width="17" height="22" rx="3"/><path d="M8 8H6.5A2.5 2.5 0 0 0 4 10.5v13A2.5 2.5 0 0 0 6.5 26H8"/><rect x="8" y="5" width="17" height="22" rx="3"/><path d="m14 11-2.3 1-2 2.2 2.1 2 1.2-.9v6.2h7v-6.2l1.2.9 2.1-2-2-2.2-2.3-1a3.2 3.2 0 0 1-5 0Z"/>`,
+      rewards:`<circle class="iconTint" cx="16" cy="13" r="8"/><circle cx="16" cy="13" r="8"/><path d="m16 8.5 1.4 2.8 3.1.5-2.2 2.1.5 3-2.8-1.5-2.8 1.5.5-3-2.2-2.1 3.1-.5Z"/><path d="m11.5 19.5-1 7 5.5-2.8 5.5 2.8-1-7"/>`
+    };
+    return `<svg class="dressNavIcon" viewBox="0 0 32 32" aria-hidden="true">${icons[name] || icons.wardrobe}</svg>`;
   }
 
   function getItem(id) { return items.find(item => item.id === id); }
   function isOwned(id) { return state.owned.includes(id); }
   function money() { app.querySelector('#dressCoinCount').textContent = Number(D.coins || 0); }
-  function cloneLook(look) { return Object.assign({}, defaultLook, look || {}); }
+  function sanitizeLook(look) {
+    const next = Object.assign({}, defaultLook, look || {});
+    layerOrder.forEach(slot => {
+      const item = getItem(next[slot]);
+      if (!item || item.slot !== slot) next[slot] = null;
+    });
+    return next;
+  }
+  function cloneLook(look) { return sanitizeLook(look); }
 
   function avatar(look, extraClass='') {
     const selection = cloneLook(look);
-    const layers = layerOrder.map(slot => {
-      const item = getItem(selection[slot]);
-      return item && item.src ? `<img class="dressLayer layer-${slot}" src="${item.src}${ASSET}" alt="">` : '';
+    const uid = `look-${++svgSerial}`;
+    const selected = Object.fromEntries(paintOrder.map(slot => [slot, getItem(selection[slot])]));
+    const baseCuts = paintOrder.map(slot => baseCutShape(selected[slot]?.baseCut)).join('');
+    const layers = paintOrder.map(slot => {
+      const item = selected[slot];
+      if (!item?.src) return '';
+      const mask = item.selfCut ? ` mask="url(#${uid}-${item.selfCut})"` : '';
+      return `<image class="dressLayer layer-${slot}" href="${item.src}${ASSET}" x="0" y="0" width="1254" height="1254"${mask}/>`;
     }).join('');
-    return `<div class="dressAvatar ${extraClass}" aria-label="完整人物换装预览"><img class="dressBase" src="${BASE}${ASSET}" alt="银灰短发的Q版人物">${layers}</div>`;
+    return `<div class="dressAvatar ${extraClass}" aria-label="完整人物换装预览"><svg class="dressAvatarSvg" viewBox="0 0 1254 1254" role="img" aria-label="银灰短发的Q版人物当前穿搭">
+      <defs>
+        <mask id="${uid}-base" maskUnits="userSpaceOnUse" x="0" y="0" width="1254" height="1254"><rect width="1254" height="1254" fill="white"/>${baseCuts}</mask>
+        ${openCoatMask(uid)}
+        <clipPath id="${uid}-hands" clipPathUnits="userSpaceOnUse"><rect x="458" y="872" width="62" height="62" rx="25"/><rect x="734" y="872" width="62" height="62" rx="25"/></clipPath>
+      </defs>
+      <image class="dressBase" href="${BASE}${ASSET}" x="0" y="0" width="1254" height="1254" mask="url(#${uid}-base)"/>
+      ${layers}
+      <image class="dressHands" href="${BASE}${ASSET}" x="0" y="0" width="1254" height="1254" clip-path="url(#${uid}-hands)"/>
+    </svg></div>`;
+  }
+
+  function baseCutShape(type) {
+    if (type === 'top') return `<path fill="black" d="M535 656 L505 665 L476 690 L446 855 L452 872 L486 884 L514 807 L543 688 Z M719 656 L749 665 L778 690 L808 855 L802 872 L768 884 L740 807 L711 688 Z M535 655 H719 V920 H535 Z"/>`;
+    if (type === 'bottom') return `<rect x="520" y="858" width="214" height="282" fill="black"/>`;
+    if (type === 'shoes') return `<rect x="505" y="1080" width="244" height="140" fill="black"/>`;
+    return '';
+  }
+
+  function openCoatMask(uid) {
+    return `<mask id="${uid}-openCoat" maskUnits="userSpaceOnUse" x="0" y="0" width="1254" height="1254"><rect width="1254" height="1254" fill="white"/><path fill="black" d="M580 640 H674 L712 700 L705 865 H549 L542 700 Z"/></mask>`;
   }
 
   function thumb(item) {
     if (!item || (!item.thumb && !item.src)) return '<span class="emptyPiece">不穿</span>';
+    if (item.selfCut === 'openCoat') {
+      const uid = `piece-${++svgSerial}`;
+      return `<svg viewBox="359 616 536 560" aria-hidden="true"><defs>${openCoatMask(uid)}</defs><image href="${item.src}${ASSET}" x="0" y="0" width="1254" height="1254" mask="url(#${uid}-openCoat)"/></svg>`;
+    }
     const src = item.thumb || item.src;
     return `<img src="${src}${ASSET}" alt="${item.name}">`;
   }
@@ -102,11 +136,12 @@
     const visible = items.filter(item => isOwned(item.id) && (wardrobeTab === '全部' || item.tab === wardrobeTab));
     return `<div class="wardrobePage">
       <section class="characterPanel"><div class="characterGlow"></div>${avatar(draft)}</section>
-      <div class="lookSummary"><div><small>当前试穿</small><b>${lookLabel(draft)}</b></div><span>每件服饰均为独立透明图层</span></div>
+      <div class="lookSummary"><div><small>当前试穿</small><b>${lookLabel(draft)}</b></div><span>基础内搭固定 · 衣服逐层穿脱</span></div>
       <section class="wardrobePanel">
         ${categoryBar(wardrobeTab, 'wardrobe')}
+        <p class="layerHint">白色基础内搭属于人物母版，不计入衣服，也不能换掉。再次点击正在试穿的单品即可脱下该层。</p>
         <div class="pieceGrid">${visible.map(item => `<button class="pieceCard ${draft[item.slot] === item.id ? 'selected' : ''}" data-equip-item="${item.id}">
-          <span class="pieceArt ${item.fixed ? 'fixedHair' : ''}">${thumb(item)}</span><b>${item.name}</b><small>${item.series}</small><em>${draft[item.slot] === item.id ? '试穿中' : '点击试穿'}</em>
+          <span class="pieceArt">${thumb(item)}</span><b>${item.name}</b><small>${item.series}</small><em>${draft[item.slot] === item.id ? '再次点击脱下' : '点击试穿'}</em>
         </button>`).join('')}</div>
       </section>
       <div class="dressActions"><button data-reset-draft>恢复已保存</button><button class="primary" data-save-draft>保存当前穿搭</button></div>
@@ -143,10 +178,9 @@
   }
 
   function lookLabel(look) {
-    const chosen = layerOrder.map(slot => getItem(look[slot])).filter(item => item && !item.empty);
-    if (chosen.some(item => item.series === '晨星变奏')) return '晨星自由混搭';
+    const chosen = layerOrder.map(slot => getItem(look[slot])).filter(Boolean);
     if (chosen.some(item => item.series === '雾城漫步')) return '雾城自由混搭';
-    return '云白基础造型';
+    return '人物基础造型';
   }
 
   function render() {
@@ -182,7 +216,7 @@
     if (equipButton) {
       const item = getItem(equipButton.dataset.equipItem);
       if (!item || !isOwned(item.id)) return;
-      draft[item.slot] = item.id;
+      draft[item.slot] = draft[item.slot] === item.id ? null : item.id;
       render();
       return;
     }
@@ -235,7 +269,7 @@
 
   const legacyLeave = typeof leaveGame === 'function' ? leaveGame : function () {};
   function enterGame2d() {
-    document.body.classList.add('game-mode', 'dressup-v9-active');
+    document.body.classList.add('game-mode', 'dressup-v10-active');
     app.classList.add('open');
     scene = 'wardrobe';
     draft = cloneLook(state.equipped);
@@ -243,7 +277,7 @@
   }
   function exitGame2d() {
     app.classList.remove('open');
-    document.body.classList.remove('game-mode', 'dressup-v9-active');
+    document.body.classList.remove('game-mode', 'dressup-v10-active');
     if (typeof baseGotoPage === 'function') baseGotoPage('home'); else legacyLeave();
   }
 
