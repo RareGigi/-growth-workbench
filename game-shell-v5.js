@@ -22,8 +22,8 @@
  function complete(l=draft){return slots.every(s=>l[s])} function count(l=draft){return slots.filter(s=>l[s]).length}
  function label(l=draft){return complete(l)?'雾城漫步·银灰旅装':(count(l)?`自由混搭 · ${count(l)}件`:'基础造型')}
  function figure(l=draft,mini=false){
-  const imgs=[l.outer?meta.outer.src:null,BASE,l.bottom?meta.bottom.src:null,l.top?meta.top.src:null,l.shoes?meta.shoes.src:null].filter(Boolean);
-  return `<div class="v25Figure ${mini?'mini':''}"><svg viewBox="0 0 1254 1254" role="img" aria-label="${label(l)}">${imgs.map((src,i)=>`<image href="${src}${src===BASE?'?v='+VERSION:''}" x="0" y="0" width="1254" height="1254"/>`).join('')}</svg></div>`;
+  const imgs=[BASE,l.bottom?meta.bottom.src:null,l.top?meta.top.src:null,l.shoes?meta.shoes.src:null,l.outer?meta.outer.src:null].filter(Boolean);
+  return `<div class="v25Figure ${mini?'mini':''}"><svg viewBox="0 0 1254 1254" role="img" aria-label="${label(l)}">${imgs.map(src=>`<image href="${src}?v=${VERSION}" x="0" y="0" width="1254" height="1254" preserveAspectRatio="xMidYMid meet"/>`).join('')}</svg></div>`;
  }
  function tabsHtml(){return `<div class="dressTabs">${tabs.map(t=>`<button data-v25-tab="${t}" class="${t===tab?'active':''}">${t}</button>`).join('')}</div>`}
  function card(slot){const m=meta[slot],on=!!draft[slot],single={top:false,bottom:false,outer:false,shoes:false};single[slot]=true;return `<button class="pieceCard v25Piece ${on?'selected':''}" data-toggle-slot="${slot}"><span class="pieceArt">${figure(single,true)}</span><b>${m.name}</b><small>雾城漫步</small><em>${on?'再次点击脱下':'点击试穿'}</em></button>`}
