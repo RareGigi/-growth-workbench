@@ -1,1 +1,6 @@
-v22 raster asset build is in progress in the safe branch only. Source atlas is split into seven fixed 1254x1254 transparent layers: top, bottom, outer-back, outer-front, shoes, necklace, brooch. The runtime already references those seven independent files and does not use vector garment drawing.
+v22 first outfit is complete in the safe branch only.
+Series: 星风巡礼.
+All seven independent raster layers are present on the fixed 1254x1254 coordinate canvas: starwind-top.webp, starwind-bottom.webp, starwind-outer-back.webp, starwind-outer-front.webp, starwind-shoes.webp, starwind-necklace.webp, starwind-brooch.webp.
+Runtime uses these files directly for wardrobe thumbnails and try-on. Outer-back renders behind the fixed base; outer-front renders in front; top, bottom, shoes, necklace and brooch can be toggled independently. No vector garment drawing is used.
+Service worker cache is v22 and preloads the fixed base plus all seven raster layers.
+Main is intentionally untouched until deployment approval.
