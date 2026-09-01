@@ -1,94 +1,125 @@
-/* 星回衣橱 v21：固定Q版人物母版 + 同坐标矢量衣装 + 覆盖/延伸型可换发型。 */
+/* 星回衣橱 v23：先把一套衣服做对。整套高清成品图，不再用矢量服装或临时拼图。 */
 (function(){
-  const VERSION=21;
+  const VERSION=23;
   const BASE='assets/dressup-2d/base-approved.webp';
-  const CLOTHING_SLOTS=['bottom','top','shoes','outer'];
-  const SLOT_ORDER=['hair',...CLOTHING_SLOTS];
-  const TABS=['套装','发型','上装','下装','外套','鞋履'];
-  const starterSetId='starmist';
-  let serial=0;
+  const OUTFIT='assets/avatar-v5/mist-city-walk-preview.png';
+  const OUTFIT_ID='mist-city-walk';
+  const D0=window.D||{};
+  window.D=D0;
+  D0.game2d=D0.game2d||{};
+  const state=D0.game2d;
+  if(state.catalogVersion!==VERSION){
+    state.catalogVersion=VERSION;
+    state.owned=[OUTFIT_ID];
+    state.equipped=OUTFIT_ID;
+  }
+  if(!Array.isArray(state.owned)) state.owned=[OUTFIT_ID];
+  if(!state.owned.includes(OUTFIT_ID)) state.owned.push(OUTFIT_ID);
+  if(state.equipped!==OUTFIT_ID && state.equipped!==null) state.equipped=OUTFIT_ID;
 
-  const sets=[
-    {id:'starmist',name:'星雾巡游',rarity:'SSR',palette:['#f4f2ff','#7788c8','#252c50','#d8b66c'],top:'highneck',bottom:'straight',outer:'celestial',shoes:'ankle',colors:{top:'#f2f0fb',bottom:'#303857',outer:'#a8b9ee',outer2:'#cbbaf0',shoe:'#f5f3ff',accent:'#d8b66c'}},
-    {id:'crane',name:'云间鹤影',rarity:'SSR',palette:['#e9eff4','#405372','#d6dce2','#9bb7a7'],top:'wrap',bottom:'taper',outer:'oriental',shoes:'ankle',colors:{top:'#edf1f4',bottom:'#35455d',outer:'#61768f',outer2:'#d8e2e8',shoe:'#f4f7f5',accent:'#91ad9e'}},
-    {id:'deepnight',name:'深空礼夜',rarity:'SSR',palette:['#151824','#313853','#8880b8','#c5a86f'],top:'turtleneck',bottom:'tailored',outer:'nightcoat',shoes:'boot',colors:{top:'#222637',bottom:'#171b28',outer:'#24293c',outer2:'#5f628e',shoe:'#171b28',accent:'#c9aa70'}},
-    {id:'crimson',name:'赤焰迷城',rarity:'SSR',palette:['#141318','#631f2e','#9c3b42','#c5a06d'],top:'shirt',bottom:'tailored',outer:'crimsoncoat',shoes:'boot',colors:{top:'#1b1a20',bottom:'#19181d',outer:'#531923',outer2:'#9b3a41',shoe:'#17161a',accent:'#c8a16c'}},
-    {id:'frost',name:'凌霜仙尊',rarity:'SSR',palette:['#f7fbff','#bed5eb','#839ac6','#dfc990'],top:'wrap',bottom:'wide',outer:'immortal',shoes:'ankle',colors:{top:'#f2f8fd',bottom:'#ecf2f7',outer:'#c9dcef',outer2:'#a7bee0',shoe:'#f7fafc',accent:'#d5bb76'}},
-    {id:'inkscholar',name:'墨染书生',rarity:'SR',palette:['#f0ece5','#30323a','#657081','#a67f57'],top:'cross',bottom:'hakama',outer:'scholar',shoes:'boot',colors:{top:'#e9e6df',bottom:'#323945',outer:'#4b5361',outer2:'#858e99',shoe:'#242830',accent:'#a27a54'}},
-    {id:'bamboo',name:'竹林隐士',rarity:'SR',palette:['#edf1e8','#7d9382','#aec0aa','#b18d60'],top:'cross',bottom:'wide',outer:'bamboo',shoes:'soft',colors:{top:'#f1f0e8',bottom:'#76847a',outer:'#aebead',outer2:'#d6dfcf',shoe:'#f3f1e7',accent:'#a6845e'}},
-    {id:'foxboat',name:'狐舟客',rarity:'SR',palette:['#e8e3d8','#46505b','#262a31','#bd8a5f'],top:'shirt',bottom:'hakama',outer:'traveler',shoes:'boot',colors:{top:'#ece8df',bottom:'#3d454f',outer:'#56616c',outer2:'#252a30',shoe:'#24272c',accent:'#b98559'}},
-    {id:'messenger',name:'光影信使',rarity:'SR',palette:['#f7f0df','#d6b870','#252733','#fbfbf7'],top:'shirt',bottom:'straight',outer:'shortcoat',shoes:'loafer',colors:{top:'#fbfaf4',bottom:'#222733',outer:'#f2ead8',outer2:'#ffffff',shoe:'#20232a',accent:'#d2ae62'}},
-    {id:'starvoyage',name:'星海漫游',rarity:'SSR',palette:['#eef6ff','#1d315d','#4e8dd1','#64d1e3'],top:'tech',bottom:'cargo',outer:'techcoat',shoes:'sneaker',colors:{top:'#f5f9ff',bottom:'#223254',outer:'#284879',outer2:'#eef7ff',shoe:'#f2f7ff',accent:'#55cce0'}},
-    {id:'winter',name:'冬日序曲',rarity:'SR',palette:['#dbe0ea','#48546c','#25304b','#a8b7cd'],top:'knit',bottom:'straight',outer:'wintercoat',shoes:'loafer',colors:{top:'#e6e9ef',bottom:'#303a52',outer:'#69778f',outer2:'#aeb9ca',shoe:'#242b3a',accent:'#a6b6ce'}},
-    {id:'daylight',name:'白昼微醺',rarity:'SR',palette:['#f3eee6','#cbbcae','#8d8179','#d7b880'],top:'knit',bottom:'wide',outer:'cardigan',shoes:'soft',colors:{top:'#f6f2ec',bottom:'#c9bdaf',outer:'#ddd2c5',outer2:'#f4eee8',shoe:'#ece6dc',accent:'#c6a56d'}}
-  ];
-
-  const hairStyles=[
-    {id:'hair-half',slot:'hair',tab:'发型',name:'云鹤半扎',series:'发型工坊',price:96,kind:'half',rarity:'SR',colors:{hair:'#d9d7df',hair2:'#a9a8b3',accent:'#a7b8d7'}},
-    {id:'hair-high',slot:'hair',tab:'发型',name:'星穹高束',series:'发型工坊',price:112,kind:'high',rarity:'SSR',colors:{hair:'#dcd9e3',hair2:'#a8a6b2',accent:'#8fa9df'}},
-    {id:'hair-low',slot:'hair',tab:'发型',name:'夜航低马尾',series:'发型工坊',price:92,kind:'low',rarity:'SR',colors:{hair:'#d5d3dc',hair2:'#9f9eaa',accent:'#6f79aa'}},
-    {id:'hair-wolf',slot:'hair',tab:'发型',name:'松烟狼尾',series:'发型工坊',price:86,kind:'wolf',rarity:'SR',colors:{hair:'#d6d4dd',hair2:'#9897a5',accent:'#a7a1b7'}},
-    {id:'hair-long',slot:'hair',tab:'发型',name:'银月长发',series:'发型工坊',price:128,kind:'long',rarity:'SSR',colors:{hair:'#e1dfe7',hair2:'#aaa8b5',accent:'#d0b76f'}}
-  ];
-
-  const slotMeta={top:{tab:'上装',label:'上装',base:78},bottom:{tab:'下装',label:'下装',base:88},outer:{tab:'外套',label:'外套',base:138},shoes:{tab:'鞋履',label:'鞋履',base:62}};
-  const items=[...hairStyles];
-  sets.forEach((set,index)=>CLOTHING_SLOTS.forEach(slot=>items.push({id:`${set.id}-${slot}`,setId:set.id,slot,tab:slotMeta[slot].tab,name:`${set.name}·${slotMeta[slot].label}`,series:set.name,price:slotMeta[slot].base+(index%4)*6,kind:set[slot],colors:set.colors,rarity:set.rarity})));
-  const itemMap=new Map(items.map(x=>[x.id,x]));
-  const setMap=new Map(sets.map(x=>[x.id,x]));
-  const lookOfSet=(id,hair=null)=>({hair,top:`${id}-top`,bottom:`${id}-bottom`,outer:`${id}-outer`,shoes:`${id}-shoes`});
-  const defaultLook=lookOfSet(starterSetId,null);
-
-  D.game2d=D.game2d||{};
-  const state=D.game2d;
-  if(state.catalogVersion!==VERSION){state.catalogVersion=VERSION;state.owned=CLOTHING_SLOTS.map(slot=>defaultLook[slot]);state.equipped={...defaultLook};state.looks=[];state.starterGranted=true;}
-  state.owned=Array.isArray(state.owned)?state.owned.filter(id=>itemMap.has(id)):CLOTHING_SLOTS.map(slot=>defaultLook[slot]);
-  state.equipped=sanitizeLook(state.equipped||defaultLook);
-  state.looks=(Array.isArray(state.looks)?state.looks:[]).map(x=>({...x,slots:sanitizeLook(x.slots)}));
-
-  const old=document.getElementById('gameAppV5');if(old)old.remove();
-  const app=document.createElement('section');app.id='gameAppV5';app.className='gameAppV5 dressupApp';
-  app.innerHTML=`<header class="dressTopbar"><button class="dressBack" aria-label="返回工作台">${navIcon('back')}</button><div class="dressTitle"><small>STARLIGHT DRESS</small><b id="dressSceneTitle">星回衣橱</b></div><div class="dressCoins"><i>✦</i><b id="dressCoinCount">0</b></div></header><main class="dressScene" id="dressScene"></main><nav class="dressNav"><button data-dress-scene="wardrobe">${navIcon('wardrobe')}<span>衣橱</span></button><button data-dress-scene="shop">${navIcon('shop')}<span>商城</span></button><button data-dress-scene="looks">${navIcon('looks')}<span>穿搭</span></button><button data-dress-scene="rewards">${navIcon('rewards')}<span>奖励</span></button></nav>`;
+  const old=document.getElementById('gameAppV5'); if(old) old.remove();
+  const app=document.createElement('section');
+  app.id='gameAppV5';
+  app.className='gameAppV5 dressupApp dressupV23';
+  app.innerHTML=`
+    <header class="dressTopbar">
+      <button class="dressBack" aria-label="返回工作台">${icon('back')}</button>
+      <div class="dressTitle"><small>STARLIGHT DRESS</small><b id="dressSceneTitle">星回衣橱</b></div>
+      <div class="dressCoins"><i>✦</i><b id="dressCoinCount">0</b></div>
+    </header>
+    <main class="dressScene" id="dressScene"></main>
+    <nav class="dressNav v23Nav">
+      <button data-dress-scene="wardrobe">${icon('wardrobe')}<span>衣橱</span></button>
+      <button data-dress-scene="shop">${icon('shop')}<span>商城</span></button>
+      <button data-dress-scene="rewards">${icon('rewards')}<span>奖励</span></button>
+    </nav>`;
   document.body.appendChild(app);
-  const root=app.querySelector('#dressScene'),title=app.querySelector('#dressSceneTitle');
-  let scene='wardrobe',wardrobeTab='套装',shopTab='套装',draft=sanitizeLook(state.equipped);
 
-  function sanitizeLook(look){const out={hair:null,top:null,bottom:null,outer:null,shoes:null};SLOT_ORDER.forEach(slot=>{const it=itemMap.get(look&&look[slot]);if(it&&it.slot===slot)out[slot]=it.id});return out}
-  function isOwned(id){return state.owned.includes(id)}
-  function ownedSet(setId){return CLOTHING_SLOTS.map(slot=>`${setId}-${slot}`).every(isOwned)}
-  function setPrice(setId){return Math.round(CLOTHING_SLOTS.map(slot=>`${setId}-${slot}`).reduce((n,id)=>n+itemMap.get(id).price,0)*.82)}
-  function completeSet(look){return sets.find(s=>CLOTHING_SLOTS.every(slot=>look[slot]===`${s.id}-${slot}`))}
-  function lookLabel(look){const s=completeSet(look),hair=look.hair&&itemMap.get(look.hair);if(s&&hair)return `${s.name} · ${hair.name}`;if(s)return s.name;const n=CLOTHING_SLOTS.filter(slot=>look[slot]).length+(look.hair?1:0);return n?`自由混搭 · ${n}件`:'基础造型'}
-  function money(){app.querySelector('#dressCoinCount').textContent=Number(D.coins||0)}
-  function navIcon(name){const p={back:'<path d="M20 6 10 16l10 10M11 16h15"/>',wardrobe:'<path d="M12 6 8 8l-4 5 4 4 3-2v12h10V15l3 2 4-4-4-5-4-2c-.8 2-2 3-4 3s-3.2-1-4-3Z"/>',shop:'<path d="M7 11h18l-2 16H9Z"/><path d="M12 11V8a4 4 0 0 1 8 0v3M12 17h8"/>',looks:'<rect x="8" y="5" width="17" height="22" rx="3"/><path d="m14 11-3 2 2 3 2-1v7h6v-7l2 1 2-3-3-2c-.6 1.4-1.8 2-4 2s-3.4-.6-4-2Z"/>',rewards:'<circle cx="16" cy="12" r="7"/><path d="m16 7 1.5 3 3.3.5-2.4 2.3.6 3.2-3-1.6-3 1.6.6-3.2-2.4-2.3 3.3-.5ZM11 19l-1 8 6-3 6 3-1-8"/>'};return `<svg viewBox="0 0 32 32" aria-hidden="true">${p[name]}</svg>`}
-  function defs(uid){return `<defs><linearGradient id="${uid}-sheer" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff" stop-opacity=".72"/><stop offset="1" stop-color="#9ea6ff" stop-opacity=".22"/></linearGradient></defs>`}
-  function c(item,k,fallback){return item.colors&&item.colors[k]||fallback}
-  function tint(hex,amount){const n=parseInt(hex.replace('#',''),16),r=(n>>16)&255,g=(n>>8)&255,b=n&255,adj=v=>Math.max(0,Math.min(255,Math.round(amount>=0?v+(255-v)*amount/100:v*(1+amount/100))));return '#'+[adj(r),adj(g),adj(b)].map(v=>v.toString(16).padStart(2,'0')).join('')}
-  const shade=tint,lighten=tint;
+  const root=app.querySelector('#dressScene');
+  const title=app.querySelector('#dressSceneTitle');
+  let scene='wardrobe';
+  let draft=state.equipped;
 
-  function drawHairBack(item){if(!item)return'';const a=c(item,'hair','#d8d6df'),b=c(item,'hair2','#a6a5b1'),stroke=shade(b,-18);if(item.kind==='high')return `<g><path d="M750 300Q890 302 914 430 932 560 833 706 783 778 735 706 800 598 780 498 764 418 714 370Z" fill="${a}" stroke="${stroke}" stroke-width="9"/><path d="M802 371Q864 423 852 521 840 613 774 690" fill="none" stroke="${lighten(a,22)}" stroke-width="16" opacity=".55"/></g>`;if(item.kind==='low')return `<g><path d="M735 518Q848 515 883 616 912 705 842 836 799 892 747 845 803 758 785 684 771 620 707 587Z" fill="${a}" stroke="${stroke}" stroke-width="9"/></g>`;if(item.kind==='wolf')return `<g><path d="M470 520Q432 603 457 714L501 679 515 778 568 710 604 792 627 657 650 792 686 710 739 778 753 679 797 714Q822 603 784 520Z" fill="${a}" stroke="${stroke}" stroke-width="8"/></g>`;const l=`M456 425Q393 548 420 706 435 822 506 907 549 887 552 828 493 748 500 625 506 515 546 446Z`,r=`M798 425Q861 548 834 706 819 822 748 907 705 887 702 828 761 748 754 625 748 515 708 446Z`;if(item.kind==='half')return `<g><path d="${l}" fill="${a}" stroke="${stroke}" stroke-width="9"/><path d="${r}" fill="${a}" stroke="${stroke}" stroke-width="9"/><path d="M575 270Q627 218 679 270L697 348Q627 318 557 348Z" fill="${a}" stroke="${stroke}" stroke-width="8"/></g>`;return `<g><path d="${l}" fill="${a}" stroke="${stroke}" stroke-width="9"/><path d="${r}" fill="${a}" stroke="${stroke}" stroke-width="9"/><path d="M505 438Q627 351 749 438L731 760Q705 855 627 915 549 855 523 760Z" fill="${a}" fill-opacity=".93" stroke="${stroke}" stroke-width="8"/></g>`}
-  function drawHairFront(item){if(!item)return'';const a=c(item,'hair','#d8d6df'),b=c(item,'hair2','#a6a5b1'),ac=c(item,'accent','#9caad0'),stroke=shade(b,-18);let locks='';if(['half','long'].includes(item.kind))locks=`<path d="M452 436Q422 566 478 684 508 730 537 699 510 617 522 526Z" fill="${a}" stroke="${stroke}" stroke-width="7"/><path d="M802 436Q832 566 776 684 746 730 717 699 744 617 732 526Z" fill="${a}" stroke="${stroke}" stroke-width="7"/>`;if(item.kind==='wolf')locks=`<path d="M459 455 433 581 488 552 474 660 534 602" fill="${a}" stroke="${stroke}" stroke-width="15" stroke-linejoin="round"/><path d="M795 455 821 581 766 552 780 660 720 602" fill="${a}" stroke="${stroke}" stroke-width="15" stroke-linejoin="round"/>`;const ornament=item.kind==='high'?`<g><circle cx="746" cy="338" r="27" fill="${ac}" stroke="#fff" stroke-width="6"/><path d="m746 317 7 14 15 2-11 11 3 15-14-7-14 7 3-15-11-11 15-2Z" fill="#fff5d2"/></g>`:item.kind==='half'?`<g><path d="M590 315Q627 285 664 315" fill="none" stroke="${ac}" stroke-width="14" stroke-linecap="round"/><circle cx="627" cy="303" r="11" fill="#fff2c8"/></g>`:item.kind==='low'?`<circle cx="753" cy="579" r="18" fill="${ac}" stroke="#f5f2ff" stroke-width="6"/>`:item.kind==='long'?`<path d="M598 352Q627 327 656 352" fill="none" stroke="${ac}" stroke-width="9"/><circle cx="627" cy="338" r="8" fill="#f9e7ad"/>`:'';return `<g>${locks}${ornament}</g>`}
+  function icon(name){
+    const p={
+      back:'<path d="M20 6 10 16l10 10M11 16h15"/>',
+      wardrobe:'<path d="M12 6 8 8l-4 5 4 4 3-2v12h10V15l3 2 4-4-4-5-4-2c-.8 2-2 3-4 3s-3.2-1-4-3Z"/>',
+      shop:'<path d="M7 11h18l-2 16H9Z"/><path d="M12 11V8a4 4 0 0 1 8 0v3M12 17h8"/>',
+      rewards:'<circle cx="16" cy="12" r="7"/><path d="m16 7 1.5 3 3.3.5-2.4 2.3.6 3.2-3-1.6-3 1.6.6-3.2-2.4-2.3 3.3-.5ZM11 19l-1 8 6-3 6 3-1-8"/>'
+    };
+    return `<svg viewBox="0 0 32 32" aria-hidden="true">${p[name]}</svg>`;
+  }
 
-  function drawTop(item){const a=c(item,'top','#eee'),ac=c(item,'accent','#caa76a'),dark=shade(a,-18);let body='',details='';if(item.kind==='wrap'||item.kind==='cross'){body=`<path d="M542 656 Q627 620 712 656 L721 850 Q627 884 533 850Z" fill="${a}" stroke="${dark}" stroke-width="7"/><path d="M548 656 627 744 706 656" fill="none" stroke="${dark}" stroke-width="14"/>`;details=`<path d="M553 832H700" stroke="${ac}" stroke-width="8"/>`}else if(item.kind==='shirt'){body=`<path d="M540 658 Q627 628 714 658 L720 855 Q627 877 534 855Z" fill="${a}" stroke="${dark}" stroke-width="7"/><path d="M566 650 627 708 688 650 670 641 627 679 584 641Z" fill="${lighten(a,16)}" stroke="${dark}" stroke-width="5"/>`;details=`<path d="M627 705V848" stroke="${dark}" stroke-width="4" stroke-dasharray="9 13"/>`}else if(item.kind==='tech'){body=`<path d="M538 657 Q627 625 716 657 L721 853 Q627 880 533 853Z" fill="${a}" stroke="${dark}" stroke-width="7"/>`;details=`<path d="m604 711 23-17 23 17-9 27h-28Z" fill="${ac}" fill-opacity=".28" stroke="${ac}" stroke-width="4"/>`}else{const neck=item.kind==='turtleneck'?`<path d="M584 650 Q627 620 670 650V700H584Z" fill="${dark}"/>`:`<path d="M583 654 Q627 686 671 654" fill="none" stroke="${dark}" stroke-width="9"/>`;body=`<path d="M540 660 Q627 628 714 660 L721 854 Q627 879 533 854Z" fill="${a}" stroke="${dark}" stroke-width="7"/>${neck}`;details=item.kind==='knit'?`<path d="M557 706H697M552 746H702M548 786H706" stroke="${dark}" stroke-opacity=".18" stroke-width="5"/>`:''}const sleeve=`<path d="M544 670 Q500 665 474 704 L451 846 Q455 881 486 892 L520 866 525 742 554 704Z" fill="${a}" stroke="${dark}" stroke-width="7"/><path d="M710 670 Q754 665 780 704 L803 846 Q799 881 768 892 L734 866 729 742 700 704Z" fill="${a}" stroke="${dark}" stroke-width="7"/>`;return `<g>${sleeve}${body}${details}</g>`}
-  function drawBottom(item){const a=c(item,'bottom','#333'),dark=shade(a,-20),ac=c(item,'accent','#caa76a');if(item.kind==='wide'||item.kind==='hakama')return `<path d="M520 855H734L758 1112Q702 1132 647 1115L627 915 607 1115Q552 1132 496 1112Z" fill="${a}" stroke="${dark}" stroke-width="8"/>`;if(item.kind==='cargo')return `<g><path d="M522 856H732L746 1110 653 1119 627 918 601 1119 508 1110Z" fill="${a}" stroke="${dark}" stroke-width="8"/><rect x="503" y="930" width="72" height="82" rx="12" fill="${lighten(a,8)}"/><rect x="679" y="930" width="72" height="82" rx="12" fill="${lighten(a,8)}"/></g>`;const taper=item.kind==='taper'?18:item.kind==='tailored'?8:0;return `<path d="M520 856H734L${742-taper} 1116 650 1120 627 921 604 1120 ${512+taper} 1116Z" fill="${a}" stroke="${dark}" stroke-width="8"/>`}
-  function drawShoes(item){const a=c(item,'shoe','#f5f5f7'),dark=shade(a,-28),ac=c(item,'accent','#a8a0d0');if(item.kind==='boot'||item.kind==='ankle')return `<g><path d="M496 1078 584 1075 596 1187 571 1211H493Q477 1195 492 1174Z" fill="${a}" stroke="${dark}" stroke-width="8"/><path d="M670 1075 758 1078 762 1174Q777 1195 761 1211H683L658 1187Z" fill="${a}" stroke="${dark}" stroke-width="8"/></g>`;return `<g><path d="M486 1144Q536 1115 591 1144L603 1185Q581 1212 490 1207Q468 1184 486 1144Z" fill="${a}" stroke="${dark}" stroke-width="8"/><path d="M663 1144Q718 1115 768 1144Q786 1184 764 1207 673 1212 651 1185Z" fill="${a}" stroke="${dark}" stroke-width="8"/></g>`}
-  function drawOuterBack(item,uid){const a=c(item,'outer','#7686b3'),b=c(item,'outer2','#b9c5ea'),dark=shade(a,-20);if(['celestial','immortal'].includes(item.kind))return `<g><path d="M548 645Q627 594 706 645L686 706Q627 678 568 706Z" fill="${a}" stroke="${dark}" stroke-width="7"/><path d="M526 822Q467 884 425 1092 492 1162 562 1110L584 836Z" fill="url(#${uid}-sheer)" stroke="${b}" stroke-width="6"/><path d="M728 822Q787 884 829 1092 762 1162 692 1110L670 836Z" fill="url(#${uid}-sheer)" stroke="${b}" stroke-width="6"/></g>`;if(['oriental','scholar','bamboo','traveler'].includes(item.kind))return `<g><path d="M554 646Q627 606 700 646L684 699Q627 675 570 699Z" fill="${a}" stroke="${dark}" stroke-width="7"/><path d="M524 789Q476 899 446 1112 508 1152 567 1105L586 790Z" fill="${b}" fill-opacity=".72" stroke="${a}" stroke-width="6"/><path d="M730 789Q778 899 808 1112 746 1152 687 1105L668 790Z" fill="${b}" fill-opacity=".72" stroke="${a}" stroke-width="6"/></g>`;if(['nightcoat','crimsoncoat','wintercoat'].includes(item.kind))return `<g><path d="M544 647Q627 602 710 647L692 705Q627 674 562 705Z" fill="${a}" stroke="${dark}" stroke-width="8"/><path d="M506 675Q450 852 439 1132 504 1166 566 1110L583 688Z" fill="${a}" stroke="${dark}" stroke-width="8"/><path d="M748 675Q804 852 815 1132 750 1166 688 1110L671 688Z" fill="${a}" stroke="${dark}" stroke-width="8"/></g>`;return `<path d="M548 648Q627 608 706 648L692 699Q627 675 562 699Z" fill="${a}" stroke="${dark}" stroke-width="7"/>`}
-  function drawOuterFront(item){const a=c(item,'outer','#7686b3'),b=c(item,'outer2','#b9c5ea'),ac=c(item,'accent','#d2b56d'),dark=shade(a,-23),isLong=['nightcoat','crimsoncoat','wintercoat','celestial','immortal','oriental','scholar','bamboo','traveler'].includes(item.kind);const sleeves=`<path d="M535 666Q492 663 466 707L444 842Q447 877 480 890L514 864 520 744 552 701Z" fill="${a}" stroke="${dark}" stroke-width="8"/><path d="M719 666Q762 663 788 707L810 842Q807 877 774 890L740 864 734 744 702 701Z" fill="${a}" stroke="${dark}" stroke-width="8"/>`;const front=['oriental','scholar','bamboo','traveler','immortal'].includes(item.kind)?`<path d="M554 650 627 704 700 650 720 714 670 836 627 812 584 836 534 714Z" fill="${a}" stroke="${dark}" stroke-width="8"/><path d="M556 660 627 724 698 660" fill="none" stroke="${b}" stroke-width="16"/>`:`<path d="M553 651 616 706 585 855 526 862 542 696Z" fill="${a}" stroke="${dark}" stroke-width="8"/><path d="M701 651 638 706 669 855 728 862 712 696Z" fill="${a}" stroke="${dark}" stroke-width="8"/>`;const tail=isLong?`<path d="M526 842 507 1092Q544 1115 587 1084L605 856Z" fill="${a}" fill-opacity=".88" stroke="${dark}" stroke-width="7"/><path d="M728 842 747 1092Q710 1115 667 1084L649 856Z" fill="${a}" fill-opacity=".88" stroke="${dark}" stroke-width="7"/>`:'';return `<g>${sleeves}${tail}${front}<circle cx="563" cy="744" r="7" fill="${ac}"/></g>`}
-  function baseCut(look){let s='';if(look.top)s+=`<path fill="black" d="M535 650 505 664 476 696 446 850 455 885 493 900 522 862 526 735 545 700 535 920H719L709 700 728 735 732 862 761 900 799 885 808 850 778 696 749 664 719 650 719 920H535Z"/>`;if(look.bottom)s+=`<path fill="black" d="M508 842H746V1142H508Z"/>`;if(look.shoes)s+=`<rect x="472" y="1068" width="310" height="170" fill="black"/>`;return s}
-  function renderSlot(item,uid,part='front'){if(!item)return'';if(item.slot==='top')return drawTop(item);if(item.slot==='bottom')return drawBottom(item);if(item.slot==='shoes')return drawShoes(item);if(item.slot==='outer')return part==='back'?drawOuterBack(item,uid):drawOuterFront(item);return''}
-  function avatar(look,extra=''){const uid=`dress-${++serial}`,l=sanitizeLook(look),hair=itemMap.get(l.hair),top=itemMap.get(l.top),bottom=itemMap.get(l.bottom),outer=itemMap.get(l.outer),shoes=itemMap.get(l.shoes);return `<div class="dressAvatar ${extra}"><svg viewBox="0 0 1254 1254" role="img">${defs(uid)}<mask id="${uid}-base"><rect width="1254" height="1254" fill="white"/>${baseCut(l)}</mask><clipPath id="${uid}-hands"><ellipse cx="480" cy="900" rx="27" ry="34"/><ellipse cx="774" cy="900" rx="27" ry="34"/></clipPath>${drawHairBack(hair)}${renderSlot(outer,uid,'back')}<image href="${BASE}?v=${VERSION}" width="1254" height="1254" mask="url(#${uid}-base)"/>${renderSlot(bottom,uid)}${renderSlot(top,uid)}${renderSlot(shoes,uid)}${renderSlot(outer,uid,'front')}<image href="${BASE}?v=${VERSION}" width="1254" height="1254" clip-path="url(#${uid}-hands)"/>${drawHairFront(hair)}</svg></div>`}
-  function itemThumb(item){if(item.slot==='hair')return `<svg viewBox="350 210 554 620" aria-hidden="true">${drawHairBack(item)}${drawHairFront(item)}</svg>`;const uid=`thumb-${++serial}`,view={top:'420 600 414 380',bottom:'470 825 314 360',outer:'390 580 474 560',shoes:'455 1040 344 210'}[item.slot];return `<svg viewBox="${view}" aria-hidden="true">${defs(uid)}${item.slot==='outer'?drawOuterBack(item,uid)+drawOuterFront(item):renderSlot(item,uid)}</svg>`}
-  function category(active,target){return `<div class="dressTabs">${TABS.map(t=>`<button class="${active===t?'active':''}" data-${target}-tab="${t}">${t}</button>`).join('')}</div>`}
-  function setCard(set,mode){const owned=ownedSet(set.id),price=setPrice(set.id);return `<article class="setCard"><div class="setPreview">${avatar(lookOfSet(set.id,draft.hair),'miniAvatar')}</div><div class="setMeta"><small>${set.rarity} · CARD OUTFIT</small><b>${set.name}</b><div class="swatches">${set.palette.map(x=>`<i style="background:${x}"></i>`).join('')}</div>${mode==='shop'?`<button data-buy-set="${set.id}" ${owned?'disabled':''}>${owned?'已拥有整套':`整套兑换 · ${price} ✦`}</button>`:`<button data-apply-set="${set.id}" ${owned?'':'disabled'}>${owned?'换上整套':'尚未集齐'}</button>`}</div></article>`}
-  function wardrobeScene(){const visible=wardrobeTab==='套装'?[]:items.filter(x=>isOwned(x.id)&&x.tab===wardrobeTab);return `<div class="wardrobePage"><section class="characterPanel"><div class="characterGlow"></div>${avatar(draft)}</section><div class="lookSummary"><div><small>当前试穿</small><b>${lookLabel(draft)}</b></div><span>人物尺寸已锁定</span></div><section class="wardrobePanel"><div class="wardrobePanelHead"><div><small>WARDROBE</small><b>衣物抽屉</b></div><span>同坐标矢量衣装</span></div>${category(wardrobeTab,'wardrobe')}${wardrobeTab==='套装'?`<div class="setStrip">${sets.filter(s=>ownedSet(s.id)).map(s=>setCard(s,'wardrobe')).join('')}</div>`:`<div class="pieceGrid">${visible.length?visible.map(it=>`<button class="pieceCard ${draft[it.slot]===it.id?'selected':''}" data-equip-item="${it.id}"><span class="pieceArt">${itemThumb(it)}</span><b>${it.name}</b><small>${it.series}</small><em>${draft[it.slot]===it.id?'再次点击恢复原造型':'点击试穿'}</em></button>`).join(''):'<div class="emptyState">这一类还没有已拥有单品，去商城解锁吧。</div>'}</div>`}</section><div class="dressActions"><button data-reset-draft>恢复</button><button class="primary" data-save-draft>保存穿搭</button></div></div>`}
-  function shopScene(){const visible=shopTab==='套装'?[]:items.filter(x=>x.tab===shopTab);return `<div class="shopPage"><section class="shopHero"><small>STARLIGHT BOUTIQUE</small><h2>卡面衣装馆</h2><p>旧衣装已全部下架。新衣服与发型都围绕同一个固定Q版母版制作，商城图与人物身上使用同一套矢量资产。</p></section>${category(shopTab,'shop')}${shopTab==='套装'?`<div class="setShopGrid">${sets.map(s=>setCard(s,'shop')).join('')}</div>`:`<div class="storeGrid">${visible.map(it=>`<article class="storeCard"><div class="storeArt">${itemThumb(it)}</div><div><small>${it.rarity} · ${it.series}</small><b>${it.name}</b></div><button data-buy-item="${it.id}" ${isOwned(it.id)?'disabled':''}>${isOwned(it.id)?'已拥有':`${it.price} ✦`}</button></article>`).join('')}</div>`}</div>`}
-  function looksScene(){return `<div class="looksPage"><section class="shopHero compact"><small>LOOKBOOK</small><h2>穿搭册</h2><p>保存的是每一个独立图层的组合，不是整张人物截图。</p></section><div class="lookGrid">${state.looks.length?state.looks.map(l=>`<article class="lookCard"><div>${avatar(l.slots,'miniAvatar')}</div><b>${l.name}</b><small>${l.date||''}</small><div><button data-apply-look="${l.id}">换上</button><button data-delete-look="${l.id}">删除</button></div></article>`).join(''):'<div class="emptyState">还没有保存穿搭。去衣橱混搭一套吧。</div>'}</div></div>`}
-  function rewardsScene(){return `<div class="rewardsPage"><section class="shopHero"><small>REAL LIFE → DRESS UP</small><h2>现实成长兑换衣装</h2><p>完成计划、番茄钟、学习和创作获得金币，再回来解锁卡面衣装与发型。</p></section><div class="rewardCards"><button data-workbench="today"><b>今日打卡</b><span>完成任务获得金币</span></button><button data-workbench="focus"><b>番茄钟</b><span>专注换衣装</span></button><button data-workbench="plans"><b>成长计划</b><span>推进长期主线</span></button></div></div>`}
-  function render(){money();title.textContent={wardrobe:'星回衣橱',shop:'星光商城',looks:'穿搭册',rewards:'金币奖励'}[scene];root.innerHTML=scene==='wardrobe'?wardrobeScene():scene==='shop'?shopScene():scene==='looks'?looksScene():rewardsScene();app.querySelectorAll('[data-dress-scene]').forEach(b=>b.classList.toggle('active',b.dataset.dressScene===scene));root.scrollTop=0}
-  function commit(msg){save();render();if(msg)toast(msg)}
-  app.addEventListener('click',e=>{let b=e.target.closest('[data-dress-scene]');if(b){scene=b.dataset.dressScene;if(scene==='wardrobe')draft=sanitizeLook(state.equipped);render();return}b=e.target.closest('[data-wardrobe-tab]');if(b){wardrobeTab=b.dataset.wardrobeTab;render();return}b=e.target.closest('[data-shop-tab]');if(b){shopTab=b.dataset.shopTab;render();return}b=e.target.closest('[data-equip-item]');if(b){const it=itemMap.get(b.dataset.equipItem);if(it&&isOwned(it.id)){draft[it.slot]=draft[it.slot]===it.id?null:it.id;render()}return}b=e.target.closest('[data-apply-set]');if(b&&ownedSet(b.dataset.applySet)){const hair=draft.hair;draft=lookOfSet(b.dataset.applySet,hair);render();return}if(e.target.closest('[data-reset-draft]')){draft=sanitizeLook(state.equipped);render();return}if(e.target.closest('[data-save-draft]')){state.equipped=sanitizeLook(draft);state.looks.unshift({id:String(Date.now()),name:lookLabel(draft),date:new Date().toLocaleDateString('zh-CN'),slots:sanitizeLook(draft)});state.looks=state.looks.slice(0,20);commit('当前穿搭已保存');return}b=e.target.closest('[data-buy-item]');if(b){const it=itemMap.get(b.dataset.buyItem);if(!it||isOwned(it.id))return;if(Number(D.coins||0)<it.price){toast(`还差 ${it.price-Number(D.coins||0)} 金币`);return}D.coins-=it.price;state.owned.push(it.id);commit(`「${it.name}」已送入衣橱`);return}b=e.target.closest('[data-buy-set]');if(b){const setId=b.dataset.buySet;if(ownedSet(setId))return;const ids=CLOTHING_SLOTS.map(slot=>`${setId}-${slot}`).filter(id=>!isOwned(id)),price=setPrice(setId);if(Number(D.coins||0)<price){toast(`还差 ${price-Number(D.coins||0)} 金币`);return}D.coins-=price;ids.forEach(id=>state.owned.push(id));commit(`「${setMap.get(setId).name}」整套已解锁`);return}b=e.target.closest('[data-apply-look]');if(b){const l=state.looks.find(x=>x.id===b.dataset.applyLook);if(l){state.equipped=sanitizeLook(l.slots);draft=sanitizeLook(l.slots);commit(`已换上「${l.name}」`)}return}b=e.target.closest('[data-delete-look]');if(b){state.looks=state.looks.filter(x=>x.id!==b.dataset.deleteLook);commit('穿搭卡已删除');return}b=e.target.closest('[data-workbench]');if(b){exitGame2d();if(typeof gotoPage==='function')gotoPage(b.dataset.workbench)}});
-  app.querySelector('.dressBack').onclick=exitGame2d;const legacyLeave=typeof leaveGame==='function'?leaveGame:function(){};
-  function enterGame2d(){document.body.classList.add('game-mode','dressup-v21-active');app.classList.add('open');scene='wardrobe';wardrobeTab='套装';draft=sanitizeLook(state.equipped);render()}
-  function exitGame2d(){app.classList.remove('open');document.body.classList.remove('game-mode','dressup-v21-active');if(typeof baseGotoPage==='function')baseGotoPage('home');else legacyLeave()}
-  enterGame=enterGame2d;leaveGame=exitGame2d;window.enterGameV5=enterGame2d;window.exitGameV5=exitGame2d;window.renderGameV5=render;
+  function money(){
+    const el=app.querySelector('#dressCoinCount');
+    if(el) el.textContent=Number(D0.coins||0);
+  }
+  function figure(which=draft,mini=false){
+    const src=which===OUTFIT_ID?OUTFIT:BASE;
+    const label=which===OUTFIT_ID?'雾城漫步·银灰旅装完整穿搭':'基础造型';
+    return `<div class="v23Figure ${mini?'mini':''} ${which===OUTFIT_ID?'outfitFigure':'baseFigure'}"><img src="${src}?v=${VERSION}" alt="${label}" draggable="false"></div>`;
+  }
+  function saveState(message){
+    if(typeof save==='function') save();
+    if(typeof toast==='function') toast(message);
+    money();
+  }
+  function setName(which){return which===OUTFIT_ID?'雾城漫步·银灰旅装':'基础造型'}
+
+  function wardrobeScene(){
+    const wearing=draft===OUTFIT_ID;
+    return `<div class="v23Wardrobe">
+      <section class="characterPanel v23CharacterPanel"><div class="characterGlow"></div>${figure(draft)}</section>
+      <div class="lookSummary"><div><small>当前试穿</small><b>${setName(draft)}</b></div><span>整套成品 · 固定尺寸</span></div>
+      <section class="v23Drawer">
+        <div class="wardrobePanelHead"><div><small>WARDROBE</small><b>星光衣橱</b></div><span>首发套装 · 1 / 1</span></div>
+        <article class="v23SetCard ${wearing?'selected':''}">
+          <div class="v23SetPreview">${figure(OUTFIT_ID,true)}</div>
+          <div class="v23SetInfo"><small>SSR · FIRST DROP</small><h3>雾城漫步·银灰旅装</h3><p>银灰与雾蓝层叠长外套、针织内搭和深灰长裤组成完整造型。作为首发套装完整收入衣橱，保持统一Q版比例与完整人物展示。</p>
+          <div class="v23Swatches"><i></i><i></i><i></i><i></i></div>
+          <button data-toggle-outfit>${wearing?'脱下套装':'试穿套装'}</button></div>
+        </article>
+      </section>
+      <div class="dressActions"><button data-reset-draft>恢复</button><button class="primary" data-save-draft>保存穿搭</button></div>
+    </div>`;
+  }
+
+  function shopScene(){
+    return `<div class="shopPage v23Shop"><section class="shopHero"><small>STARLIGHT BOUTIQUE</small><h2>服饰商城</h2><p>首发系列先收入一套完整成品，后续新衣会按同一人物比例与画面标准逐套加入。</p></section>
+    <article class="v23ShopCard"><div>${figure(OUTFIT_ID,true)}</div><section><small>已拥有 · 初始赠礼</small><h3>雾城漫步·银灰旅装</h3><p>完整高清套装</p><button disabled>已收入衣橱</button></section></article></div>`;
+  }
+
+  function rewardsScene(){
+    return `<div class="rewardsPage"><section class="shopHero"><small>REAL LIFE → DRESS-UP</small><h2>行动兑换新衣</h2><p>完成现实任务获得金币，后续可用于解锁新的服装系列。</p></section>
+      <div class="rewardCards"><button data-workbench="today"><b>今日打卡</b><span>完成现实任务，继续积累金币</span></button><button data-workbench="focus"><b>番茄钟</b><span>专注完成后获得成长奖励</span></button><button data-workbench="plans"><b>成长计划</b><span>推进长期目标</span></button></div>
+    </div>`;
+  }
+
+  function render(){
+    money();
+    if(scene==='shop'){title.textContent='服饰商城';root.innerHTML=shopScene();}
+    else if(scene==='rewards'){title.textContent='奖励';root.innerHTML=rewardsScene();}
+    else {title.textContent='星回衣橱';root.innerHTML=wardrobeScene();}
+    app.querySelectorAll('[data-dress-scene]').forEach(b=>b.classList.toggle('active',b.dataset.dressScene===scene));
+  }
+
+  app.addEventListener('click',e=>{
+    const nav=e.target.closest('[data-dress-scene]');
+    if(nav){scene=nav.dataset.dressScene;render();return;}
+    if(e.target.closest('[data-toggle-outfit]')){draft=draft===OUTFIT_ID?null:OUTFIT_ID;render();return;}
+    if(e.target.closest('[data-reset-draft]')){draft=state.equipped;render();return;}
+    if(e.target.closest('[data-save-draft]')){state.equipped=draft;saveState('当前穿搭已保存');render();return;}
+    const wb=e.target.closest('[data-workbench]');
+    if(wb){exitGame2d();if(typeof gotoPage==='function')gotoPage(wb.dataset.workbench);}
+  });
+
+  app.querySelector('.dressBack').addEventListener('click',exitGame2d);
+  const legacyLeave=typeof leaveGame==='function'?leaveGame:function(){};
+  function enterGame2d(){document.body.classList.add('game-mode','dressup-v21-active','dressup-v23-active');app.classList.add('open');scene='wardrobe';draft=state.equipped;render();}
+  function exitGame2d(){app.classList.remove('open');document.body.classList.remove('game-mode','dressup-v21-active','dressup-v23-active');if(typeof baseGotoPage==='function')baseGotoPage('home');else legacyLeave();}
+  enterGame=enterGame2d;
+  leaveGame=exitGame2d;
+  window.enterGameV5=enterGame2d;
+  window.exitGameV5=exitGame2d;
+  window.renderGameV5=render;
 })();
