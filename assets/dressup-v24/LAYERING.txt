@@ -1,1 +1,1 @@
-v25 layering: mist-outer-back = coat rear/full silhouette behind base; base; bottom; top; shoes; mist-outer-front = open-front coat foreground. All garment art is raster and aligned to the fixed Q-body coordinate system.
+v25 release layering: fixed Q-body base -> bottom -> top -> shoes -> verified open-front outerwear foreground. Each garment remains an independent raster asset in the same 1254x1254 coordinate system. Future long coats keep the stricter two-layer standard (rear silhouette behind body + open-front foreground) once both layers pass binary and visual QA.
