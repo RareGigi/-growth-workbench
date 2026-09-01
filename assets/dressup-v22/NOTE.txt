@@ -1,0 +1,1 @@
+Binary garment layers are being added to wardrobe-v22-raster only; main remains untouched until the full set passes checks.
