@@ -1,289 +1,81 @@
-/* 星轨成长舱 v10：固定基础内搭 + 可独立穿脱的平面服饰。 */
-(function () {
-  const VERSION = 10;
-  const ASSET = `?v=${VERSION}`;
-  const BASE = 'assets/dressup-2d/base-approved.webp';
-  const layerOrder = ['shoes', 'bottom', 'top', 'coat'];
-  const paintOrder = ['bottom', 'top', 'shoes', 'coat'];
-  const tabs = ['全部', '上装', '下装', '外套', '鞋履'];
-  let svgSerial = 0;
+/* 星回衣橱 v20：固定Q版人物母版 + 同坐标矢量衣装。旧衣服/旧缩略图全部废弃。 */
+(function(){
+  const VERSION=20;
+  const BASE='assets/dressup-2d/base-approved.webp';
+  const SLOT_ORDER=['bottom','top','shoes','outer'];
+  const TABS=['套装','上装','下装','外套','鞋履'];
+  const starterSetId='starmist';
+  let serial=0;
 
-  const items = [
-    { id:'mist-top', slot:'top', tab:'上装', name:'雾白针织衫', series:'雾城漫步', price:72, src:'assets/dressup-2d/mist-top.webp', thumb:'assets/dressup-2d/thumbs/mist-top.webp', baseCut:'top' },
-    { id:'mist-bottom', slot:'bottom', tab:'下装', name:'星链长裤', series:'雾城漫步', price:88, src:'assets/dressup-2d/mist-bottom.webp', thumb:'assets/dressup-2d/thumbs/mist-bottom.webp', baseCut:'bottom' },
-    { id:'mist-coat', slot:'coat', tab:'外套', name:'流雾风衣', series:'雾城漫步', price:148, src:'assets/dressup-2d/mist-coat.webp', thumb:'assets/dressup-2d/thumbs/mist-coat.webp', selfCut:'openCoat' },
-    { id:'mist-shoes', slot:'shoes', tab:'鞋履', name:'星屿球鞋', series:'雾城漫步', price:64, src:'assets/dressup-2d/mist-shoes.webp', thumb:'assets/dressup-2d/thumbs/mist-shoes.webp', baseCut:'shoes' },
-    { id:'lilac-shoes', slot:'shoes', tab:'鞋履', name:'紫藤星屿鞋', series:'晨星变奏', price:58, src:'assets/dressup-2d/lilac-shoes.webp', thumb:'assets/dressup-2d/thumbs/lilac-shoes.webp', baseCut:'shoes' }
+  const sets=[
+    {id:'starmist',name:'星雾巡游',rarity:'SSR',palette:['#f4f2ff','#7788c8','#252c50','#d8b66c'],top:'highneck',bottom:'straight',outer:'celestial',shoes:'ankle',colors:{top:'#f2f0fb',bottom:'#303857',outer:'#a8b9ee',outer2:'#cbbaf0',shoe:'#f5f3ff',accent:'#d8b66c'}},
+    {id:'crane',name:'云间鹤影',rarity:'SSR',palette:['#e9eff4','#405372','#d6dce2','#9bb7a7'],top:'wrap',bottom:'taper',outer:'oriental',shoes:'ankle',colors:{top:'#edf1f4',bottom:'#35455d',outer:'#61768f',outer2:'#d8e2e8',shoe:'#f4f7f5',accent:'#91ad9e'}},
+    {id:'deepnight',name:'深空礼夜',rarity:'SSR',palette:['#151824','#313853','#8880b8','#c5a86f'],top:'turtleneck',bottom:'tailored',outer:'nightcoat',shoes:'boot',colors:{top:'#222637',bottom:'#171b28',outer:'#24293c',outer2:'#5f628e',shoe:'#171b28',accent:'#c9aa70'}},
+    {id:'crimson',name:'赤焰迷城',rarity:'SSR',palette:['#141318','#631f2e','#9c3b42','#c5a06d'],top:'shirt',bottom:'tailored',outer:'crimsoncoat',shoes:'boot',colors:{top:'#1b1a20',bottom:'#19181d',outer:'#531923',outer2:'#9b3a41',shoe:'#17161a',accent:'#c8a16c'}},
+    {id:'frost',name:'凌霜仙尊',rarity:'SSR',palette:['#f7fbff','#bed5eb','#839ac6','#dfc990'],top:'wrap',bottom:'wide',outer:'immortal',shoes:'ankle',colors:{top:'#f2f8fd',bottom:'#ecf2f7',outer:'#c9dcef',outer2:'#a7bee0',shoe:'#f7fafc',accent:'#d5bb76'}},
+    {id:'inkscholar',name:'墨染书生',rarity:'SR',palette:['#f0ece5','#30323a','#657081','#a67f57'],top:'cross',bottom:'hakama',outer:'scholar',shoes:'boot',colors:{top:'#e9e6df',bottom:'#323945',outer:'#4b5361',outer2:'#858e99',shoe:'#242830',accent:'#a27a54'}},
+    {id:'bamboo',name:'竹林隐士',rarity:'SR',palette:['#edf1e8','#7d9382','#aec0aa','#b18d60'],top:'cross',bottom:'wide',outer:'bamboo',shoes:'soft',colors:{top:'#f1f0e8',bottom:'#76847a',outer:'#aebead',outer2:'#d6dfcf',shoe:'#f3f1e7',accent:'#a6845e'}},
+    {id:'foxboat',name:'狐舟客',rarity:'SR',palette:['#e8e3d8','#46505b','#262a31','#bd8a5f'],top:'shirt',bottom:'hakama',outer:'traveler',shoes:'boot',colors:{top:'#ece8df',bottom:'#3d454f',outer:'#56616c',outer2:'#252a30',shoe:'#24272c',accent:'#b98559'}},
+    {id:'messenger',name:'光影信使',rarity:'SR',palette:['#f7f0df','#d6b870','#252733','#fbfbf7'],top:'shirt',bottom:'straight',outer:'shortcoat',shoes:'loafer',colors:{top:'#fbfaf4',bottom:'#222733',outer:'#f2ead8',outer2:'#ffffff',shoe:'#20232a',accent:'#d2ae62'}},
+    {id:'starvoyage',name:'星海漫游',rarity:'SSR',palette:['#eef6ff','#1d315d','#4e8dd1','#64d1e3'],top:'tech',bottom:'cargo',outer:'techcoat',shoes:'sneaker',colors:{top:'#f5f9ff',bottom:'#223254',outer:'#284879',outer2:'#eef7ff',shoe:'#f2f7ff',accent:'#55cce0'}},
+    {id:'winter',name:'冬日序曲',rarity:'SR',palette:['#dbe0ea','#48546c','#25304b','#a8b7cd'],top:'knit',bottom:'straight',outer:'wintercoat',shoes:'loafer',colors:{top:'#e6e9ef',bottom:'#303a52',outer:'#69778f',outer2:'#aeb9ca',shoe:'#242b3a',accent:'#a6b6ce'}},
+    {id:'daylight',name:'白昼微醺',rarity:'SR',palette:['#f3eee6','#cbbcae','#8d8179','#d7b880'],top:'knit',bottom:'wide',outer:'cardigan',shoes:'soft',colors:{top:'#f6f2ec',bottom:'#c9bdaf',outer:'#ddd2c5',outer2:'#f4eee8',shoe:'#ece6dc',accent:'#c6a56d'}}
   ];
 
-  const mistIds = ['mist-top', 'mist-bottom', 'mist-coat', 'mist-shoes'];
-  const defaultLook = { top:null, bottom:null, coat:null, shoes:null };
-  const mistLook = { top:'mist-top', bottom:'mist-bottom', coat:'mist-coat', shoes:'mist-shoes' };
-  const legacyBaseIds = new Set(['hair-default', 'top-base', 'bottom-base', 'coat-none', 'shoes-base']);
+  const slotMeta={top:{tab:'上装',label:'上装',base:78},bottom:{tab:'下装',label:'下装',base:88},outer:{tab:'外套',label:'外套',base:138},shoes:{tab:'鞋履',label:'鞋履',base:62}};
+  const items=[];
+  sets.forEach((set,index)=>SLOT_ORDER.forEach(slot=>items.push({id:`${set.id}-${slot}`,setId:set.id,slot,tab:slotMeta[slot].tab,name:`${set.name}·${slotMeta[slot].label}`,series:set.name,price:slotMeta[slot].base+(index%4)*6,kind:set[slot],colors:set.colors,rarity:set.rarity})));
+  const itemMap=new Map(items.map(x=>[x.id,x]));
+  const setMap=new Map(sets.map(x=>[x.id,x]));
+  const lookOfSet=id=>({top:`${id}-top`,bottom:`${id}-bottom`,outer:`${id}-outer`,shoes:`${id}-shoes`});
+  const defaultLook=lookOfSet(starterSetId);
 
-  D.game2d = D.game2d || {};
-  const state = D.game2d;
-  state.owned = Array.isArray(state.owned) ? state.owned : [];
-  state.owned = state.owned.filter(id => !legacyBaseIds.has(id));
-  /* Every existing save gets one genuinely separated starter set so all
-     categories can be tested immediately. Future pieces still cost coins. */
-  if (!state.starterGranted) {
-    mistIds.forEach(id => { if (!state.owned.includes(id)) state.owned.push(id); });
-    state.starterGranted = true;
-  }
-  state.equipped = sanitizeLook(state.equipped || mistLook);
-  state.looks = (Array.isArray(state.looks) ? state.looks : []).map(look => Object.assign({}, look, { slots:sanitizeLook(look.slots) }));
-  state.version = VERSION;
+  D.game2d=D.game2d||{};
+  const state=D.game2d;
+  if(state.catalogVersion!==VERSION){state.catalogVersion=VERSION;state.owned=Object.values(defaultLook);state.equipped={...defaultLook};state.looks=[];state.starterGranted=true;}
+  state.owned=Array.isArray(state.owned)?state.owned.filter(id=>itemMap.has(id)):Object.values(defaultLook);
+  state.equipped=sanitizeLook(state.equipped||defaultLook);
+  state.looks=(Array.isArray(state.looks)?state.looks:[]).map(x=>({...x,slots:sanitizeLook(x.slots)}));
 
-  const app = document.createElement('section');
-  app.id = 'gameAppV5';
-  app.className = 'gameAppV5 dressupApp';
-  app.setAttribute('aria-label', '星回平面换装游戏');
-  app.innerHTML = `
-    <header class="dressTopbar">
-      <button class="dressBack" aria-label="返回工作台">←</button>
-      <div class="dressTitle"><small>STARLIGHT DRESS</small><b id="dressSceneTitle">星回衣橱</b></div>
-      <div class="dressCoins" aria-label="金币余额"><i>✦</i><b id="dressCoinCount">0</b></div>
-    </header>
-    <main class="dressScene" id="dressScene"></main>
-    <nav class="dressNav" aria-label="换装游戏导航">
-      <button data-dress-scene="wardrobe">${dressNavIcon('wardrobe')}<span>衣橱</span></button>
-      <button data-dress-scene="shop">${dressNavIcon('shop')}<span>商城</span></button>
-      <button data-dress-scene="looks">${dressNavIcon('looks')}<span>穿搭</span></button>
-      <button data-dress-scene="rewards">${dressNavIcon('rewards')}<span>奖励</span></button>
-    </nav>`;
+  const old=document.getElementById('gameAppV5'); if(old) old.remove();
+  const app=document.createElement('section'); app.id='gameAppV5'; app.className='gameAppV5 dressupApp';
+  app.innerHTML=`<header class="dressTopbar"><button class="dressBack" aria-label="返回工作台">${navIcon('back')}</button><div class="dressTitle"><small>STARLIGHT DRESS</small><b id="dressSceneTitle">星回衣橱</b></div><div class="dressCoins"><i>✦</i><b id="dressCoinCount">0</b></div></header><main class="dressScene" id="dressScene"></main><nav class="dressNav"><button data-dress-scene="wardrobe">${navIcon('wardrobe')}<span>衣橱</span></button><button data-dress-scene="shop">${navIcon('shop')}<span>商城</span></button><button data-dress-scene="looks">${navIcon('looks')}<span>穿搭</span></button><button data-dress-scene="rewards">${navIcon('rewards')}<span>奖励</span></button></nav>`;
   document.body.appendChild(app);
+  const root=app.querySelector('#dressScene'),title=app.querySelector('#dressSceneTitle');
+  let scene='wardrobe',wardrobeTab='套装',shopTab='套装',draft=sanitizeLook(state.equipped);
 
-  const root = app.querySelector('#dressScene');
-  const title = app.querySelector('#dressSceneTitle');
-  let scene = 'wardrobe';
-  let wardrobeTab = '全部';
-  let shopTab = '全部';
-  let draft = sanitizeLook(state.equipped);
-
-  function dressNavIcon(name) {
-    const icons = {
-      wardrobe:`<path class="iconTint" d="M11.4 5.4 8 6.8 3.8 11l3.7 4 2.2-1.7V27h12.6V13.3l2.2 1.7 3.7-4L24 6.8l-3.4-1.4C19.7 7.3 18.2 8.3 16 8.3s-3.7-1-4.6-2.9Z"/><path d="M11.4 5.4 8 6.8 3.8 11l3.7 4 2.2-1.7V27h12.6V13.3l2.2 1.7 3.7-4L24 6.8l-3.4-1.4C19.7 7.3 18.2 8.3 16 8.3s-3.7-1-4.6-2.9Z"/><path d="M11.4 5.4c.9 1.9 2.4 2.9 4.6 2.9s3.7-1 4.6-2.9"/>`,
-      shop:`<path class="iconTint" d="M6.5 10.5h19L24.2 27H7.8Z"/><path d="M6.5 10.5h19L24.2 27H7.8Z"/><path d="M11.5 11V8.5a4.5 4.5 0 0 1 9 0V11"/><path d="M12 16.5h8"/>`,
-      looks:`<rect class="iconTint" x="8" y="5" width="17" height="22" rx="3"/><path d="M8 8H6.5A2.5 2.5 0 0 0 4 10.5v13A2.5 2.5 0 0 0 6.5 26H8"/><rect x="8" y="5" width="17" height="22" rx="3"/><path d="m14 11-2.3 1-2 2.2 2.1 2 1.2-.9v6.2h7v-6.2l1.2.9 2.1-2-2-2.2-2.3-1a3.2 3.2 0 0 1-5 0Z"/>`,
-      rewards:`<circle class="iconTint" cx="16" cy="13" r="8"/><circle cx="16" cy="13" r="8"/><path d="m16 8.5 1.4 2.8 3.1.5-2.2 2.1.5 3-2.8-1.5-2.8 1.5.5-3-2.2-2.1 3.1-.5Z"/><path d="m11.5 19.5-1 7 5.5-2.8 5.5 2.8-1-7"/>`
-    };
-    return `<svg class="dressNavIcon" viewBox="0 0 32 32" aria-hidden="true">${icons[name] || icons.wardrobe}</svg>`;
-  }
-
-  function getItem(id) { return items.find(item => item.id === id); }
-  function isOwned(id) { return state.owned.includes(id); }
-  function money() { app.querySelector('#dressCoinCount').textContent = Number(D.coins || 0); }
-  function sanitizeLook(look) {
-    const next = Object.assign({}, defaultLook, look || {});
-    layerOrder.forEach(slot => {
-      const item = getItem(next[slot]);
-      if (!item || item.slot !== slot) next[slot] = null;
-    });
-    return next;
-  }
-  function cloneLook(look) { return sanitizeLook(look); }
-
-  function avatar(look, extraClass='') {
-    const selection = cloneLook(look);
-    const uid = `look-${++svgSerial}`;
-    const selected = Object.fromEntries(paintOrder.map(slot => [slot, getItem(selection[slot])]));
-    const baseCuts = paintOrder.map(slot => baseCutShape(selected[slot]?.baseCut)).join('');
-    const layers = paintOrder.map(slot => {
-      const item = selected[slot];
-      if (!item?.src) return '';
-      const mask = item.selfCut ? ` mask="url(#${uid}-${item.selfCut})"` : '';
-      return `<image class="dressLayer layer-${slot}" href="${item.src}${ASSET}" x="0" y="0" width="1254" height="1254"${mask}/>`;
-    }).join('');
-    return `<div class="dressAvatar ${extraClass}" aria-label="完整人物换装预览"><svg class="dressAvatarSvg" viewBox="0 0 1254 1254" role="img" aria-label="银灰短发的Q版人物当前穿搭">
-      <defs>
-        <mask id="${uid}-base" maskUnits="userSpaceOnUse" x="0" y="0" width="1254" height="1254"><rect width="1254" height="1254" fill="white"/>${baseCuts}</mask>
-        ${openCoatMask(uid)}
-        <clipPath id="${uid}-hands" clipPathUnits="userSpaceOnUse"><rect x="458" y="872" width="62" height="62" rx="25"/><rect x="734" y="872" width="62" height="62" rx="25"/></clipPath>
-      </defs>
-      <image class="dressBase" href="${BASE}${ASSET}" x="0" y="0" width="1254" height="1254" mask="url(#${uid}-base)"/>
-      ${layers}
-      <image class="dressHands" href="${BASE}${ASSET}" x="0" y="0" width="1254" height="1254" clip-path="url(#${uid}-hands)"/>
-    </svg></div>`;
-  }
-
-  function baseCutShape(type) {
-    if (type === 'top') return `<path fill="black" d="M535 656 L505 665 L476 690 L446 855 L452 872 L486 884 L514 807 L543 688 Z M719 656 L749 665 L778 690 L808 855 L802 872 L768 884 L740 807 L711 688 Z M535 655 H719 V920 H535 Z"/>`;
-    if (type === 'bottom') return `<rect x="520" y="858" width="214" height="282" fill="black"/>`;
-    if (type === 'shoes') return `<rect x="505" y="1080" width="244" height="140" fill="black"/>`;
-    return '';
-  }
-
-  function openCoatMask(uid) {
-    return `<mask id="${uid}-openCoat" maskUnits="userSpaceOnUse" x="0" y="0" width="1254" height="1254"><rect width="1254" height="1254" fill="white"/><path fill="black" d="M580 640 H674 L712 700 L705 865 H549 L542 700 Z"/></mask>`;
-  }
-
-  function thumb(item) {
-    if (!item || (!item.thumb && !item.src)) return '<span class="emptyPiece">不穿</span>';
-    if (item.selfCut === 'openCoat') {
-      const uid = `piece-${++svgSerial}`;
-      return `<svg viewBox="359 616 536 560" aria-hidden="true"><defs>${openCoatMask(uid)}</defs><image href="${item.src}${ASSET}" x="0" y="0" width="1254" height="1254" mask="url(#${uid}-openCoat)"/></svg>`;
-    }
-    const src = item.thumb || item.src;
-    return `<img src="${src}${ASSET}" alt="${item.name}">`;
-  }
-
-  function categoryBar(active, target) {
-    return `<div class="dressTabs" role="tablist">${tabs.map(tab => `<button data-${target}-tab="${tab}" class="${active === tab ? 'active' : ''}">${tab}</button>`).join('')}</div>`;
-  }
-
-  function wardrobeScene() {
-    const visible = items.filter(item => isOwned(item.id) && (wardrobeTab === '全部' || item.tab === wardrobeTab));
-    return `<div class="wardrobePage">
-      <section class="characterPanel"><div class="characterGlow"></div>${avatar(draft)}</section>
-      <div class="lookSummary"><div><small>当前试穿</small><b>${lookLabel(draft)}</b></div><span>基础内搭固定 · 衣服逐层穿脱</span></div>
-      <section class="wardrobePanel">
-        ${categoryBar(wardrobeTab, 'wardrobe')}
-        <p class="layerHint">白色基础内搭属于人物母版，不计入衣服，也不能换掉。再次点击正在试穿的单品即可脱下该层。</p>
-        <div class="pieceGrid">${visible.map(item => `<button class="pieceCard ${draft[item.slot] === item.id ? 'selected' : ''}" data-equip-item="${item.id}">
-          <span class="pieceArt">${thumb(item)}</span><b>${item.name}</b><small>${item.series}</small><em>${draft[item.slot] === item.id ? '再次点击脱下' : '点击试穿'}</em>
-        </button>`).join('')}</div>
-      </section>
-      <div class="dressActions"><button data-reset-draft>恢复已保存</button><button class="primary" data-save-draft>保存当前穿搭</button></div>
-    </div>`;
-  }
-
-  function shopScene() {
-    const forSale = items.filter(item => item.price > 0 && (shopTab === '全部' || item.tab === shopTab));
-    return `<div class="shopPage">
-      <section class="shopHero"><small>STARLIGHT BOUTIQUE</small><h2>星光服饰商城</h2><p>完成工作台计划获得金币；购买后单品会进入衣橱，不会自动替换当前穿搭。</p></section>
-      <section class="starterGift"><div>${avatar(mistLook, 'miniAvatar')}</div><div><small>首套拆分礼物</small><b>雾城漫步</b><p>上装、下装、外套与鞋履已分别送入衣橱，可立即混搭。</p></div></section>
-      ${categoryBar(shopTab, 'shop')}
-      <div class="storeGrid">${forSale.map(item => {
-        const owned = isOwned(item.id);
-        return `<article class="storeCard"><span class="storeArt">${thumb(item)}</span><div><small>${item.series}</small><b>${item.name}</b></div><button data-buy-item="${item.id}" ${owned ? 'disabled' : ''}>${owned ? '已拥有' : `✦ ${item.price}`}</button></article>`;
-      }).join('')}</div>
-      <section class="comingSeries"><small>持续更新系列</small><h3>东方古韵 · 星夜礼服 · 可爱日常 · 节日限定</h3><p>每一套都会先锁定同一母版，再按上装、下装、外套、鞋履和配饰逐件入库。</p></section>
-    </div>`;
-  }
-
-  function looksScene() {
-    const saved = state.looks;
-    return `<div class="looksPage"><section class="looksHero"><small>MY LOOKBOOK</small><h2>我的穿搭册</h2><p>保存不同混搭，下次可以一键换回。</p></section>
-      <div class="lookbookGrid">${saved.length ? saved.map(look => `<article class="lookCard">${avatar(look.slots, 'lookAvatar')}<b>${look.name}</b><small>${look.date}</small><div><button data-apply-look="${look.id}">换上</button><button class="quiet" data-delete-look="${look.id}" aria-label="删除穿搭">删除</button></div></article>`).join('') : `<div class="emptyLooks"><span>✦</span><b>还没有保存穿搭</b><p>在衣橱里混搭后点击“保存当前穿搭”，这里就会生成一张穿搭卡。</p><button data-dress-scene="wardrobe">去衣橱搭配</button></div>`}</div></div>`;
-  }
-
-  function rewardsScene() {
-    const ownedCount = state.owned.filter(id => getItem(id)?.price > 0).length;
-    return `<div class="rewardsPage">
-      <section class="rewardHero"><small>REAL LIFE → DRESS-UP</small><h2>行动会变成新衣服</h2><p>这里只保留一条清楚的循环：现实任务完成 → 获得金币 → 商城兑换单品 → 衣橱自由混搭。</p><div class="rewardBalance"><span>当前金币</span><b>✦ ${Number(D.coins || 0)}</b></div></section>
-      <div class="rewardStats"><article><b>${ownedCount}</b><span>兑换单品</span></article><article><b>${state.looks.length}</b><span>保存穿搭</span></article><article><b>${Math.max(0, Number(D.xp || 0))}</b><span>成长经验</span></article></div>
-      <section class="earnWays"><h3>去获得金币</h3><button data-workbench="today"><span>✓</span><div><b>完成今日打卡</b><small>按工作台原有规则结算金币</small></div><i>›</i></button><button data-workbench="focus"><span>◷</span><div><b>完成一次番茄钟</b><small>专注记录会继续累积成长</small></div><i>›</i></button><button data-workbench="plans"><span>✦</span><div><b>推进一条计划</b><small>标准行动和最低行动都算前进</small></div><i>›</i></button></section>
-    </div>`;
-  }
-
-  function lookLabel(look) {
-    const chosen = layerOrder.map(slot => getItem(look[slot])).filter(Boolean);
-    if (chosen.some(item => item.series === '雾城漫步')) return '雾城自由混搭';
-    return '人物基础造型';
-  }
-
-  function render() {
-    money();
-    const titles = { wardrobe:'星回衣橱', shop:'服饰商城', looks:'我的穿搭', rewards:'金币奖励' };
-    title.textContent = titles[scene] || '星回衣橱';
-    root.innerHTML = scene === 'shop' ? shopScene() : scene === 'looks' ? looksScene() : scene === 'rewards' ? rewardsScene() : wardrobeScene();
-    app.querySelectorAll('.dressNav [data-dress-scene]').forEach(button => button.classList.toggle('active', button.dataset.dressScene === scene));
-    root.scrollTop = 0;
-  }
-
-  function go(next) {
-    scene = next;
-    if (next === 'wardrobe') draft = cloneLook(state.equipped);
-    render();
-  }
-
-  function commitState(message) {
-    save();
-    render();
-    if (message) toast(message);
-  }
-
-  app.addEventListener('click', event => {
-    const sceneButton = event.target.closest('[data-dress-scene]');
-    if (sceneButton) { go(sceneButton.dataset.dressScene); return; }
-    const wardrobeButton = event.target.closest('[data-wardrobe-tab]');
-    if (wardrobeButton) { wardrobeTab = wardrobeButton.dataset.wardrobeTab; render(); return; }
-    const shopButton = event.target.closest('[data-shop-tab]');
-    if (shopButton) { shopTab = shopButton.dataset.shopTab; render(); return; }
-
-    const equipButton = event.target.closest('[data-equip-item]');
-    if (equipButton) {
-      const item = getItem(equipButton.dataset.equipItem);
-      if (!item || !isOwned(item.id)) return;
-      draft[item.slot] = draft[item.slot] === item.id ? null : item.id;
-      render();
-      return;
-    }
-
-    if (event.target.closest('[data-reset-draft]')) { draft = cloneLook(state.equipped); render(); return; }
-    if (event.target.closest('[data-save-draft]')) {
-      state.equipped = cloneLook(draft);
-      state.looks.unshift({ id:String(Date.now()), name:`穿搭 ${state.looks.length + 1}`, date:new Date().toLocaleDateString('zh-CN'), slots:cloneLook(draft) });
-      state.looks = state.looks.slice(0, 12);
-      commitState('当前穿搭已保存到穿搭册');
-      return;
-    }
-
-    const buyButton = event.target.closest('[data-buy-item]');
-    if (buyButton) {
-      const item = getItem(buyButton.dataset.buyItem);
-      if (!item || isOwned(item.id)) return;
-      if (Number(D.coins || 0) < item.price) { toast(`还差 ${item.price - Number(D.coins || 0)} 金币`); return; }
-      D.coins -= item.price;
-      state.owned.push(item.id);
-      commitState(`「${item.name}」已送入衣橱`);
-      return;
-    }
-
-    const applyButton = event.target.closest('[data-apply-look]');
-    if (applyButton) {
-      const look = state.looks.find(entry => entry.id === applyButton.dataset.applyLook);
-      if (!look) return;
-      state.equipped = cloneLook(look.slots);
-      draft = cloneLook(look.slots);
-      commitState(`已换上「${look.name}」`);
-      return;
-    }
-
-    const deleteButton = event.target.closest('[data-delete-look]');
-    if (deleteButton) {
-      state.looks = state.looks.filter(entry => entry.id !== deleteButton.dataset.deleteLook);
-      commitState('穿搭卡已删除');
-      return;
-    }
-
-    const workbenchButton = event.target.closest('[data-workbench]');
-    if (workbenchButton) {
-      exitGame2d();
-      if (typeof gotoPage === 'function') gotoPage(workbenchButton.dataset.workbench);
-    }
-  });
-
-  app.querySelector('.dressBack').addEventListener('click', exitGame2d);
-
-  const legacyLeave = typeof leaveGame === 'function' ? leaveGame : function () {};
-  function enterGame2d() {
-    document.body.classList.add('game-mode', 'dressup-v10-active');
-    app.classList.add('open');
-    scene = 'wardrobe';
-    draft = cloneLook(state.equipped);
-    render();
-  }
-  function exitGame2d() {
-    app.classList.remove('open');
-    document.body.classList.remove('game-mode', 'dressup-v10-active');
-    if (typeof baseGotoPage === 'function') baseGotoPage('home'); else legacyLeave();
-  }
-
-  enterGame = enterGame2d;
-  leaveGame = exitGame2d;
-  window.enterGameV5 = enterGame2d;
-  window.exitGameV5 = exitGame2d;
-  window.renderGameV5 = render;
+  function sanitizeLook(look){const out={top:null,bottom:null,outer:null,shoes:null};SLOT_ORDER.forEach(slot=>{const it=itemMap.get(look&&look[slot]);if(it&&it.slot===slot)out[slot]=it.id});return out}
+  function isOwned(id){return state.owned.includes(id)}
+  function ownedSet(setId){return Object.values(lookOfSet(setId)).every(isOwned)}
+  function setPrice(setId){return Math.round(Object.values(lookOfSet(setId)).reduce((n,id)=>n+itemMap.get(id).price,0)*.82)}
+  function completeSet(look){return sets.find(s=>SLOT_ORDER.every(slot=>look[slot]===`${s.id}-${slot}`))}
+  function lookLabel(look){const s=completeSet(look);if(s)return s.name;const n=SLOT_ORDER.filter(slot=>look[slot]).length;return n?`自由混搭 · ${n}件`:'基础造型'}
+  function money(){app.querySelector('#dressCoinCount').textContent=Number(D.coins||0)}
+  function navIcon(name){const p={back:'<path d="M20 6 10 16l10 10M11 16h15"/>',wardrobe:'<path d="M12 6 8 8l-4 5 4 4 3-2v12h10V15l3 2 4-4-4-5-4-2c-.8 2-2 3-4 3s-3.2-1-4-3Z"/>',shop:'<path d="M7 11h18l-2 16H9Z"/><path d="M12 11V8a4 4 0 0 1 8 0v3M12 17h8"/>',looks:'<rect x="8" y="5" width="17" height="22" rx="3"/><path d="m14 11-3 2 2 3 2-1v7h6v-7l2 1 2-3-3-2c-.6 1.4-1.8 2-4 2s-3.4-.6-4-2Z"/>',rewards:'<circle cx="16" cy="12" r="7"/><path d="m16 7 1.5 3 3.3.5-2.4 2.3.6 3.2-3-1.6-3 1.6.6-3.2-2.4-2.3 3.3-.5ZM11 19l-1 8 6-3 6 3-1-8"/>'};return `<svg viewBox="0 0 32 32" aria-hidden="true">${p[name]}</svg>`}
+  function defs(uid){return `<defs><linearGradient id="${uid}-sheer" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff" stop-opacity=".72"/><stop offset="1" stop-color="#9ea6ff" stop-opacity=".22"/></linearGradient></defs>`}
+  function c(item,k,fallback){return item.colors[k]||fallback}
+  function tint(hex,amount){const n=parseInt(hex.replace('#',''),16),r=(n>>16)&255,g=(n>>8)&255,b=n&255,adj=v=>Math.max(0,Math.min(255,Math.round(amount>=0?v+(255-v)*amount/100:v*(1+amount/100))));return '#'+[adj(r),adj(g),adj(b)].map(v=>v.toString(16).padStart(2,'0')).join('')}
+  const shade=tint,lighten=tint;
+  function drawTop(item){const a=c(item,'top','#eee'),ac=c(item,'accent','#caa76a'),dark=shade(a,-18);let body='',details='';if(item.kind==='wrap'||item.kind==='cross'){body=`<path d="M542 656 Q627 620 712 656 L721 850 Q627 884 533 850Z" fill="${a}" stroke="${dark}" stroke-width="7"/><path d="M548 656 627 744 706 656" fill="none" stroke="${dark}" stroke-width="14"/><path d="M548 656 627 706 706 656" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="5"/>`;details=`<path d="M553 832H700" stroke="${ac}" stroke-width="8"/><circle cx="627" cy="833" r="9" fill="${ac}"/>`}else if(item.kind==='shirt'){body=`<path d="M540 658 Q627 628 714 658 L720 855 Q627 877 534 855Z" fill="${a}" stroke="${dark}" stroke-width="7"/><path d="M566 650 627 708 688 650 670 641 627 679 584 641Z" fill="${lighten(a,16)}" stroke="${dark}" stroke-width="5"/>`;details=`<path d="M627 705V848" stroke="${dark}" stroke-width="4" stroke-dasharray="9 13"/>`}else if(item.kind==='tech'){body=`<path d="M538 657 Q627 625 716 657 L721 853 Q627 880 533 853Z" fill="${a}" stroke="${dark}" stroke-width="7"/><path d="M569 676 627 654 685 676 676 808 627 835 578 808Z" fill="${lighten(a,8)}" stroke="${ac}" stroke-width="5"/>`;details=`<path d="m604 711 23-17 23 17-9 27h-28Z" fill="${ac}" fill-opacity=".28" stroke="${ac}" stroke-width="4"/>`}else{const neck=item.kind==='turtleneck'?`<path d="M584 650 Q627 620 670 650V700H584Z" fill="${dark}"/><path d="M593 648H661" stroke="${lighten(a,22)}" stroke-width="6"/>`:`<path d="M583 654 Q627 686 671 654" fill="none" stroke="${dark}" stroke-width="9"/>`;body=`<path d="M540 660 Q627 628 714 660 L721 854 Q627 879 533 854Z" fill="${a}" stroke="${dark}" stroke-width="7"/>${neck}`;details=item.kind==='knit'?`<path d="M557 706H697M552 746H702M548 786H706" stroke="${dark}" stroke-opacity=".18" stroke-width="5"/>`:`<path d="M597 705h60" stroke="${ac}" stroke-width="5" stroke-linecap="round"/>`}const sleeve=`<path d="M544 670 Q500 665 474 704 L451 846 Q455 881 486 892 L520 866 525 742 554 704Z" fill="${a}" stroke="${dark}" stroke-width="7"/><path d="M710 670 Q754 665 780 704 L803 846 Q799 881 768 892 L734 866 729 742 700 704Z" fill="${a}" stroke="${dark}" stroke-width="7"/><path d="M456 852 516 870M798 852 738 870" stroke="${ac}" stroke-opacity=".45" stroke-width="6"/>`;return `<g class="garment top">${sleeve}${body}${details}</g>`}
+  function drawBottom(item){const a=c(item,'bottom','#333'),dark=shade(a,-20),ac=c(item,'accent','#caa76a');if(item.kind==='wide'||item.kind==='hakama')return `<g><path d="M520 855H734L758 1112Q702 1132 647 1115L627 915 607 1115Q552 1132 496 1112Z" fill="${a}" stroke="${dark}" stroke-width="8"/><path d="M627 870V1115M570 874 548 1105M684 874 706 1105" stroke="${lighten(a,15)}" stroke-opacity=".35" stroke-width="5"/><path d="M521 875H733" stroke="${ac}" stroke-width="6"/></g>`;if(item.kind==='cargo')return `<g><path d="M522 856H732L746 1110 653 1119 627 918 601 1119 508 1110Z" fill="${a}" stroke="${dark}" stroke-width="8"/><rect x="503" y="930" width="72" height="82" rx="12" fill="${lighten(a,8)}" stroke="${dark}" stroke-width="5"/><rect x="679" y="930" width="72" height="82" rx="12" fill="${lighten(a,8)}" stroke="${dark}" stroke-width="5"/></g>`;const taper=item.kind==='taper'?18:item.kind==='tailored'?8:0;return `<g><path d="M520 856H734L${742-taper} 1116 650 1120 627 921 604 1120 ${512+taper} 1116Z" fill="${a}" stroke="${dark}" stroke-width="8"/><path d="M627 875V1116" stroke="${lighten(a,15)}" stroke-opacity=".28" stroke-width="5"/><path d="M522 877H732" stroke="${ac}" stroke-opacity=".45" stroke-width="6"/></g>`}
+  function drawShoes(item){const a=c(item,'shoe','#f5f5f7'),dark=shade(a,-28),ac=c(item,'accent','#a8a0d0');if(item.kind==='boot'||item.kind==='ankle')return `<g><path d="M496 1078 584 1075 596 1187 571 1211H493Q477 1195 492 1174Z" fill="${a}" stroke="${dark}" stroke-width="8"/><path d="M670 1075 758 1078 762 1174Q777 1195 761 1211H683L658 1187Z" fill="${a}" stroke="${dark}" stroke-width="8"/><path d="M512 1130 572 1144M742 1130 682 1144" stroke="${ac}" stroke-width="7"/></g>`;return `<g><path d="M486 1144Q536 1115 591 1144L603 1185Q581 1212 490 1207Q468 1184 486 1144Z" fill="${a}" stroke="${dark}" stroke-width="8"/><path d="M663 1144Q718 1115 768 1144Q786 1184 764 1207 673 1212 651 1185Z" fill="${a}" stroke="${dark}" stroke-width="8"/><path d="M502 1158 579 1180M752 1158 675 1180" stroke="${ac}" stroke-width="6"/></g>`}
+  function drawOuterBack(item,uid){const a=c(item,'outer','#7686b3'),b=c(item,'outer2','#b9c5ea'),ac=c(item,'accent','#d2b56d'),dark=shade(a,-20);if(['celestial','immortal'].includes(item.kind))return `<g><path d="M548 645Q627 594 706 645L686 706Q627 678 568 706Z" fill="${a}" stroke="${dark}" stroke-width="7"/><path d="M526 822Q467 884 425 1092 492 1162 562 1110L584 836Z" fill="url(#${uid}-sheer)" stroke="${b}" stroke-width="6"/><path d="M728 822Q787 884 829 1092 762 1162 692 1110L670 836Z" fill="url(#${uid}-sheer)" stroke="${b}" stroke-width="6"/></g>`;if(['oriental','scholar','bamboo','traveler'].includes(item.kind))return `<g><path d="M554 646Q627 606 700 646L684 699Q627 675 570 699Z" fill="${a}" stroke="${dark}" stroke-width="7"/><path d="M524 789Q476 899 446 1112 508 1152 567 1105L586 790Z" fill="${b}" fill-opacity=".72" stroke="${a}" stroke-width="6"/><path d="M730 789Q778 899 808 1112 746 1152 687 1105L668 790Z" fill="${b}" fill-opacity=".72" stroke="${a}" stroke-width="6"/></g>`;if(['nightcoat','crimsoncoat','wintercoat'].includes(item.kind))return `<g><path d="M544 647Q627 602 710 647L692 705Q627 674 562 705Z" fill="${a}" stroke="${dark}" stroke-width="8"/><path d="M506 675Q450 852 439 1132 504 1166 566 1110L583 688Z" fill="${a}" stroke="${dark}" stroke-width="8"/><path d="M748 675Q804 852 815 1132 750 1166 688 1110L671 688Z" fill="${a}" stroke="${dark}" stroke-width="8"/></g>`;return `<g><path d="M548 648Q627 608 706 648L692 699Q627 675 562 699Z" fill="${a}" stroke="${dark}" stroke-width="7"/></g>`}
+  function drawOuterFront(item){const a=c(item,'outer','#7686b3'),b=c(item,'outer2','#b9c5ea'),ac=c(item,'accent','#d2b56d'),dark=shade(a,-23),isLong=['nightcoat','crimsoncoat','wintercoat','celestial','immortal','oriental','scholar','bamboo','traveler'].includes(item.kind);const sleeves=`<path d="M535 666Q492 663 466 707L444 842Q447 877 480 890L514 864 520 744 552 701Z" fill="${a}" stroke="${dark}" stroke-width="8"/><path d="M719 666Q762 663 788 707L810 842Q807 877 774 890L740 864 734 744 702 701Z" fill="${a}" stroke="${dark}" stroke-width="8"/>`;let front;if(['oriental','scholar','bamboo','traveler','immortal'].includes(item.kind))front=`<path d="M554 650 627 704 700 650 720 714 670 836 627 812 584 836 534 714Z" fill="${a}" stroke="${dark}" stroke-width="8"/><path d="M556 660 627 724 698 660" fill="none" stroke="${b}" stroke-width="16"/><path d="M558 819H696" stroke="${ac}" stroke-width="10"/>`;else front=`<path d="M553 651 616 706 585 855 526 862 542 696Z" fill="${a}" stroke="${dark}" stroke-width="8"/><path d="M701 651 638 706 669 855 728 862 712 696Z" fill="${a}" stroke="${dark}" stroke-width="8"/><path d="M557 655 616 708M697 655 638 708" stroke="${b}" stroke-width="13"/>`;const tail=isLong?`<path d="M526 842 507 1092Q544 1115 587 1084L605 856Z" fill="${a}" fill-opacity=".88" stroke="${dark}" stroke-width="7"/><path d="M728 842 747 1092Q710 1115 667 1084L649 856Z" fill="${a}" fill-opacity=".88" stroke="${dark}" stroke-width="7"/>`:'';return `<g>${sleeves}${tail}${front}<circle cx="563" cy="744" r="7" fill="${ac}"/></g>`}
+  function baseCut(look){let s='';if(look.top)s+=`<path fill="black" d="M535 650 505 664 476 696 446 850 455 885 493 900 522 862 526 735 545 700 535 920H719L709 700 728 735 732 862 761 900 799 885 808 850 778 696 749 664 719 650 719 920H535Z"/>`;if(look.bottom)s+=`<path fill="black" d="M508 842H746V1142H508Z"/>`;if(look.shoes)s+=`<rect x="472" y="1068" width="310" height="170" fill="black"/>`;return s}
+  function renderSlot(item,uid,part='front'){if(!item)return'';if(item.slot==='top')return drawTop(item);if(item.slot==='bottom')return drawBottom(item);if(item.slot==='shoes')return drawShoes(item);if(item.slot==='outer')return part==='back'?drawOuterBack(item,uid):drawOuterFront(item);return''}
+  function avatar(look,extra=''){const uid=`dress-${++serial}`,l=sanitizeLook(look),top=itemMap.get(l.top),bottom=itemMap.get(l.bottom),outer=itemMap.get(l.outer),shoes=itemMap.get(l.shoes);return `<div class="dressAvatar ${extra}"><svg viewBox="0 0 1254 1254" role="img">${defs(uid)}<mask id="${uid}-base"><rect width="1254" height="1254" fill="white"/>${baseCut(l)}</mask><clipPath id="${uid}-hands"><ellipse cx="480" cy="900" rx="27" ry="34"/><ellipse cx="774" cy="900" rx="27" ry="34"/></clipPath>${renderSlot(outer,uid,'back')}<image href="${BASE}?v=${VERSION}" width="1254" height="1254" mask="url(#${uid}-base)"/>${renderSlot(bottom,uid)}${renderSlot(top,uid)}${renderSlot(shoes,uid)}${renderSlot(outer,uid,'front')}<image href="${BASE}?v=${VERSION}" width="1254" height="1254" clip-path="url(#${uid}-hands)"/></svg></div>`}
+  function itemThumb(item){const uid=`thumb-${++serial}`,view={top:'420 600 414 380',bottom:'470 825 314 360',outer:'390 580 474 560',shoes:'455 1040 344 210'}[item.slot];return `<svg viewBox="${view}" aria-hidden="true">${defs(uid)}${item.slot==='outer'?drawOuterBack(item,uid)+drawOuterFront(item):renderSlot(item,uid)}</svg>`}
+  function category(active,target){return `<div class="dressTabs">${TABS.map(t=>`<button class="${active===t?'active':''}" data-${target}-tab="${t}">${t}</button>`).join('')}</div>`}
+  function setCard(set,mode){const owned=ownedSet(set.id),price=setPrice(set.id);return `<article class="setCard"><div class="setPreview">${avatar(lookOfSet(set.id),'miniAvatar')}</div><div class="setMeta"><small>${set.rarity} · CARD OUTFIT</small><b>${set.name}</b><div class="swatches">${set.palette.map(x=>`<i style="background:${x}"></i>`).join('')}</div>${mode==='shop'?`<button data-buy-set="${set.id}" ${owned?'disabled':''}>${owned?'已拥有整套':`整套兑换 · ${price} ✦`}</button>`:`<button data-apply-set="${set.id}" ${owned?'':'disabled'}>${owned?'换上整套':'尚未集齐'}</button>`}</div></article>`}
+  function wardrobeScene(){const visible=wardrobeTab==='套装'?[]:items.filter(x=>isOwned(x.id)&&x.tab===wardrobeTab);return `<div class="wardrobePage"><section class="characterPanel"><div class="characterGlow"></div>${avatar(draft)}</section><div class="lookSummary"><div><small>当前试穿</small><b>${lookLabel(draft)}</b></div><span>人物尺寸已锁定</span></div><section class="wardrobePanel"><div class="wardrobePanelHead"><div><small>WARDROBE</small><b>衣物抽屉</b></div><span>同坐标矢量衣装</span></div>${category(wardrobeTab,'wardrobe')}${wardrobeTab==='套装'?`<div class="setStrip">${sets.filter(s=>ownedSet(s.id)).map(s=>setCard(s,'wardrobe')).join('')}</div>`:`<div class="pieceGrid">${visible.map(it=>`<button class="pieceCard ${draft[it.slot]===it.id?'selected':''}" data-equip-item="${it.id}"><span class="pieceArt">${itemThumb(it)}</span><b>${it.name}</b><small>${it.series}</small><em>${draft[it.slot]===it.id?'再次点击脱下':'点击试穿'}</em></button>`).join('')}</div>`}</section><div class="dressActions"><button data-reset-draft>恢复</button><button class="primary" data-save-draft>保存穿搭</button></div></div>`}
+  function shopScene(){const visible=shopTab==='套装'?[]:items.filter(x=>x.tab===shopTab);return `<div class="shopPage"><section class="shopHero"><small>STARLIGHT BOUTIQUE</small><h2>卡面衣装馆</h2><p>旧衣装已全部下架。新衣服使用固定Q版母版的同坐标结构，商城图与人物身上是同一套矢量资产。</p></section>${category(shopTab,'shop')}${shopTab==='套装'?`<div class="setShopGrid">${sets.map(s=>setCard(s,'shop')).join('')}</div>`:`<div class="storeGrid">${visible.map(it=>`<article class="storeCard"><div class="storeArt">${itemThumb(it)}</div><div><small>${it.rarity} · ${it.series}</small><b>${it.name}</b></div><button data-buy-item="${it.id}" ${isOwned(it.id)?'disabled':''}>${isOwned(it.id)?'已拥有':`${it.price} ✦`}</button></article>`).join('')}</div>`}</div>`}
+  function looksScene(){return `<div class="looksPage"><section class="shopHero compact"><small>LOOKBOOK</small><h2>穿搭册</h2><p>保存的是每一个独立图层的组合，不是整张人物截图。</p></section><div class="lookGrid">${state.looks.length?state.looks.map(l=>`<article class="lookCard"><div>${avatar(l.slots,'miniAvatar')}</div><b>${l.name}</b><small>${l.date||''}</small><div><button data-apply-look="${l.id}">换上</button><button data-delete-look="${l.id}">删除</button></div></article>`).join(''):'<div class="emptyState">还没有保存穿搭。去衣橱混搭一套吧。</div>'}</div></div>`}
+  function rewardsScene(){return `<div class="rewardsPage"><section class="shopHero"><small>REAL LIFE → DRESS UP</small><h2>现实成长兑换衣装</h2><p>完成计划、番茄钟、学习和创作获得金币，再回来解锁卡面衣装。</p></section><div class="rewardCards"><button data-workbench="today"><b>今日打卡</b><span>完成任务获得金币</span></button><button data-workbench="focus"><b>番茄钟</b><span>专注换衣装</span></button><button data-workbench="plans"><b>成长计划</b><span>推进长期主线</span></button></div></div>`}
+  function render(){money();title.textContent={wardrobe:'星回衣橱',shop:'星光商城',looks:'穿搭册',rewards:'金币奖励'}[scene];root.innerHTML=scene==='wardrobe'?wardrobeScene():scene==='shop'?shopScene():scene==='looks'?looksScene():rewardsScene();app.querySelectorAll('[data-dress-scene]').forEach(b=>b.classList.toggle('active',b.dataset.dressScene===scene));root.scrollTop=0}
+  function commit(msg){save();render();if(msg)toast(msg)}
+  app.addEventListener('click',e=>{let b=e.target.closest('[data-dress-scene]');if(b){scene=b.dataset.dressScene;if(scene==='wardrobe')draft=sanitizeLook(state.equipped);render();return}b=e.target.closest('[data-wardrobe-tab]');if(b){wardrobeTab=b.dataset.wardrobeTab;render();return}b=e.target.closest('[data-shop-tab]');if(b){shopTab=b.dataset.shopTab;render();return}b=e.target.closest('[data-equip-item]');if(b){const it=itemMap.get(b.dataset.equipItem);if(it&&isOwned(it.id)){draft[it.slot]=draft[it.slot]===it.id?null:it.id;render()}return}b=e.target.closest('[data-apply-set]');if(b&&ownedSet(b.dataset.applySet)){draft=lookOfSet(b.dataset.applySet);render();return}if(e.target.closest('[data-reset-draft]')){draft=sanitizeLook(state.equipped);render();return}if(e.target.closest('[data-save-draft]')){state.equipped=sanitizeLook(draft);state.looks.unshift({id:String(Date.now()),name:lookLabel(draft),date:new Date().toLocaleDateString('zh-CN'),slots:sanitizeLook(draft)});state.looks=state.looks.slice(0,20);commit('当前穿搭已保存');return}b=e.target.closest('[data-buy-item]');if(b){const it=itemMap.get(b.dataset.buyItem);if(!it||isOwned(it.id))return;if(Number(D.coins||0)<it.price){toast(`还差 ${it.price-Number(D.coins||0)} 金币`);return}D.coins-=it.price;state.owned.push(it.id);commit(`「${it.name}」已送入衣橱`);return}b=e.target.closest('[data-buy-set]');if(b){const setId=b.dataset.buySet;if(ownedSet(setId))return;const ids=Object.values(lookOfSet(setId)).filter(id=>!isOwned(id)),price=setPrice(setId);if(Number(D.coins||0)<price){toast(`还差 ${price-Number(D.coins||0)} 金币`);return}D.coins-=price;ids.forEach(id=>state.owned.push(id));commit(`「${setMap.get(setId).name}」整套已解锁`);return}b=e.target.closest('[data-apply-look]');if(b){const l=state.looks.find(x=>x.id===b.dataset.applyLook);if(l){state.equipped=sanitizeLook(l.slots);draft=sanitizeLook(l.slots);commit(`已换上「${l.name}」`)}return}b=e.target.closest('[data-delete-look]');if(b){state.looks=state.looks.filter(x=>x.id!==b.dataset.deleteLook);commit('穿搭卡已删除');return}b=e.target.closest('[data-workbench]');if(b){exitGame2d();if(typeof gotoPage==='function')gotoPage(b.dataset.workbench)}});
+  app.querySelector('.dressBack').onclick=exitGame2d;const legacyLeave=typeof leaveGame==='function'?leaveGame:function(){};
+  function enterGame2d(){document.body.classList.add('game-mode','dressup-v20-active');app.classList.add('open');scene='wardrobe';wardrobeTab='套装';draft=sanitizeLook(state.equipped);render()}
+  function exitGame2d(){app.classList.remove('open');document.body.classList.remove('game-mode','dressup-v20-active');if(typeof baseGotoPage==='function')baseGotoPage('home');else legacyLeave()}
+  enterGame=enterGame2d;leaveGame=exitGame2d;window.enterGameV5=enterGame2d;window.exitGameV5=exitGame2d;window.renderGameV5=render;
 })();
