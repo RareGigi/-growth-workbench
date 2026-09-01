@@ -1,0 +1,1 @@
+Runtime placement for cropped v22 assets uses each source layer's original atlas bounding box on the fixed 1254x1254 canvas: top x490 y619 w275 h207; bottom x534 y825 w187 h285; outer-back x430 y599 w395 h401; outer-front x430 y595 w395 h410; shoes x504 y1060 w246 h160; necklace x575 y619 w110 h132; brooch x690 y659 w65 h91.
