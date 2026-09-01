@@ -1,0 +1,1 @@
+v22 raster asset build is in progress in the safe branch only. Source atlas is split into seven fixed 1254x1254 transparent layers: top, bottom, outer-back, outer-front, shoes, necklace, brooch. The runtime already references those seven independent files and does not use vector garment drawing.
