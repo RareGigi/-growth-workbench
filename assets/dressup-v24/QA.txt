@@ -1,0 +1,1 @@
+mist-v24 split QA: all garment files are same-coordinate transparent layers derived from the approved 雾城漫步 outfit; no per-item scaling or repositioning is allowed in runtime.
