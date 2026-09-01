@@ -1,0 +1,1 @@
+v25 layering: mist-outer-back = coat rear/full silhouette behind base; base; bottom; top; shoes; mist-outer-front = open-front coat foreground. All garment art is raster and aligned to the fixed Q-body coordinate system.
