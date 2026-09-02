@@ -1,100 +1,40 @@
-/* 星回衣橱 v28：以已验证完整套装为唯一像素源，拆分只做裁切；正确基础人物通过分块数据加载。 */
+/* 星回衣橱 v28：完整套装保留原成品；拆分状态使用正确人物母版 + 已验证同坐标透明衣物层。 */
 (function(){
   const VERSION=28;
   const OUTFIT='assets/avatar-v5/mist-city-walk-preview.png';
-  const BASE_CHUNKS=[
-    'assets/dressup-v27/chunks/base-00.b64',
-    'assets/dressup-v27/chunks/base-01.b64',
-    'assets/dressup-v27/chunks/base-02.b64',
-    'assets/dressup-v27/chunks/base-03.b64',
-    'assets/dressup-v27/chunks/base-04.b64'
-  ];
+  const BASE_CHUNKS=['assets/dressup-v27/chunks/base-00.b64','assets/dressup-v27/chunks/base-01.b64','assets/dressup-v27/chunks/base-02.b64','assets/dressup-v27/chunks/base-03.b64','assets/dressup-v27/chunks/base-04.b64'];
   const BASE_CROP={x:364,y:77,w:546,h:1105};
   const BASE_MATRIX='matrix(1.00325618 0.00833195 -0.00833195 1.00325618 -22.3126443 -28.6789682)';
-  const MASKS={
-    top:"M470 500L470 503L489 506L509 525L508 517L528 535L529 528L556 543L521 565L476 600L477 602L500 600L492 610L450 687L450 732L470 825L474 825L475 734L800 733L802 686L768 625L751 600L770 600L771 598L729 566L705 553L685 538L699 529L699 537L731 515L731 526L755 500Z",
-    bottom:"M475 735L475 1041L489 1039L500 1034L515 1038L530 1038L531 1066L528 1079L599 1079L598 1062L601 1040L619 1037L643 1039L645 1041L646 1079L718 1079L715 1068L717 1040L732 1040L747 1036L752 1041L767 1044L769 1071L772 1078L810 1061L811 1035L835 1035L835 750L830 740L811 740L810 735Z",
-    outer:"M836 752L836 1035L811 1036L811 1060L822 1052L823 1046L835 1044L842 1092L845 1093L870 1081L894 1065L905 1052L900 1034L922 1022L930 1015L934 1006L901 945L867 897L840 865L842 857L840 842L863 829L870 820L862 803L865 796L858 779L850 776L844 759L839 758ZM449 689L442 712L423 739L418 752L410 756L403 772L399 771L396 774L389 790L392 798L384 813L384 818L395 828L393 834L401 842L416 851L418 860L357 927L316 985L322 1000L344 1021L336 1041L338 1045L354 1061L384 1081L387 1080L400 1031L425 1038L426 1046L433 1053L464 1073L467 1071L474 1042L474 826L470 826L468 822L449 732ZM803 688L800 734L810 734L811 739L829 739L813 716Z",
-    shoes:"M646 1080L649 1087L650 1111L657 1115L653 1124L650 1156L651 1175L667 1185L668 1194L672 1199L685 1205L714 1207L737 1201L740 1197L740 1186L737 1177L719 1149L719 1140L715 1136L716 1126L707 1118L707 1115L715 1109L716 1090L714 1086L717 1080ZM599 1080L528 1080L531 1085L530 1109L538 1114L538 1118L530 1123L530 1135L525 1141L527 1146L508 1177L505 1189L507 1200L518 1205L530 1207L561 1205L572 1200L577 1195L578 1184L592 1176L594 1157L591 1125L587 1116L594 1112L595 1087Z"
-  };
-  const SLOTS=['top','bottom','outer','shoes'];
-  const FULL={top:true,bottom:true,outer:true,shoes:true};
-  const META={
-    top:{tab:'上装',name:'雾白针织上装'},
-    bottom:{tab:'下装',name:'深灰链饰长裤'},
-    outer:{tab:'外套',name:'银灰雾蓝长外套'},
-    shoes:{tab:'鞋履',name:'白蓝低帮鞋'}
-  };
-  const D0=window.D||{}; window.D=D0; D0.game2d=D0.game2d||{};
-  const state=D0.game2d;
-  if(!state.mistV28) state.mistV28={equipped:{...FULL}};
-  state.mistV28.equipped={...FULL,...(state.mistV28.equipped||{})};
-
+  const ART={top:'assets/dressup-v24/mist-top.webp',bottom:'assets/dressup-v24/mist-bottom.webp',outer:'assets/dressup-v24/mist-outer-back.webp',shoes:'assets/dressup-v24/mist-shoes.webp'};
+  const SLOTS=['top','bottom','outer','shoes'],FULL={top:true,bottom:true,outer:true,shoes:true};
+  const META={top:{tab:'上装',name:'雾白针织上装'},bottom:{tab:'下装',name:'深灰链饰长裤'},outer:{tab:'外套',name:'银灰雾蓝长外套'},shoes:{tab:'鞋履',name:'白蓝低帮鞋'}};
+  const D0=window.D||{};window.D=D0;D0.game2d=D0.game2d||{};const state=D0.game2d;
+  if(!state.mistV28)state.mistV28={equipped:{...FULL}};state.mistV28.equipped={...FULL,...(state.mistV28.equipped||{})};
   let baseSrc='',baseReady=false,baseFailed=false,scene='wardrobe',tab='套装',draft={...state.mistV28.equipped};
-  let uid=0;
-
-  const old=document.getElementById('gameAppV5'); if(old) old.remove();
-  const app=document.createElement('section'); app.id='gameAppV5'; app.className='gameAppV5 dressupApp dressupV28';
+  const old=document.getElementById('gameAppV5');if(old)old.remove();
+  const app=document.createElement('section');app.id='gameAppV5';app.className='gameAppV5 dressupApp dressupV28';
   function icon(name){const p={back:'<path d="M20 6 10 16l10 10M11 16h15"/>',wardrobe:'<path d="M12 6 8 8l-4 5 4 4 3-2v12h10V15l3 2 4-4-4-5-4-2c-.8 2-2 3-4 3s-3.2-1-4-3Z"/>',shop:'<path d="M7 11h18l-2 16H9Z"/><path d="M12 11V8a4 4 0 0 1 8 0v3M12 17h8"/>',rewards:'<circle cx="16" cy="12" r="7"/><path d="m16 7 1.5 3 3.3.5-2.4 2.3.6 3.2-3-1.6-3 1.6.6-3.2-2.4-2.3 3.3-.5ZM11 19l-1 8 6-3 6 3-1-8"/>'};return `<svg viewBox="0 0 32 32" aria-hidden="true">${p[name]}</svg>`}
   app.innerHTML=`<header class="dressTopbar"><button class="dressBack" aria-label="返回工作台">${icon('back')}</button><div class="dressTitle"><small>STARLIGHT DRESS</small><b id="dressSceneTitle">星回衣橱</b></div><div class="dressCoins"><i>✦</i><b id="dressCoinCount">0</b></div></header><main class="dressScene" id="dressScene"></main><nav class="dressNav v23Nav"><button data-dress-scene="wardrobe">${icon('wardrobe')}<span>衣橱</span></button><button data-dress-scene="shop">${icon('shop')}<span>商城</span></button><button data-dress-scene="rewards">${icon('rewards')}<span>奖励</span></button></nav>`;
-  document.body.appendChild(app);
-  const root=app.querySelector('#dressScene'),title=app.querySelector('#dressSceneTitle');
-
-  function complete(l=draft){return SLOTS.every(s=>!!l[s])}
-  function count(l=draft){return SLOTS.filter(s=>!!l[s]).length}
-  function lookName(l=draft){return complete(l)?'雾城漫步·银灰旅装':count(l)?`自由混搭 · ${count(l)}件`:'基础造型'}
-  function money(){const el=app.querySelector('#dressCoinCount');if(el)el.textContent=Number(D0.coins||0)}
-  function clip(id,path){return `<clipPath id="${id}" clipPathUnits="userSpaceOnUse"><path d="${path}" fill-rule="evenodd" clip-rule="evenodd"/></clipPath>`}
-  function outfitImage(clipId){return `<image href="${OUTFIT}?v=${VERSION}" x="0" y="0" width="1254" height="1254" clip-path="url(#${clipId})"/>`}
-
+  document.body.appendChild(app);const root=app.querySelector('#dressScene'),title=app.querySelector('#dressSceneTitle');
+  function complete(l=draft){return SLOTS.every(s=>!!l[s])}function count(l=draft){return SLOTS.filter(s=>!!l[s]).length}function name(l=draft){return complete(l)?'雾城漫步·银灰旅装':count(l)?`自由混搭 · ${count(l)}件`:'基础造型'}function money(){const e=app.querySelector('#dressCoinCount');if(e)e.textContent=Number(D0.coins||0)}
+  function raster(src){return `<image href="${src}?v=${VERSION}" x="0" y="0" width="1254" height="1254"/>`}
   function figure(l=draft,mini=false){
-    if(complete(l)) return `<div class="v23Figure ${mini?'mini':''} outfitFigure"><img src="${OUTFIT}?v=${VERSION}" alt="雾城漫步·银灰旅装" draggable="false"></div>`;
-    if(!baseReady) return `<div class="v23Figure ${mini?'mini':''} outfitFigure"><img src="${OUTFIT}?v=${VERSION}" alt="服装资源载入中" draggable="false"><span class="v28Loading">${baseFailed?'基础人物载入失败':'正在准备换装图层…'}</span></div>`;
-    const id='v28-'+(++uid),defs=[];
-    for(const s of SLOTS) if(l[s]) defs.push(clip(`${id}-${s}`,MASKS[s]));
-    return `<div class="v25Figure ${mini?'mini':''}"><svg viewBox="0 0 1254 1254" role="img" aria-label="${lookName(l)}"><defs>${defs.join('')}</defs><g transform="${BASE_MATRIX}"><image href="${baseSrc}" x="${BASE_CROP.x}" y="${BASE_CROP.y}" width="${BASE_CROP.w}" height="${BASE_CROP.h}"/></g>${l.bottom?outfitImage(`${id}-bottom`):''}${l.top?outfitImage(`${id}-top`):''}${l.shoes?outfitImage(`${id}-shoes`):''}${l.outer?outfitImage(`${id}-outer`):''}</svg></div>`;
+    if(complete(l))return `<div class="v23Figure ${mini?'mini':''} outfitFigure"><img src="${OUTFIT}?v=${VERSION}" alt="雾城漫步·银灰旅装" draggable="false"></div>`;
+    if(!baseReady)return `<div class="v23Figure ${mini?'mini':''} outfitFigure"><img src="${OUTFIT}?v=${VERSION}" alt="换装资源准备中" draggable="false"><span class="v28Loading">${baseFailed?'基础人物载入失败':'正在准备换装图层…'}</span></div>`;
+    return `<div class="v25Figure ${mini?'mini':''}"><svg viewBox="0 0 1254 1254" role="img" aria-label="${name(l)}"><g transform="${BASE_MATRIX}"><image href="${baseSrc}" x="${BASE_CROP.x}" y="${BASE_CROP.y}" width="${BASE_CROP.w}" height="${BASE_CROP.h}"/></g>${l.bottom?raster(ART.bottom):''}${l.top?raster(ART.top):''}${l.shoes?raster(ART.shoes):''}${l.outer?raster(ART.outer):''}</svg></div>`;
   }
-
-  function itemPreview(slot){
-    const id='pv-'+(++uid);
-    return `<div class="v25Figure mini"><svg viewBox="0 0 1254 1254"><defs>${clip(id,MASKS[slot])}</defs>${outfitImage(id)}</svg></div>`;
-  }
+  function itemPreview(slot){return `<div class="v25Figure mini"><svg viewBox="0 0 1254 1254">${raster(ART[slot])}</svg></div>`}
   function tabs(){return `<div class="dressTabs">${['套装','上装','下装','外套','鞋履'].map(t=>`<button data-v28-tab="${t}" class="${tab===t?'active':''}">${t}</button>`).join('')}</div>`}
-  function pieceCard(slot){const m=META[slot],on=!!draft[slot];return `<button class="pieceCard v25Piece ${on?'selected':''}" data-toggle-slot="${slot}" ${(!baseReady&& !complete(draft))?'disabled':''}><span class="pieceArt">${itemPreview(slot)}</span><b>${m.name}</b><small>雾城漫步</small><em>${on?'再次点击脱下':'点击试穿'}</em></button>`}
-  function drawer(){
-    if(tab==='套装') return `<article class="v23SetCard ${complete(draft)?'selected':''}"><div class="v23SetPreview">${figure(FULL,true)}</div><div class="v23SetInfo"><small>SSR · VERIFIED SPLIT</small><h3>雾城漫步·银灰旅装</h3><p>整套直接使用已验证原图；拆分状态从同一张原图裁切，不重新绘制。</p><button data-wear-set>整套试穿</button></div></article>`;
-    const slot=Object.keys(META).find(s=>META[s].tab===tab);
-    return `<div class="pieceGrid v25PieceGrid">${pieceCard(slot)}</div>`;
-  }
-  function wardrobeScene(){return `<div class="v23Wardrobe"><section class="characterPanel v23CharacterPanel"><div class="characterGlow"></div>${figure(draft)}</section><div class="lookSummary"><div><small>当前试穿</small><b>${lookName(draft)}</b></div><span>同源裁切 · 固定人物</span></div><section class="v23Drawer"><div class="wardrobePanelHead"><div><small>WARDROBE</small><b>星光衣橱</b></div><span>4 个独立槽位</span></div>${tabs()}${drawer()}</section><div class="dressActions"><button data-reset-draft>恢复</button><button class="primary" data-save-draft>保存穿搭</button></div></div>`}
-  function shopScene(){return `<div class="shopPage v23Shop"><section class="shopHero"><small>STARLIGHT BOUTIQUE</small><h2>服饰商城</h2><p>首发套装已拆为四个独立单品，全部沿用同一张成品原图。</p></section><article class="v23ShopCard"><div>${figure(FULL,true)}</div><section><small>已拥有 · 初始赠礼</small><h3>雾城漫步·银灰旅装</h3><p>上装 / 下装 / 外套 / 鞋履</p><button disabled>已收入衣橱</button></section></article></div>`}
-  function rewardsScene(){return `<div class="rewardsPage"><section class="shopHero"><small>REAL LIFE → DRESS-UP</small><h2>行动兑换新衣</h2><p>完成现实任务获得金币，后续用于解锁更多独立服装。</p></section><div class="rewardCards"><button data-workbench="today"><b>今日打卡</b><span>完成现实任务，继续积累金币</span></button><button data-workbench="focus"><b>番茄钟</b><span>专注完成后获得成长奖励</span></button><button data-workbench="plans"><b>成长计划</b><span>推进长期目标</span></button></div></div>`}
-  function render(){money();if(scene==='shop'){title.textContent='服饰商城';root.innerHTML=shopScene()}else if(scene==='rewards'){title.textContent='奖励';root.innerHTML=rewardsScene()}else{title.textContent='星回衣橱';root.innerHTML=wardrobeScene()}app.querySelectorAll('[data-dress-scene]').forEach(b=>b.classList.toggle('active',b.dataset.dressScene===scene))}
+  function card(slot){const m=META[slot],on=!!draft[slot];return `<button class="pieceCard v25Piece ${on?'selected':''}" data-toggle-slot="${slot}"><span class="pieceArt">${itemPreview(slot)}</span><b>${m.name}</b><small>雾城漫步</small><em>${on?'再次点击脱下':'点击试穿'}</em></button>`}
+  function drawer(){if(tab==='套装')return `<article class="v23SetCard ${complete(draft)?'selected':''}"><div class="v23SetPreview">${figure(FULL,true)}</div><div class="v23SetInfo"><small>SSR · VERIFIED SPLIT</small><h3>雾城漫步·银灰旅装</h3><p>整套仍使用已验证高清成品；拆分使用同坐标透明衣物层。</p><button data-wear-set>整套试穿</button></div></article>`;const slot=Object.keys(META).find(s=>META[s].tab===tab);return `<div class="pieceGrid v25PieceGrid">${card(slot)}</div>`}
+  function wardrobe(){return `<div class="v23Wardrobe"><section class="characterPanel v23CharacterPanel"><div class="characterGlow"></div>${figure(draft)}</section><div class="lookSummary"><div><small>当前试穿</small><b>${name(draft)}</b></div><span>原坐标拆层 · 固定人物</span></div><section class="v23Drawer"><div class="wardrobePanelHead"><div><small>WARDROBE</small><b>星光衣橱</b></div><span>4 个独立槽位</span></div>${tabs()}${drawer()}</section><div class="dressActions"><button data-reset-draft>恢复</button><button class="primary" data-save-draft>保存穿搭</button></div></div>`}
+  function shop(){return `<div class="shopPage v23Shop"><section class="shopHero"><small>STARLIGHT BOUTIQUE</small><h2>服饰商城</h2><p>首发套装已经进入真正的独立单品模式。</p></section><article class="v23ShopCard"><div>${figure(FULL,true)}</div><section><small>已拥有 · 初始赠礼</small><h3>雾城漫步·银灰旅装</h3><p>上装 / 下装 / 外套 / 鞋履</p><button disabled>已收入衣橱</button></section></article></div>`}
+  function rewards(){return `<div class="rewardsPage"><section class="shopHero"><small>REAL LIFE → DRESS-UP</small><h2>行动兑换新衣</h2><p>完成现实任务获得金币，后续用于解锁更多服装。</p></section><div class="rewardCards"><button data-workbench="today"><b>今日打卡</b><span>继续积累金币</span></button><button data-workbench="focus"><b>番茄钟</b><span>专注完成后获得奖励</span></button><button data-workbench="plans"><b>成长计划</b><span>推进长期目标</span></button></div></div>`}
+  function render(){money();if(scene==='shop'){title.textContent='服饰商城';root.innerHTML=shop()}else if(scene==='rewards'){title.textContent='奖励';root.innerHTML=rewards()}else{title.textContent='星回衣橱';root.innerHTML=wardrobe()}app.querySelectorAll('[data-dress-scene]').forEach(b=>b.classList.toggle('active',b.dataset.dressScene===scene))}
   function persist(msg){state.mistV28.equipped={...draft};if(typeof save==='function')save();if(typeof toast==='function')toast(msg);money()}
-
-  app.addEventListener('click',e=>{
-    const nav=e.target.closest('[data-dress-scene]');if(nav){scene=nav.dataset.dressScene;render();return}
-    const tb=e.target.closest('[data-v28-tab]');if(tb){tab=tb.dataset.v28Tab;render();return}
-    if(e.target.closest('[data-wear-set]')){draft={...FULL};render();return}
-    const item=e.target.closest('[data-toggle-slot]');if(item){
-      if(!baseReady){if(typeof toast==='function')toast('换装图层还在载入');return}
-      const s=item.dataset.toggleSlot;draft[s]=!draft[s];render();return
-    }
-    if(e.target.closest('[data-reset-draft]')){draft={...state.mistV28.equipped};render();return}
-    if(e.target.closest('[data-save-draft]')){persist('当前穿搭已保存');render();return}
-    const wb=e.target.closest('[data-workbench]');if(wb){exitGame2d();if(typeof gotoPage==='function')gotoPage(wb.dataset.workbench)}
-  });
-  app.querySelector('.dressBack').addEventListener('click',exitGame2d);
-  const legacyLeave=typeof leaveGame==='function'?leaveGame:function(){};
-  function enterGame2d(){document.body.classList.add('game-mode','dressup-v21-active','dressup-v23-active','dressup-v28-active');app.classList.add('open');scene='wardrobe';tab='套装';draft={...state.mistV28.equipped};render()}
-  function exitGame2d(){app.classList.remove('open');document.body.classList.remove('game-mode','dressup-v21-active','dressup-v23-active','dressup-v28-active');if(typeof baseGotoPage==='function')baseGotoPage('home');else legacyLeave()}
+  app.addEventListener('click',e=>{const nav=e.target.closest('[data-dress-scene]');if(nav){scene=nav.dataset.dressScene;render();return}const tb=e.target.closest('[data-v28-tab]');if(tb){tab=tb.dataset.v28Tab;render();return}if(e.target.closest('[data-wear-set]')){draft={...FULL};render();return}const item=e.target.closest('[data-toggle-slot]');if(item){if(!baseReady){if(typeof toast==='function')toast('换装图层还在载入');return}const s=item.dataset.toggleSlot;draft[s]=!draft[s];render();return}if(e.target.closest('[data-reset-draft]')){draft={...state.mistV28.equipped};render();return}if(e.target.closest('[data-save-draft]')){persist('当前穿搭已保存');render();return}const wb=e.target.closest('[data-workbench]');if(wb){exitGame2d();if(typeof gotoPage==='function')gotoPage(wb.dataset.workbench)}});
+  app.querySelector('.dressBack').addEventListener('click',exitGame2d);const legacyLeave=typeof leaveGame==='function'?leaveGame:function(){};
+  function enterGame2d(){document.body.classList.add('game-mode','dressup-v21-active','dressup-v23-active','dressup-v28-active');app.classList.add('open');scene='wardrobe';tab='套装';draft={...state.mistV28.equipped};render()}function exitGame2d(){app.classList.remove('open');document.body.classList.remove('game-mode','dressup-v21-active','dressup-v23-active','dressup-v28-active');if(typeof baseGotoPage==='function')baseGotoPage('home');else legacyLeave()}
   enterGame=enterGame2d;leaveGame=exitGame2d;window.enterGameV5=enterGame2d;window.exitGameV5=exitGame2d;window.renderGameV5=render;
-
-  Promise.all(BASE_CHUNKS.map(u=>fetch(`${u}?v=${VERSION}`,{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error(u);return r.text()})))
-    .then(parts=>{
-      const src='data:image/webp;base64,'+parts.join('');
-      return new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>resolve(src);im.onerror=reject;im.src=src})
-    })
-    .then(src=>{baseSrc=src;baseReady=true;if(app.classList.contains('open'))render()})
-    .catch(err=>{console.error('v28 base load failed',err);baseFailed=true;if(app.classList.contains('open'))render()});
+  Promise.all(BASE_CHUNKS.map(u=>fetch(`${u}?v=${VERSION}`,{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error(u);return r.text()}))).then(parts=>{const src='data:image/webp;base64,'+parts.join('');return new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>resolve(src);im.onerror=reject;im.src=src})}).then(src=>{baseSrc=src;baseReady=true;if(app.classList.contains('open'))render()}).catch(err=>{console.error('v28 base load failed',err);baseFailed=true;if(app.classList.contains('open'))render()});
 })();
