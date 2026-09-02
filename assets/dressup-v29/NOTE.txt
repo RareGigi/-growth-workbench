@@ -1,0 +1,1 @@
+v29 final runtime uses only verified transparent raster blobs placed at locked coordinates. Legacy .b64 staging files are not runtime assets.
