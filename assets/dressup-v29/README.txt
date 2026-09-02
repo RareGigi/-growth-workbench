@@ -1,0 +1,1 @@
+v29 transparent-layer wardrobe. Verified local layering order: outer_back -> base -> bottom -> top -> shoes -> outer_front -> hands. All garment assets are pre-aligned to the same fixed character coordinate system; runtime must not scale or reposition them independently.
