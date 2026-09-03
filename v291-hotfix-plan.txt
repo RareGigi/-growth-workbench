@@ -1,0 +1,1 @@
+v29.1 hotfix: independent layer loading, always-clickable slot controls, binary fallback thumbnails, pointer-events disabled on figure SVG, explicit button type=button.
