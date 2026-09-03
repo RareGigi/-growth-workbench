@@ -42,3 +42,15 @@
 .dressupV32 .v32ShopCard>section{padding:18px 14px;display:flex;flex-direction:column;justify-content:center}
 .dressupV32 .v32ShopCard small{font-size:12px;color:#9d7c8f}.dressupV32 .v32ShopCard h3{font-size:20px;margin:5px 0}.dressupV32 .v32ShopCard p{font-size:14px;color:#7d7691}.dressupV32 .v32ShopCard button{min-height:42px;border:0;border-radius:12px;background:#e6e0ec;color:#837b90}
 @media(max-width:390px){.dressupV32 .v32CharacterPanel{height:min(50dvh,430px);min-height:330px}.dressupV32 .v32Figure{width:min(92vw,420px)}.dressupV32 .v32SetCard{grid-template-columns:42% 58%;min-height:206px}.dressupV32 .v32SetInfo{padding:13px 11px}.dressupV32 .v32SetInfo p{font-size:13px}.dressupV32 .v32Piece{grid-template-columns:40% 60%}}
+
+/* v33: one renderer at every dress state; isolated garment thumbnails. */
+.dressupV33 .dressTabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;overflow:visible}
+.dressupV33 .dressTabs button{min-width:0;width:100%;padding:0 3px;font-size:14px}
+.dressupV33 .v32Piece{grid-template-columns:40% 60%}
+.dressupV33 .v32Piece .pieceArt{display:grid;place-items:center;padding:10px;background:radial-gradient(circle at 50% 46%,#fff 0 38%,#f4f0fb 100%)}
+.dressupV33 .v33PieceThumb{display:block;max-width:92%;max-height:92%;width:auto;height:auto;object-fit:contain;pointer-events:none;user-select:none;-webkit-user-drag:none;image-rendering:auto}
+.dressupV33 .v33PieceThumb.top{width:92%}
+.dressupV33 .v33PieceThumb.bottom{height:96%}
+.dressupV33 .v33PieceThumb.outer{width:94%;max-width:94%;max-height:94%}
+.dressupV33 .v33PieceThumb.shoes{width:94%}
+@media(max-width:390px){.dressupV33 .dressTabs{gap:5px}.dressupV33 .dressTabs button{font-size:13px;padding:0 1px}.dressupV33 .v32Piece{grid-template-columns:39% 61%}}

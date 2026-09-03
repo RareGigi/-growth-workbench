@@ -1,4 +1,4 @@
-const CACHE = 'star-growth-cabin-v32-fixed-wardrobe';
+const CACHE = 'star-growth-cabin-v33-hd-layers';
 const ASSETS = [
   './',
   './index.html',
@@ -7,20 +7,24 @@ const ASSETS = [
   './house-v3.css?v=7',
   './game-v4.css?v=7',
   './game-v5.css?v=7',
-  './game-shell-v5.css?v=32',
+  './game-shell-v5.css?v=33',
   './app-v2.js?v=7',
   './house-v3.js?v=7',
   './wardrobe-engine-v5.js?v=7',
   './game-v4.js?v=7',
-  './game-shell-v5.js?v=32',
+  './game-shell-v5.js?v=33',
   './manifest.webmanifest',
   './icon.svg',
-  './assets/dressup-v32/base.webp?v=32',
-  './assets/dressup-v32/top.webp?v=32',
-  './assets/dressup-v32/bottom.webp?v=32',
-  './assets/dressup-v32/outer.webp?v=32',
-  './assets/dressup-v32/shoes.webp?v=32',
-  './assets/dressup-v32/composite.webp?v=32'
+  './assets/dressup-v33/base.webp?v=33',
+  './assets/dressup-v33/base-bottom-hidden.webp?v=33',
+  './assets/dressup-v33/top.webp?v=33',
+  './assets/dressup-v33/bottom.webp?v=33',
+  './assets/dressup-v33/outer.webp?v=33',
+  './assets/dressup-v33/shoes.webp?v=33',
+  './assets/dressup-v33/thumb-top.webp?v=33',
+  './assets/dressup-v33/thumb-bottom.webp?v=33',
+  './assets/dressup-v33/thumb-outer.webp?v=33',
+  './assets/dressup-v33/thumb-shoes.webp?v=33'
 ];
 
 self.addEventListener('install', event => {
