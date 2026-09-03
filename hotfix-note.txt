@@ -1,0 +1,1 @@
+v29.1 staging: keep controls interactive even when one transparent asset fails to decode; isolate asset readiness per slot.
