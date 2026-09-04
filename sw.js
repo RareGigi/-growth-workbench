@@ -1,4 +1,4 @@
-const CACHE = 'star-growth-cabin-v37-anchor-calibrated';
+const CACHE = 'star-growth-cabin-v38-rigged-master';
 const ASSETS = [
   './',
   './index.html',
@@ -7,24 +7,24 @@ const ASSETS = [
   './house-v3.css?v=7',
   './game-v4.css?v=7',
   './game-v5.css?v=7',
-  './game-shell-v5.css?v=37',
+  './game-shell-v5.css?v=38',
   './app-v2.js?v=7',
   './house-v3.js?v=7',
   './wardrobe-engine-v5.js?v=7',
   './game-v4.js?v=7',
-  './game-shell-v5.js?v=37',
+  './game-shell-v5.js?v=38',
   './manifest.webmanifest',
   './icon.svg',
-  './assets/dressup-v37/base.webp?v=37',
-  './assets/dressup-v37/composite.webp?v=37',
-  './assets/dressup-v37/top.webp?v=37',
-  './assets/dressup-v37/bottom.webp?v=37',
-  './assets/dressup-v37/outer.webp?v=37',
-  './assets/dressup-v37/shoes.webp?v=37',
-  './assets/dressup-v37/thumb-top.webp?v=37',
-  './assets/dressup-v37/thumb-bottom.webp?v=37',
-  './assets/dressup-v37/thumb-outer.webp?v=37',
-  './assets/dressup-v37/thumb-shoes.webp?v=37'
+  './assets/dressup-v38/base.webp?v=38',
+  './assets/dressup-v38/composite.webp?v=38',
+  './assets/dressup-v38/top.webp?v=38',
+  './assets/dressup-v38/bottom.webp?v=38',
+  './assets/dressup-v38/outer.webp?v=38',
+  './assets/dressup-v38/shoes.webp?v=38',
+  './assets/dressup-v38/thumb-top.webp?v=38',
+  './assets/dressup-v38/thumb-bottom.webp?v=38',
+  './assets/dressup-v38/thumb-outer.webp?v=38',
+  './assets/dressup-v38/thumb-shoes.webp?v=38'
 ];
 
 self.addEventListener('install', event => {

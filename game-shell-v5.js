@@ -1,17 +1,17 @@
-/* 星回衣橱 v37：按肩线、领口、腰线与脚踝重新校准旧服装素材。 */
+/* 星回衣橱 v38：固定人体锚点母图 + 同坐标可穿脱单品。 */
 (function () {
-  const VERSION = '37';
+  const VERSION = '38';
   const IMAGE = {
-    base: 'assets/dressup-v37/base.webp',
-    composite: 'assets/dressup-v37/composite.webp',
-    top: 'assets/dressup-v37/top.webp',
-    bottom: 'assets/dressup-v37/bottom.webp',
-    outer: 'assets/dressup-v37/outer.webp',
-    shoes: 'assets/dressup-v37/shoes.webp',
-    thumbTop: 'assets/dressup-v37/thumb-top.webp',
-    thumbBottom: 'assets/dressup-v37/thumb-bottom.webp',
-    thumbOuter: 'assets/dressup-v37/thumb-outer.webp',
-    thumbShoes: 'assets/dressup-v37/thumb-shoes.webp'
+    base: 'assets/dressup-v38/base.webp',
+    composite: 'assets/dressup-v38/composite.webp',
+    top: 'assets/dressup-v38/top.webp',
+    bottom: 'assets/dressup-v38/bottom.webp',
+    outer: 'assets/dressup-v38/outer.webp',
+    shoes: 'assets/dressup-v38/shoes.webp',
+    thumbTop: 'assets/dressup-v38/thumb-top.webp',
+    thumbBottom: 'assets/dressup-v38/thumb-bottom.webp',
+    thumbOuter: 'assets/dressup-v38/thumb-outer.webp',
+    thumbShoes: 'assets/dressup-v38/thumb-shoes.webp'
   };
   const FULL = { top: true, bottom: true, outer: true, shoes: true };
   const SLOTS = ['top', 'bottom', 'outer', 'shoes'];
@@ -25,7 +25,8 @@
   /* app-v2.js keeps D in a global lexical binding, not on window. */
   const data = typeof D === 'object' && D ? D : (window.D || {});
   data.game2d = data.game2d || {};
-  const saved = data.game2d.mistV37?.equipped
+  const saved = data.game2d.mistV38?.equipped
+    || data.game2d.mistV37?.equipped
     || data.game2d.mistV36?.equipped
     || data.game2d.mistV35?.equipped
     || data.game2d.mistV34?.equipped
@@ -34,8 +35,8 @@
     || data.game2d.mistV31?.equipped
     || data.game2d.mistV29?.equipped
     || FULL;
-  data.game2d.mistV37 = { equipped: { ...FULL, ...saved } };
-  const state = data.game2d.mistV37;
+  data.game2d.mistV38 = { equipped: { ...FULL, ...saved } };
+  const state = data.game2d.mistV38;
 
   let scene = 'wardrobe';
   let tab = '套装';
@@ -47,7 +48,7 @@
 
   const app = document.createElement('section');
   app.id = 'gameAppV5';
-  app.className = 'gameAppV5 dressupApp dressupV32 dressupV33 dressupV34 dressupV35 dressupV36 dressupV37';
+  app.className = 'gameAppV5 dressupApp dressupV32 dressupV33 dressupV34 dressupV35 dressupV36 dressupV37 dressupV38';
 
   function icon(name) {
     const paths = {
@@ -258,7 +259,7 @@
 
   const legacyLeave = typeof leaveGame === 'function' ? leaveGame : function () {};
   function enterGame2d() {
-    document.body.classList.add('game-mode', 'dressup-v21-active', 'dressup-v23-active', 'dressup-v32-active', 'dressup-v33-active', 'dressup-v34-active', 'dressup-v35-active', 'dressup-v36-active', 'dressup-v37-active');
+    document.body.classList.add('game-mode', 'dressup-v21-active', 'dressup-v23-active', 'dressup-v32-active', 'dressup-v33-active', 'dressup-v34-active', 'dressup-v35-active', 'dressup-v36-active', 'dressup-v37-active', 'dressup-v38-active');
     app.classList.add('open');
     scene = 'wardrobe';
     tab = '套装';
@@ -268,7 +269,7 @@
 
   function exitGame2d() {
     app.classList.remove('open');
-    document.body.classList.remove('game-mode', 'dressup-v21-active', 'dressup-v23-active', 'dressup-v31-active', 'dressup-v32-active', 'dressup-v33-active', 'dressup-v34-active', 'dressup-v35-active', 'dressup-v36-active', 'dressup-v37-active');
+    document.body.classList.remove('game-mode', 'dressup-v21-active', 'dressup-v23-active', 'dressup-v31-active', 'dressup-v32-active', 'dressup-v33-active', 'dressup-v34-active', 'dressup-v35-active', 'dressup-v36-active', 'dressup-v37-active', 'dressup-v38-active');
     if (typeof baseGotoPage === 'function') baseGotoPage('home');
     else legacyLeave();
   }
