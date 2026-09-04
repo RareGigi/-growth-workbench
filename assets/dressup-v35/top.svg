@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1254" height="1254" viewBox="0 0 1254 1254">
+  <defs>
+    <linearGradient id="topFill" x1="0" y1="0" x2="0.88" y2="1">
+      <stop offset="0" stop-color="#f0f2fb"/>
+      <stop offset="0.48" stop-color="#dce0f2"/>
+      <stop offset="1" stop-color="#c8cce4"/>
+    </linearGradient>
+    <linearGradient id="topBand" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#c3c8e2"/>
+      <stop offset="0.5" stop-color="#eef0f8"/>
+      <stop offset="1" stop-color="#bcc2dd"/>
+    </linearGradient>
+    <filter id="topSoft" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur stdDeviation="1.25"/>
+    </filter>
+  </defs>
+  <path d="M579 570C555 571 528 579 510 594C492 614 479 657 465 704L444 766L510 789L518 775L520 805C557 818 697 818 734 805L736 775L744 789L810 766L789 704C775 657 762 614 744 594C726 579 699 571 675 570C650 585 604 585 579 570Z" fill="url(#topFill)" stroke="#8f8ca8" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M579 570C590 586 607 594 627 594C647 594 664 586 675 570C661 568 649 566 627 566C606 566 593 568 579 570Z" fill="url(#topBand)" stroke="#8f8ca8" stroke-width="3.2"/>
+  <path d="M522 786C559 798 696 798 732 786L734 805C696 818 558 818 520 805Z" fill="url(#topBand)" opacity=".92"/>
+  <path d="M449 748L514 772L510 789L444 766ZM805 748L740 772L744 789L810 766Z" fill="url(#topBand)" opacity=".94"/>
+  <g fill="none" stroke="#aeb2cc" stroke-width="2.2" stroke-linecap="round" opacity=".56">
+    <path d="M548 600C535 652 531 716 532 784"/><path d="M575 592C566 655 564 725 566 795"/><path d="M603 594C599 656 599 729 600 797"/>
+    <path d="M651 594C655 656 655 729 654 797"/><path d="M679 592C688 655 690 725 688 795"/><path d="M706 600C719 652 723 716 722 784"/>
+    <path d="M504 616C492 668 476 724 458 771"/><path d="M530 611C515 667 500 730 486 782"/>
+    <path d="M750 616C762 668 778 724 796 771"/><path d="M724 611C739 667 754 730 768 782"/>
+  </g>
+  <path d="M548 607C571 622 683 622 706 607" fill="none" stroke="#fff" stroke-width="5" opacity=".42" filter="url(#topSoft)"/>
+</svg>

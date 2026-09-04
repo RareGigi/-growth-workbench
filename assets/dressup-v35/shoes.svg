@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1254" height="1254" viewBox="0 0 1254 1254">
+  <defs>
+    <linearGradient id="shoeFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fafbff"/><stop offset=".68" stop-color="#e4e6f2"/><stop offset="1" stop-color="#c5c9db"/>
+    </linearGradient>
+  </defs>
+  <path d="M501 1081C529 1075 577 1077 597 1087C604 1098 609 1109 614 1120C627 1127 632 1141 621 1152C599 1167 514 1172 481 1155C470 1149 471 1134 479 1123L490 1109Z" fill="url(#shoeFill)" stroke="#8d91aa" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M657 1087C677 1077 725 1075 753 1081L764 1109L775 1123C783 1134 784 1149 773 1155C740 1172 655 1167 633 1152C622 1141 627 1127 640 1120C645 1109 650 1098 657 1087Z" fill="url(#shoeFill)" stroke="#8d91aa" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M480 1143C515 1157 601 1154 630 1140M774 1143C739 1157 653 1154 624 1140" fill="none" stroke="#aeb3c8" stroke-width="7"/>
+  <path d="M505 1092C526 1107 578 1109 606 1097M749 1092C728 1107 676 1109 648 1097" fill="none" stroke="#b9bed3" stroke-width="3"/>
+  <g fill="none" stroke="#9ca2bb" stroke-width="3" stroke-linecap="round">
+    <path d="m515 1103 77 28M516 1118l79 7M739 1103l-77 28M738 1118l-79 7"/>
+  </g>
+  <g fill="#78809e">
+    <circle cx="520" cy="1104" r="4"/><circle cx="538" cy="1111" r="4"/><circle cx="557" cy="1118" r="4"/><circle cx="575" cy="1124" r="4"/>
+    <circle cx="734" cy="1104" r="4"/><circle cx="716" cy="1111" r="4"/><circle cx="697" cy="1118" r="4"/><circle cx="679" cy="1124" r="4"/>
+  </g>
+  <path d="M496 1158C527 1169 592 1167 621 1156M758 1158C727 1169 662 1167 633 1156" fill="none" stroke="#737991" stroke-width="3.2"/>
+</svg>
