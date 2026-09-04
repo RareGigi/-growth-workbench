@@ -1,203 +1,48 @@
-/* 栖光 v1：把现实成长，养成一个世界。 */
-(function () {
-  const VERSION = 'qiguang-1';
-  const STORAGE_KEY = 'qiguang-world-v1';
-  const data = typeof D === 'object' && D ? D : (window.D || {});
-
-  const defaults = {
-    scene: 'greenhouse',
-    light: 36,
-    plants: { study: 2, writing: 1, body: 3, life: 1 },
-    stars: { begin: true, thirty: false, cpa: false, novel: false, work: false },
-    relics: { seed: true, nights: false, pages: false, morning: false }
-  };
-
-  function loadState() {
-    try {
-      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-      return {
-        ...defaults,
-        ...saved,
-        plants: { ...defaults.plants, ...(saved.plants || {}) },
-        stars: { ...defaults.stars, ...(saved.stars || {}) },
-        relics: { ...defaults.relics, ...(saved.relics || {}) }
-      };
-    } catch (_) { return JSON.parse(JSON.stringify(defaults)); }
-  }
-  const state = loadState();
-  function saveState() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (_) {} }
-
-  const old = document.getElementById('gameAppV5');
-  if (old) old.remove();
-
-  const app = document.createElement('section');
-  app.id = 'gameAppV5';
-  app.className = 'gameAppV5 qiguangApp';
-
-  const plants = [
-    { id: 'study', name: '白山茶', track: '学习', note: '把反复回来的夜晚养成花。', tone: 'ivory' },
-    { id: 'writing', name: '紫藤', track: '创作', note: '每一次落笔，都会留下新的枝条。', tone: 'violet' },
-    { id: 'body', name: '银杏', track: '身体', note: '慢一点也没关系，先让根扎稳。', tone: 'gold' },
-    { id: 'life', name: '铃兰', track: '生活', note: '那些微小而具体的好日子。', tone: 'sage' }
+/* 栖光 QIGUANG v2 — illustrated growth collection */
+(function(){
+  const VERSION='qiguang-2';
+  const data=typeof D==='object'&&D?D:(window.D||{});
+  const STORAGE='qiguang-growth-v2';
+  const GREENHOUSE='https://images.pexels.com/photos/4577365/pexels-photo-4577365.jpeg?auto=compress&cs=tinysrgb&w=2000';
+  const plants=[
+    {id:'camellia',name:'白山茶',latin:'Camellia Japonica',habit:'学习 · 专注 · 自我提升',quote:'在漫长的季节里，依然选择温柔地开放。',desc:'白山茶的花期很长，从初冬到春天。它不张扬，却始终安静地开着。就像那些看似平凡的坚持，终会在时光里，开出属于自己的花。',image:'https://commons.wikimedia.org/wiki/Special:Redirect/file/Camellia_japonica_-_white_NBG.jpg?width=1200',thumb:'https://commons.wikimedia.org/wiki/Special:Redirect/file/Camellia_japonica_-_white_NBG.jpg?width=360'},
+    {id:'wisteria',name:'紫藤',latin:'Wisteria sinensis',habit:'写作 · 创作 · 想象力',quote:'长久积累，才有垂落成瀑的春天。',desc:'紫藤把漫长的生长藏在枝蔓里，直到某个春日突然铺满花序。它适合记录那些需要时间沉淀的创作。',image:'https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?auto=format&fit=crop&w=1200&q=88',thumb:'https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?auto=format&fit=crop&w=360&q=82'},
+    {id:'lily',name:'铃兰',latin:'Convallaria majalis',habit:'英语 · 阅读 · 输入',quote:'细小的积累，也会有清澈的回声。',desc:'铃兰的花朵很小，却一串串留下痕迹。它代表持续输入、阅读和语言学习里那些不显眼但真实发生的进步。',image:'https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=1200&q=88',thumb:'https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=360&q=82'},
+    {id:'ginkgo',name:'银杏',latin:'Ginkgo biloba',habit:'运动 · 身体 · 长期主义',quote:'慢慢长成，比迅速抵达更重要。',desc:'银杏以很慢的速度生长，也因此拥有极长的时间尺度。它记录身体状态、运动和真正可持续的长期习惯。',image:'https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1200&q=88',thumb:'https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=360&q=82'}
   ];
-  const stageNames = ['种子', '初芽', '舒叶', '含苞', '盛放'];
-
-  function icon(name) {
-    const map = {
-      back:'<path d="M19 7 10 16l9 9M11 16h14"/>',
-      leaf:'<path d="M25 7C15 7 8 12 8 20c0 4 3 7 7 7 8 0 12-9 10-20Z"/><path d="M8 27c3-8 8-12 15-16"/>',
-      star:'<path d="m16 4 3.2 7 7.6.8-5.6 5.2 1.6 7.6-6.8-3.8-6.8 3.8 1.6-7.6-5.6-5.2 7.6-.8Z"/>',
-      archive:'<path d="M7 7h18v20H7Z"/><path d="M11 12h10M11 17h10M11 22h6"/>',
-      plus:'<path d="M16 7v18M7 16h18"/>',
-      spark:'<path d="m16 5 1.7 5.3L23 12l-5.3 1.7L16 19l-1.7-5.3L9 12l5.3-1.7ZM25 20l.9 2.1L28 23l-2.1.9L25 26l-.9-2.1L22 23l2.1-.9Z"/>'
-    };
-    return `<svg viewBox="0 0 32 32" aria-hidden="true">${map[name] || map.spark}</svg>`;
-  }
-
-  app.innerHTML = `
-    <header class="qgTopbar">
-      <button class="qgBack" aria-label="返回工作台">${icon('back')}</button>
-      <div class="qgBrand"><small>QI · GUANG</small><b id="qgTitle">玻璃温室</b></div>
-      <div class="qgLight"><span>✦</span><b id="qgLightCount">${state.light}</b></div>
-    </header>
-    <main class="qgScene" id="qgScene"></main>
-    <nav class="qgNav">
-      <button data-qg-scene="greenhouse">${icon('leaf')}<span>温室</span></button>
-      <button data-qg-scene="sky">${icon('star')}<span>星穹</span></button>
-      <button data-qg-scene="museum">${icon('archive')}<span>藏光馆</span></button>
-    </nav>`;
+  const stages=['种子','初芽','舒叶','含苞','初绽','盛放'];
+  let state={plant:'camellia',tab:'atlas',view:'greenhouse',records:{camellia:15,wisteria:7,lily:4,ginkgo:11}};
+  try{state={...state,...JSON.parse(localStorage.getItem(STORAGE)||'{}')};}catch(e){}
+  function save(){localStorage.setItem(STORAGE,JSON.stringify(state));}
+  function p(){return plants.find(x=>x.id===state.plant)||plants[0];}
+  function count(id=state.plant){return Number((state.records||{})[id]||0);}
+  function stageIndex(id=state.plant){return Math.min(5,Math.floor(count(id)/3));}
+  function stageName(id=state.plant){return stages[stageIndex(id)];}
+  function icon(n){const map={back:'←',today:'◫',work:'▣',leaf:'❧',star:'✦',museum:'▧',stats:'▥',settings:'⚙',plus:'＋',sun:'☼',book:'⌑'};return `<span aria-hidden="true">${map[n]||'·'}</span>`;}
+  const old=document.getElementById('gameAppV5'); if(old) old.remove();
+  const app=document.createElement('section'); app.id='gameAppV5'; app.className='gameAppV5 qgApp';
+  app.innerHTML=`<div class="qgShell"><aside class="qgSidebar"></aside><main class="qgMain"></main><aside class="qgDetail"></aside></div><div class="qgToast" role="status"></div>`;
   document.body.appendChild(app);
-
-  const root = app.querySelector('#qgScene');
-  const title = app.querySelector('#qgTitle');
-  const lightCount = app.querySelector('#qgLightCount');
-
-  function plantArt(p, stage) {
-    const leaves = Math.max(0, stage - 1);
-    const flowers = stage >= 4 ? (stage === 4 ? 2 : 5) : 0;
-    return `<div class="qgPlantArt ${p.tone} stage${stage}">
-      <div class="qgPot"><i></i></div>
-      <div class="qgStem"></div>
-      ${Array.from({length: leaves}).map((_,i)=>`<span class="qgLeaf l${i+1}"></span>`).join('')}
-      ${Array.from({length: flowers}).map((_,i)=>`<span class="qgFlower f${i+1}"></span>`).join('')}
-      ${stage === 1 ? '<span class="qgSeed"></span>' : ''}
-    </div>`;
+  const sidebar=app.querySelector('.qgSidebar'),main=app.querySelector('.qgMain'),detail=app.querySelector('.qgDetail');
+  function navItem(view,ico,label){return `<button class="qgNavItem ${state.view===view?'active':''}" data-view="${view}">${icon(ico)}<b>${label}</b></button>`;}
+  function renderSidebar(){
+    sidebar.innerHTML=`<div class="qgBrand"><b>栖光</b><small>QIGUANG</small></div><nav class="qgPrimary">${navItem('today','today','今日')}${navItem('work','work','工作台')}${navItem('greenhouse','leaf','玻璃温室')}${navItem('sky','star','星穹')}${navItem('museum','museum','藏光馆')}${navItem('stats','stats','统计')}${navItem('settings','settings','设置')}</nav><div class="qgSidebarQuote"><i>Good<br>Things<br>Take Time.</i><span>好的事情<br>总会发生。</span></div>`;
   }
-
-  function greenhouseScene() {
-    const totalStages = Object.values(state.plants).reduce((a,b)=>a+b,0);
-    const progress = Math.round(totalStages / (plants.length * 5) * 100);
-    return `<div class="qgPage qgGreenhousePage">
-      <section class="qgGreenhouseHero">
-        <div class="qgGlassRoof"><i></i><i></i><i></i><i></i></div>
-        <div class="qgHeroText"><small>YOUR LIVING ARCHIVE</small><h1>你不用经营它。<br>好好生活，它自己会长大。</h1><p>现实里的坚持，在这里留下植物、光和时间。</p></div>
-        <div class="qgHeroProgress"><div><span>温室生长度</span><b>${progress}%</b></div><i><em style="width:${progress}%"></em></i></div>
-      </section>
-      <section class="qgIntroStrip"><span>09 · 05</span><p>今天也可以只留下很小的一点光。</p><button data-workbench="today">回到今日</button></section>
-      <section class="qgPlantSection">
-        <div class="qgSectionHead"><div><small>BOTANICAL INDEX</small><h2>正在生长</h2></div><span>${plants.length} 株</span></div>
-        <div class="qgPlantGrid">
-          ${plants.map(p => {
-            const stage = Math.max(1, Math.min(5, Number(state.plants[p.id] || 1)));
-            return `<article class="qgPlantCard" data-plant="${p.id}">
-              <div class="qgPlantVisual">${plantArt(p, stage)}<span class="qgStageTag">${stageNames[stage-1]}</span></div>
-              <div class="qgPlantMeta"><small>${p.track}</small><h3>${p.name}</h3><p>${p.note}</p>
-                <div class="qgStageDots">${[1,2,3,4,5].map(n=>`<i class="${n<=stage?'on':''}"></i>`).join('')}</div>
-                <button data-grow="${p.id}" ${stage>=5?'disabled':''}>${stage>=5?'已盛放':`${icon('plus')} 记录一次成长`}</button>
-              </div>
-            </article>`;
-          }).join('')}
-        </div>
-      </section>
-    </div>`;
-  }
-
-  function skyScene() {
-    const stars = [
-      ['begin','启程星','开始记录自己的成长','2026 · 09'],
-      ['thirty','长夜灯塔','累计完成 30 次有效学习','未点亮'],
-      ['work','晨钟','新的工作阶段稳定满 100 天','未点亮'],
-      ['novel','成书星','《第五时》成熟正文抵达 10 万字','未点亮'],
-      ['cpa','执衡座','完成一项 CPA 重要里程碑','未点亮']
-    ];
-    return `<div class="qgPage qgSkyPage">
-      <section class="qgSkyHero">
-        <div class="qgSkyDust"></div>
-        ${stars.map((s,i)=>`<button class="qgStarNode n${i+1} ${state.stars[s[0]]?'lit':'dim'}" data-star-info="${s[0]}"><i></i><span>${s[1]}</span></button>`).join('')}
-        <svg class="qgConstellation" viewBox="0 0 390 500"><path d="M70 360 C110 300 132 260 175 218 S250 160 312 96"/><path d="M175 218 C215 260 257 292 325 335"/></svg>
-        <div class="qgSkyCopy"><small>CONSTELLATION OF REAL LIFE</small><h1>星星只为真正<br>抵达过的地方亮起。</h1></div>
-      </section>
-      <section class="qgSkyList">${stars.map(s=>`<article class="${state.stars[s[0]]?'lit':''}"><span>${state.stars[s[0]]?'✦':'○'}</span><div><small>${s[3]}</small><b>${s[1]}</b><p>${s[2]}</p></div></article>`).join('')}</section>
-    </div>`;
-  }
-
-  function museumScene() {
-    const relics = [
-      {id:'seed', code:'001', name:'第一粒种子', sub:'开始认真记录生活的那一天', form:'seed'},
-      {id:'nights', code:'002', name:'第三十夜', sub:'装着 30 次学习微光的玻璃瓶', form:'bottle'},
-      {id:'pages', code:'003', name:'未完之书', sub:'献给写到 10 万字的故事', form:'book'},
-      {id:'morning', code:'004', name:'第一百枚晨光', sub:'一段工作旅程稳定走过 100 天', form:'watch'}
-    ];
-    return `<div class="qgPage qgMuseumPage">
-      <section class="qgMuseumHero"><small>PRIVATE MUSEUM · COLLECTION 01</small><h1>现实发生过的事，<br>值得拥有一件藏品。</h1><p>它们不能购买，也不会因为某一天停下来而消失。</p></section>
-      <section class="qgMuseumGrid">
-        ${relics.map(r=>`<article class="qgRelic ${state.relics[r.id]?'owned':'locked'}">
-          <div class="qgRelicCase"><div class="qgObject ${r.form}"><i></i><i></i><i></i></div><span>${state.relics[r.id]?'COLLECTED':'LOCKED'}</span></div>
-          <div class="qgRelicMeta"><small>NO. ${r.code}</small><h3>${r.name}</h3><p>${r.sub}</p></div>
-        </article>`).join('')}
-      </section>
-      <section class="qgMuseumNote"><span>${icon('spark')}</span><p><b>时间不会清零。</b> 已经长出的花、亮起的星和收入的藏品，都不会因为一次中断而消失。</p></section>
-    </div>`;
-  }
-
-  function render() {
-    const scene = state.scene || 'greenhouse';
-    lightCount.textContent = state.light;
-    title.textContent = scene === 'sky' ? '星穹' : scene === 'museum' ? '藏光馆' : '玻璃温室';
-    root.innerHTML = scene === 'sky' ? skyScene() : scene === 'museum' ? museumScene() : greenhouseScene();
-    app.querySelectorAll('[data-qg-scene]').forEach(btn=>btn.classList.toggle('active', btn.dataset.qgScene === scene));
-    root.scrollTop = 0;
-  }
-
-  function grow(id) {
-    const now = Math.max(1, Math.min(5, Number(state.plants[id] || 1)));
-    if (now >= 5) return;
-    state.plants[id] = now + 1;
-    state.light += 6;
-    const sum = Object.values(state.plants).reduce((a,b)=>a+b,0);
-    if (sum >= 12) state.stars.thirty = true;
-    if (state.plants.writing >= 5) { state.stars.novel = true; state.relics.pages = true; }
-    if (state.plants.study >= 5) { state.stars.cpa = true; state.relics.nights = true; }
-    if (state.plants.life >= 5) { state.stars.work = true; state.relics.morning = true; }
-    saveState();
-    render();
-  }
-
-  app.addEventListener('click', event => {
-    const nav = event.target.closest('[data-qg-scene]');
-    if (nav) { state.scene = nav.dataset.qgScene; saveState(); render(); return; }
-    const growBtn = event.target.closest('[data-grow]');
-    if (growBtn) { grow(growBtn.dataset.grow); return; }
-    const workbench = event.target.closest('[data-workbench]');
-    if (workbench) { exitQiguang(); if (typeof gotoPage === 'function') gotoPage(workbench.dataset.workbench); }
-  });
-
-  const legacyLeave = typeof leaveGame === 'function' ? leaveGame : function () {};
-  function enterQiguang() {
-    document.body.classList.add('game-mode', 'qiguang-active');
-    app.classList.add('open');
-    render();
-  }
-  function exitQiguang() {
-    app.classList.remove('open');
-    document.body.classList.remove('game-mode', 'qiguang-active');
-    if (typeof baseGotoPage === 'function') baseGotoPage('home'); else legacyLeave();
-  }
-
-  app.querySelector('.qgBack').addEventListener('click', exitQiguang);
-  enterGame = enterQiguang;
-  leaveGame = exitQiguang;
-  window.enterGameV5 = enterQiguang;
-  window.exitGameV5 = exitQiguang;
-  window.renderGameV5 = render;
+  function plantRail(){return `<div class="qgPlantRail">${plants.map(x=>`<button class="qgPlantMini ${x.id===state.plant?'active':''}" data-plant="${x.id}"><img src="${x.thumb}" alt="${x.name}"><span><b>${x.name}</b><small>${stageName(x.id)} · ${count(x.id)} 次</small></span></button>`).join('')}<button class="qgPlantMini locked"><span class="qgLockedPlus">＋</span><span><b>待解锁</b><small>更多植物...</small></span></button></div>`;}
+  function greenhouse(){const x=p();return `<section class="qgGreenhouse" style="--greenhouse:url('${GREENHOUSE}')"><div class="qgTopMeta"><span>${new Date().toLocaleDateString('zh-CN',{month:'2-digit',day:'2-digit'})}</span><i>今天也留下了一点光。</i></div>${plantRail()}<div class="qgFocus"><div class="qgFocusHalo"></div><img src="${x.image}" alt="${x.name}"><div class="qgSpecimenTag"><small>${x.latin}</small><b>${x.name}</b><span>以静默的姿态，开出长久的花。</span></div></div><div class="qgSceneCaption"><b>在自己的节奏里，慢慢长成喜欢的样子。</b><small>BLOOM A BETTER YOU</small></div></section>`;}
+  function sky(){const lit=Math.min(12,Object.values(state.records||{}).filter(n=>n>=3).length+3);return `<section class="qgWorld qgSky"><div class="qgWorldCopy"><small>PRIVATE CONSTELLATION</small><h1>星穹</h1><p>只有真正完成的阶段，才会在这里留下星光。</p></div><div class="qgConstellation">${Array.from({length:12},(_,i)=>`<button class="qgStar ${i<lit?'lit':''}" style="--x:${9+(i*37)%84}%;--y:${14+(i*53)%70}%" title="${i<lit?'已点亮':'尚未抵达'}">✦</button>`).join('')}<svg viewBox="0 0 100 70" preserveAspectRatio="none"><path d="M10 48 L20 24 L32 42 L44 18 L58 35 L73 21 L86 45"/></svg></div><div class="qgWorldFoot"><b>${lit} 颗星正在发光</b><span>CPA · 工作 · 写作 · 身体</span></div></section>`;}
+  function museum(){return `<section class="qgWorld qgMuseum"><div class="qgWorldCopy dark"><small>REAL LIFE ARCHIVE</small><h1>藏光馆</h1><p>这些不是可以买到的道具，它们只来自现实里已经发生过的事情。</p></div><div class="qgCases"><article><div class="qgObject lens">◉</div><small>已收入</small><h3>审计之眼</h3><p>完成一段真实的审计项目经历。</p></article><article><div class="qgObject book">⌑</div><small>进行中</small><h3>未完之书</h3><p>《第五时》抵达重要字数节点。</p></article><article><div class="qgObject bottle">✦</div><small>${Math.min(30,count())} / 30</small><h3>第三十夜</h3><p>累计留下三十次有效成长记录。</p></article></div></section>`;}
+  function placeholder(title,copy){return `<section class="qgWorld qgPlain"><button class="qgReturn" data-view="greenhouse">← 回到温室</button><div><small>QIGUANG WORKBENCH</small><h1>${title}</h1><p>${copy}</p></div></section>`;}
+  function renderMain(){if(state.view==='greenhouse')main.innerHTML=greenhouse();else if(state.view==='sky')main.innerHTML=sky();else if(state.view==='museum')main.innerHTML=museum();else if(state.view==='today'){exit();if(typeof gotoPage==='function')gotoPage('today');return;}else if(state.view==='work'){exit();if(typeof gotoPage==='function')gotoPage('home');return;}else if(state.view==='stats'){exit();if(typeof gotoPage==='function')gotoPage('stats');return;}else main.innerHTML=placeholder('设置','后续会把收藏世界的主题、声音和展示方式收在这里。');}
+  function tabButton(id,label){return `<button class="${state.tab===id?'active':''}" data-tab="${id}">${label}</button>`;}
+  function stageCards(){const s=stageIndex();return `<div class="qgStages">${stages.map((name,i)=>`<button class="qgStage ${i<=s?'unlocked':'locked'} ${i===s?'current':''}" data-stage="${i}" ${i>s?'disabled':''}><span>${i<2?'·':i<4?'❧':'✿'}</span><b>${name}</b></button>`).join('')}</div>`;}
+  function recordsPanel(x){const c=count();return `<div class="qgRecordList"><article><b>最近一次成长</b><span>今天 · +1 叶</span></article><article><b>累计记录</b><span>${c} 次</span></article><article><b>当前阶段</b><span>${stageName()} Lv.${stageIndex()+1}</span></article><article><b>下一阶段</b><span>${stageIndex()===5?'已经盛放':'还需要 '+(3-c%3)+' 次记录'}</span></article></div>`;}
+  function carePanel(x){return `<div class="qgCare"><p>这株植物对应：<b>${x.habit}</b></p><p>完成一次真实行动，就记录一次成长。中断不会枯萎，过去的积累不会被清零。</p><blockquote>“${x.quote}”</blockquote></div>`;}
+  function renderDetail(){if(!['greenhouse'].includes(state.view)){detail.innerHTML=`<div class="qgInfoAside"><small>PLANTS REMEMBER YOUR EFFORT.</small><b>现实里的努力，<br>会在这里留下形状。</b><button data-view="greenhouse">进入玻璃温室</button></div>`;return;}const x=p(),s=stageIndex(),c=count();detail.innerHTML=`<div class="qgTabs">${tabButton('atlas','植物图鉴')}${tabButton('records','成长记录')}${tabButton('care','养护笔记')}</div><div class="qgPlantTitle"><small>${x.latin}</small><h1>${x.name}</h1><p>“${x.quote}”</p><span>${x.habit}</span></div>${state.tab==='atlas'?`<div class="qgPlantText">${x.desc}</div><div class="qgStageHead"><span>当前阶段</span><b>${stageName()} <i>Lv.${s+1}</i></b></div>${stageCards()}<div class="qgMilestone"><span>✿</span><p><b>${s===5?'它已经盛放了 '+Math.max(1,c-14)+' 天':'距离下一阶段还有 '+(3-c%3)+' 次成长'}</b><small>${s===5?'继续坚持下去，会迎来更特别的形态。':'真实完成一次，再回来为它添一片叶。'}</small></p></div>`:state.tab==='records'?recordsPanel(x):carePanel(x)}<button class="qgGrow" data-grow>${s===5?'记录一次成长':'记录一次成长'} <b>+1 ❧</b></button><small class="qgCredit">温室照片：Pexels · 植物图像来源见原始开放图库 / 图片服务</small>`;}
+  function render(){renderSidebar();renderMain();renderDetail();}
+  function toast(msg){const t=app.querySelector('.qgToast');t.textContent=msg;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),1800);}
+  app.addEventListener('click',e=>{const v=e.target.closest('[data-view]');if(v){state.view=v.dataset.view;save();render();return;}const pl=e.target.closest('[data-plant]');if(pl){state.plant=pl.dataset.plant;state.tab='atlas';save();render();return;}const tab=e.target.closest('[data-tab]');if(tab){state.tab=tab.dataset.tab;save();renderDetail();return;}const stage=e.target.closest('[data-stage]');if(stage&&!stage.disabled){toast(`${p().name} · ${stages[Number(stage.dataset.stage)]}`);return;}if(e.target.closest('[data-grow]')){state.records=state.records||{};state.records[state.plant]=count()+1;save();render();toast(`已为${p().name}记录一次真实成长`);}});
+  function enter(){document.body.classList.add('game-mode','qiguang-active');app.classList.add('open');state.view='greenhouse';render();}
+  function exit(){app.classList.remove('open');document.body.classList.remove('game-mode','qiguang-active');}
+  enterGame=enter;leaveGame=exit;window.enterGameV5=enter;window.exitGameV5=exit;window.renderGameV5=render;
 })();
