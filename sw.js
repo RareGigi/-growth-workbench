@@ -1,4 +1,4 @@
-const CACHE = 'star-growth-cabin-v40-star-journey';
+const CACHE = 'growth-workbench-qiguang-v1';
 const ASSETS = [
   './',
   './index.html',
@@ -14,8 +14,7 @@ const ASSETS = [
   './game-v4.js?v=7',
   './game-shell-v5.js?v=38',
   './manifest.webmanifest',
-  './icon.svg',
-  './assets/dressup-v38/composite.webp?v=38'
+  './icon.svg'
 ];
 
 self.addEventListener('install', event => {
@@ -35,10 +34,7 @@ self.addEventListener('fetch', event => {
   event.respondWith(
     fetch(event.request, { cache: 'no-store' })
       .then(response => {
-        if (response.ok) {
-          const copy = response.clone();
-          caches.open(CACHE).then(cache => cache.put(event.request, copy));
-        }
+        if (response.ok) caches.open(CACHE).then(cache => cache.put(event.request, response.clone()));
         return response;
       })
       .catch(() => caches.match(event.request).then(hit => hit || caches.match(event.request, { ignoreSearch: true })))
