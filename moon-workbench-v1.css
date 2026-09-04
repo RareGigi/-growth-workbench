@@ -1,0 +1,60 @@
+/* Moon Garden Workbench visual system v1 */
+:root{--mw-bg:#0d1419;--mw-panel:rgba(18,24,27,.66);--mw-panel-strong:rgba(16,21,24,.82);--mw-line:rgba(255,255,255,.14);--mw-ink:#f5efe3;--mw-muted:#b7b5ad;--mw-gold:#d8b875;--mw-gold-2:#f1d79b;--mw-shadow:0 22px 70px rgba(0,0,0,.28)}
+body:not(.moon-garden-active){background:#0d1419 url('assets/moon-garden/2026-09-guiying-stage4.jpg') center/cover fixed no-repeat;color:var(--mw-ink);font-family:"PingFang SC","SF Pro Display",system-ui,sans-serif}
+body:not(.moon-garden-active)::before{content:"";position:fixed;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(5,10,14,.64),rgba(8,13,18,.28) 42%,rgba(5,10,14,.42)),linear-gradient(180deg,rgba(6,11,16,.34),rgba(6,11,16,.52));backdrop-filter:saturate(.9)}
+body:not(.moon-garden-active) .stars{display:none}
+body:not(.moon-garden-active) .sidebar{width:248px;background:linear-gradient(180deg,rgba(16,21,24,.86),rgba(14,19,21,.76));border-right:1px solid rgba(255,255,255,.11);box-shadow:18px 0 60px rgba(0,0,0,.18);backdrop-filter:blur(22px) saturate(1.1);padding:24px 16px}
+body:not(.moon-garden-active) .brand{padding:4px 8px 24px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:10px}
+body:not(.moon-garden-active) .brand .logo{width:42px;height:42px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff4cc,#d1ad65 48%,rgba(255,255,255,.08) 52%);color:#fff;box-shadow:0 0 30px rgba(232,201,130,.25)}
+body:not(.moon-garden-active) .brand b{font-family:"Songti SC","STSong",serif;font-size:20px;font-weight:500;letter-spacing:.08em;color:#fff4df}
+body:not(.moon-garden-active) .brand small{margin-top:3px;font-size:9px;letter-spacing:.18em;color:#d7cfbe;opacity:.68}
+body:not(.moon-garden-active) #nav{gap:5px;padding-top:3px}
+body:not(.moon-garden-active) #nav button{position:relative;color:#d8d7d1;padding:10px 12px;border-radius:12px;border:1px solid transparent;background:transparent;transition:.18s ease}
+body:not(.moon-garden-active) #nav button:hover{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.08)}
+body:not(.moon-garden-active) #nav button.active{color:#fff8e9;background:linear-gradient(90deg,rgba(211,177,106,.2),rgba(255,255,255,.06));border-color:rgba(227,199,139,.28);box-shadow:inset 3px 0 var(--mw-gold),0 12px 25px rgba(0,0,0,.12)}
+body:not(.moon-garden-active) #nav button.active::after{content:"";position:absolute;right:11px;top:50%;width:5px;height:5px;border-radius:50%;background:var(--mw-gold-2);box-shadow:0 0 12px var(--mw-gold-2);transform:translateY(-50%)}
+body:not(.moon-garden-active) .sideStats{background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.1);color:#ddd8cd;backdrop-filter:blur(12px)}
+body:not(.moon-garden-active) .sideStats b{color:#f0d69a}
+body:not(.moon-garden-active) .main{margin-left:248px;padding:22px clamp(18px,3vw,44px) 86px;max-width:none;min-height:100vh}
+body:not(.moon-garden-active) .main>header{min-height:88px;padding:2px 2px 14px;text-shadow:0 2px 18px rgba(0,0,0,.38)}
+body:not(.moon-garden-active) .main>header h1{font-family:"Songti SC","STSong",serif;font-weight:500;letter-spacing:.03em;color:#fff8ea;font-size:clamp(28px,3.5vw,42px)}
+body:not(.moon-garden-active) .tag,body:not(.moon-garden-active) .eyebrow{color:#e0c68f;letter-spacing:.08em}
+body:not(.moon-garden-active) .streak{background:rgba(13,20,24,.48);color:#f5ebd8;border-color:rgba(255,255,255,.14);backdrop-filter:blur(16px);box-shadow:0 12px 36px rgba(0,0,0,.14)}
+body:not(.moon-garden-active) .pageHead{padding:4px 2px 2px;text-shadow:0 2px 14px rgba(0,0,0,.3)}
+body:not(.moon-garden-active) .pageHead h2{font-family:"Songti SC","STSong",serif;color:#fff6e7;font-size:30px;font-weight:500;letter-spacing:.04em}
+body:not(.moon-garden-active) .pageHead p{color:#c9c5bb}
+body:not(.moon-garden-active) .card{background:var(--mw-panel);color:var(--mw-ink);border:1px solid var(--mw-line);box-shadow:var(--mw-shadow);backdrop-filter:blur(20px) saturate(1.08);border-radius:20px}
+body:not(.moon-garden-active) .card h3{font-family:"Songti SC","STSong",serif;color:#fff5e3;font-weight:500;letter-spacing:.04em}
+body:not(.moon-garden-active) .hero{position:relative;overflow:hidden;min-height:250px;background:linear-gradient(90deg,rgba(14,20,24,.84),rgba(14,20,24,.4)),url('assets/moon-garden/2026-09-guiying-stage4.jpg') 54% 53%/cover no-repeat;border-color:rgba(235,211,158,.2)}
+body:not(.moon-garden-active) .hero::after{content:"九月 · 桂影照水";position:absolute;right:24px;top:20px;font-family:"Songti SC","STSong",serif;font-size:12px;letter-spacing:.18em;color:#f3d99e;text-shadow:0 1px 10px #000}
+body:not(.moon-garden-active) .hero h2{font-family:"Songti SC","STSong",serif;color:#fff8ea;font-size:30px;font-weight:500}
+body:not(.moon-garden-active) .hero p,body:not(.moon-garden-active) .hint,body:not(.moon-garden-active) .scoreRule,body:not(.moon-garden-active) label{color:#c8c4b9}
+body:not(.moon-garden-active) .companion{border-color:rgba(255,255,255,.13)}
+body:not(.moon-garden-active) .avatarMini{background:radial-gradient(circle,#fff4cf,#c9a863 52%,rgba(255,255,255,.08) 55%);box-shadow:0 0 34px rgba(229,195,119,.23)}
+body:not(.moon-garden-active) .phaseProgress,body:not(.moon-garden-active) .progress{background:rgba(255,255,255,.1)}
+body:not(.moon-garden-active) .phaseProgress i,body:not(.moon-garden-active) .progress i,body:not(.moon-garden-active) .dayBar i{background:linear-gradient(90deg,#aa874f,#f0d397)}
+body:not(.moon-garden-active) .kpis .card{background:rgba(16,22,25,.6)}
+body:not(.moon-garden-active) .kpis span,body:not(.moon-garden-active) .bigNumber span,body:not(.moon-garden-active) .timerRing span{color:#c1bdb3}
+body:not(.moon-garden-active) .kpis b,body:not(.moon-garden-active) .bigNumber b{color:#f4dba3}
+body:not(.moon-garden-active) button,body:not(.moon-garden-active) .importBtn{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.14);color:#f3eee4}
+body:not(.moon-garden-active) button:hover{border-color:rgba(231,201,137,.38);background:rgba(255,255,255,.1)}
+body:not(.moon-garden-active) .primary{background:linear-gradient(135deg,#a98650,#d0ae6c);border-color:#d0ae6c;color:#151a1c;box-shadow:0 10px 26px rgba(181,146,82,.18)}
+body:not(.moon-garden-active) input,body:not(.moon-garden-active) select,body:not(.moon-garden-active) textarea{background:rgba(8,14,17,.55);border-color:rgba(255,255,255,.13);color:#f5efe3;outline:none}
+body:not(.moon-garden-active) input::placeholder,body:not(.moon-garden-active) textarea::placeholder{color:#8f918d}
+body:not(.moon-garden-active) select option{background:#182024;color:#f5efe3}
+body:not(.moon-garden-active) .task,body:not(.moon-garden-active) .job,body:not(.moon-garden-active) .chapter,body:not(.moon-garden-active) .logRow,body:not(.moon-garden-active) .skillRow{border-color:rgba(255,255,255,.11)}
+body:not(.moon-garden-active) .task em{background:rgba(217,185,116,.12);color:#e5cb93}
+body:not(.moon-garden-active) .habit,body:not(.moon-garden-active) .milestone,body:not(.moon-garden-active) .shopItem,body:not(.moon-garden-active) .badge{background:rgba(255,255,255,.045);border-color:rgba(255,255,255,.1);color:#eee9df}
+body:not(.moon-garden-active) .habit.checked,body:not(.moon-garden-active) .milestone.current,body:not(.moon-garden-active) .badge.unlocked{background:rgba(216,184,117,.12);border-color:rgba(229,200,139,.28)}
+body:not(.moon-garden-active) .timer{background:rgba(15,21,24,.68)}
+body:not(.moon-garden-active) .timerRing{background:radial-gradient(circle,rgba(22,29,32,.95) 54%,transparent 55%),conic-gradient(#d7b66f var(--timer,0%),rgba(255,255,255,.09) 0);box-shadow:0 18px 60px rgba(0,0,0,.24)}
+body:not(.moon-garden-active) .timerRing b{color:#fff1d0}
+body:not(.moon-garden-active) .calendar{background:rgba(15,21,24,.68)}
+body:not(.moon-garden-active) .calCell{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.05);color:#eae5dc}
+body:not(.moon-garden-active) .calCell.today{border-color:#d3b16e;box-shadow:inset 0 0 0 1px rgba(211,177,110,.18)}
+body:not(.moon-garden-active) .calCell.selected{background:rgba(211,177,110,.13)}
+body:not(.moon-garden-active) .toast{background:rgba(15,21,24,.94);border:1px solid rgba(255,255,255,.14);color:#fff2d8;box-shadow:0 18px 48px rgba(0,0,0,.3)}
+body:not(.moon-garden-active) .empty{color:#999b96}
+body:not(.moon-garden-active) .moods button.selected{background:rgba(217,185,116,.17);border-color:#d0af6d}
+body:not(.moon-garden-active) .mobileMenu{background:rgba(15,21,24,.78);border-color:rgba(255,255,255,.15);backdrop-filter:blur(12px)}
+@media(max-width:860px){body:not(.moon-garden-active){background-position:58% center}body:not(.moon-garden-active) .sidebar{width:min(82vw,300px)}body:not(.moon-garden-active) .main{margin-left:0;padding:62px 12px 80px}body:not(.moon-garden-active) .main>header{min-height:72px}body:not(.moon-garden-active) .main>header h1{font-size:28px}body:not(.moon-garden-active) .hero{min-height:280px;background-position:58% center}.hero::after{right:15px!important;top:14px!important;font-size:10px!important}.streak{font-size:10px}.card{border-radius:17px!important}.pageHead h2{font-size:26px!important}}
