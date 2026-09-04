@@ -6,15 +6,22 @@ body:not(.moon-garden-active) .stars{display:none}
 body:not(.moon-garden-active) .sidebar{width:248px;background:linear-gradient(180deg,rgba(16,21,24,.86),rgba(14,19,21,.76));border-right:1px solid rgba(255,255,255,.11);box-shadow:18px 0 60px rgba(0,0,0,.18);backdrop-filter:blur(22px) saturate(1.1);padding:24px 16px}
 body:not(.moon-garden-active) .brand{padding:4px 8px 24px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:10px}
 body:not(.moon-garden-active) .brand .logo{width:42px;height:42px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff4cc,#d1ad65 48%,rgba(255,255,255,.08) 52%);color:#fff;box-shadow:0 0 30px rgba(232,201,130,.25)}
-body:not(.moon-garden-active) .brand b{font-family:"Songti SC","STSong",serif;font-size:20px;font-weight:500;letter-spacing:.08em;color:#fff4df}
+body:not(.moon-garden-active) .brand b{font-family:"Songti SC","STSong",serif;font-size:0;font-weight:500;letter-spacing:.08em;color:#fff4df}
+body:not(.moon-garden-active) .brand b::after{content:"成长工作台";font-size:20px}
 body:not(.moon-garden-active) .brand small{margin-top:3px;font-size:9px;letter-spacing:.18em;color:#d7cfbe;opacity:.68}
 body:not(.moon-garden-active) #nav{gap:5px;padding-top:3px}
 body:not(.moon-garden-active) #nav button{position:relative;color:#d8d7d1;padding:10px 12px;border-radius:12px;border:1px solid transparent;background:transparent;transition:.18s ease}
 body:not(.moon-garden-active) #nav button:hover{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.08)}
 body:not(.moon-garden-active) #nav button.active{color:#fff8e9;background:linear-gradient(90deg,rgba(211,177,106,.2),rgba(255,255,255,.06));border-color:rgba(227,199,139,.28);box-shadow:inset 3px 0 var(--mw-gold),0 12px 25px rgba(0,0,0,.12)}
 body:not(.moon-garden-active) #nav button.active::after{content:"";position:absolute;right:11px;top:50%;width:5px;height:5px;border-radius:50%;background:var(--mw-gold-2);box-shadow:0 0 12px var(--mw-gold-2);transform:translateY(-50%)}
+body:not(.moon-garden-active) #nav button[data-page="game"]{font-size:0}
+body:not(.moon-garden-active) #nav button[data-page="game"]::before{content:"月相庭院";font-size:15px}
 body:not(.moon-garden-active) .sideStats{background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.1);color:#ddd8cd;backdrop-filter:blur(12px)}
 body:not(.moon-garden-active) .sideStats b{color:#f0d69a}
+body:not(.moon-garden-active) .sideStats span:last-child{font-size:0}
+body:not(.moon-garden-active) .sideStats span:last-child::before{content:"月辉 ";font-size:12px;color:#ddd8cd}
+body:not(.moon-garden-active) .sideStats span:last-child b{font-size:12px}
+body:not(.moon-garden-active) .sideStats span:last-child::after{content:" ☾";font-size:12px;color:#f0d69a}
 body:not(.moon-garden-active) .main{margin-left:248px;padding:22px clamp(18px,3vw,44px) 86px;max-width:none;min-height:100vh}
 body:not(.moon-garden-active) .main>header{min-height:88px;padding:2px 2px 14px;text-shadow:0 2px 18px rgba(0,0,0,.38)}
 body:not(.moon-garden-active) .main>header h1{font-family:"Songti SC","STSong",serif;font-weight:500;letter-spacing:.03em;color:#fff8ea;font-size:clamp(28px,3.5vw,42px)}
