@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1254" height="1254" viewBox="0 0 1254 1254">
+  <defs>
+    <mask id="baseMask" maskUnits="userSpaceOnUse" x="0" y="0" width="1254" height="1254">
+      <rect width="1254" height="1254" fill="white"/>
+      <rect x="510" y="780" width="230" height="305" fill="black"/>
+    </mask>
+  </defs>
+  <image href="base.webp" x="0" y="0" width="1254" height="1254" preserveAspectRatio="none" mask="url(#baseMask)"/>
+  <image href="bottom.webp" x="0" y="0" width="1254" height="1254" preserveAspectRatio="none"/>
+  <image href="top.webp" x="0" y="0" width="1254" height="1254" preserveAspectRatio="none"/>
+  <image href="shoes.webp" x="0" y="0" width="1254" height="1254" preserveAspectRatio="none"/>
+  <image href="outer.webp" x="0" y="0" width="1254" height="1254" preserveAspectRatio="none"/>
+</svg>

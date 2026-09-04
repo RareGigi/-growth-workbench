@@ -1,38 +1,40 @@
-/* 星回衣橱 v35：从固定底模裁片重绘服装，穿脱始终共用同一 1254 坐标系。 */
+/* 星回衣橱 v36：恢复原服装美术，以完整穿搭图锁定四个单品的共同点位与缩放。 */
 (function () {
-  const VERSION = '35';
+  const VERSION = '36';
   const IMAGE = {
-    base: 'assets/dressup-v34/base.webp',
-    top: 'assets/dressup-v35/top.webp',
-    bottom: 'assets/dressup-v35/bottom.webp',
-    outer: 'assets/dressup-v35/outer.webp',
-    shoes: 'assets/dressup-v35/shoes.webp',
-    thumbTop: 'assets/dressup-v35/thumb-top.webp',
-    thumbBottom: 'assets/dressup-v35/thumb-bottom.webp',
-    thumbOuter: 'assets/dressup-v35/thumb-outer.webp',
-    thumbShoes: 'assets/dressup-v35/thumb-shoes.webp'
+    base: 'assets/dressup-v36/base.webp',
+    composite: 'assets/dressup-v36/composite.webp',
+    top: 'assets/dressup-v36/top.webp',
+    bottom: 'assets/dressup-v36/bottom.webp',
+    outer: 'assets/dressup-v36/outer.webp',
+    shoes: 'assets/dressup-v36/shoes.webp',
+    thumbTop: 'assets/dressup-v36/thumb-top.webp',
+    thumbBottom: 'assets/dressup-v36/thumb-bottom.webp',
+    thumbOuter: 'assets/dressup-v36/thumb-outer.webp',
+    thumbShoes: 'assets/dressup-v36/thumb-shoes.webp'
   };
   const FULL = { top: true, bottom: true, outer: true, shoes: true };
   const SLOTS = ['top', 'bottom', 'outer', 'shoes'];
   const META = {
-    top: { tab: '上装', name: '星雾罗纹圆领上衣' },
-    bottom: { tab: '下装', name: '深空链饰锥形裤' },
-    outer: { tab: '外套', name: '月霭星辉长外套' },
-    shoes: { tab: '鞋履', name: '月白系带短靴' }
+    top: { tab: '上装', name: '雾白针织高领毛衣' },
+    bottom: { tab: '下装', name: '灰蓝链饰工装长裤' },
+    outer: { tab: '外套', name: '冰霜星辉长风衣' },
+    shoes: { tab: '鞋履', name: '白色系带运动鞋' }
   };
 
   /* app-v2.js keeps D in a global lexical binding, not on window. */
   const data = typeof D === 'object' && D ? D : (window.D || {});
   data.game2d = data.game2d || {};
-  const saved = data.game2d.mistV35?.equipped
+  const saved = data.game2d.mistV36?.equipped
+    || data.game2d.mistV35?.equipped
     || data.game2d.mistV34?.equipped
     || data.game2d.mistV33?.equipped
     || data.game2d.mistV32?.equipped
     || data.game2d.mistV31?.equipped
     || data.game2d.mistV29?.equipped
     || FULL;
-  data.game2d.mistV35 = { equipped: { ...FULL, ...saved } };
-  const state = data.game2d.mistV35;
+  data.game2d.mistV36 = { equipped: { ...FULL, ...saved } };
+  const state = data.game2d.mistV36;
 
   let scene = 'wardrobe';
   let tab = '套装';
@@ -44,7 +46,7 @@
 
   const app = document.createElement('section');
   app.id = 'gameAppV5';
-  app.className = 'gameAppV5 dressupApp dressupV32 dressupV33 dressupV34 dressupV35';
+  app.className = 'gameAppV5 dressupApp dressupV32 dressupV33 dressupV34 dressupV35 dressupV36';
 
   function icon(name) {
     const paths = {
@@ -85,18 +87,25 @@
   }
 
   function svgLayer(slot) {
-    return `<image class="v35SvgLayer ${slot}" href="${IMAGE[slot]}?v=${VERSION}" x="0" y="0" width="1254" height="1254" preserveAspectRatio="none"/>`;
+    return `<image class="v36SvgLayer ${slot}" href="${IMAGE[slot]}?v=${VERSION}" x="0" y="0" width="1254" height="1254" preserveAspectRatio="none"/>`;
   }
 
   function figure(look = draft, mini = false) {
-    const maskId = `v35BaseMask${++figureSerial}`;
+    const maskId = `v36BaseMask${++figureSerial}`;
+    if (isComplete(look)) {
+      return `<div class="v32Figure${mini ? ' mini' : ''}" role="img" aria-label="${lookName(look)}">
+        <svg class="v36Canvas" viewBox="0 0 1254 1254" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+          <image class="v36SvgLayer composite" href="${IMAGE.composite}?v=${VERSION}" x="0" y="0" width="1254" height="1254" preserveAspectRatio="none"/>
+        </svg>
+      </div>`;
+    }
     return `<div class="v32Figure${mini ? ' mini' : ''}" role="img" aria-label="${lookName(look)}">
-      <svg class="v35Canvas" viewBox="0 0 1254 1254" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+      <svg class="v36Canvas" viewBox="0 0 1254 1254" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
         <defs><mask id="${maskId}" maskUnits="userSpaceOnUse" x="0" y="0" width="1254" height="1254">
           <rect width="1254" height="1254" fill="white"/>
-          ${look.bottom ? '<rect x="492" y="800" width="270" height="295" fill="black"/>' : ''}
+          ${look.bottom ? '<rect x="510" y="780" width="230" height="305" fill="black"/>' : ''}
         </mask></defs>
-        <image class="v35SvgLayer base" href="${IMAGE.base}?v=${VERSION}" x="0" y="0" width="1254" height="1254" preserveAspectRatio="none" mask="url(#${maskId})"/>
+        <image class="v36SvgLayer base" href="${IMAGE.base}?v=${VERSION}" x="0" y="0" width="1254" height="1254" preserveAspectRatio="none" mask="url(#${maskId})"/>
         ${look.bottom ? svgLayer('bottom') : ''}
         ${look.top ? svgLayer('top') : ''}
         ${look.shoes ? svgLayer('shoes') : ''}
@@ -248,7 +257,7 @@
 
   const legacyLeave = typeof leaveGame === 'function' ? leaveGame : function () {};
   function enterGame2d() {
-    document.body.classList.add('game-mode', 'dressup-v21-active', 'dressup-v23-active', 'dressup-v32-active', 'dressup-v33-active', 'dressup-v34-active', 'dressup-v35-active');
+    document.body.classList.add('game-mode', 'dressup-v21-active', 'dressup-v23-active', 'dressup-v32-active', 'dressup-v33-active', 'dressup-v34-active', 'dressup-v35-active', 'dressup-v36-active');
     app.classList.add('open');
     scene = 'wardrobe';
     tab = '套装';
@@ -258,7 +267,7 @@
 
   function exitGame2d() {
     app.classList.remove('open');
-    document.body.classList.remove('game-mode', 'dressup-v21-active', 'dressup-v23-active', 'dressup-v31-active', 'dressup-v32-active', 'dressup-v33-active', 'dressup-v34-active', 'dressup-v35-active');
+    document.body.classList.remove('game-mode', 'dressup-v21-active', 'dressup-v23-active', 'dressup-v31-active', 'dressup-v32-active', 'dressup-v33-active', 'dressup-v34-active', 'dressup-v35-active', 'dressup-v36-active');
     if (typeof baseGotoPage === 'function') baseGotoPage('home');
     else legacyLeave();
   }
