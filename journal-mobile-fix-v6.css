@@ -1,0 +1,19 @@
+/* Mobile visual correction v6 */
+@media(max-width:860px){
+  .journalTop{padding:12px 16px 8px!important;background:#fff7f1!important;border-bottom:1px solid #eaded8}
+  .brandSeal{width:42px!important;height:42px!important;border-radius:14px!important}
+  .brandText b{font-size:21px!important}.brandText small{display:none!important}
+  .wallet span{height:34px!important;padding:0 10px!important;background:#fffaf7!important}
+  .referenceHero{height:232px!important;margin:0 -10px 12px!important;background-image:url('assets/avatar-v5/bunny-bakery-preview.png')!important;background-size:cover!important;background-position:center 35%!important}
+  .referenceHero>img{display:none!important}
+  .referenceHero:after{background:linear-gradient(180deg,rgba(255,246,240,.05),rgba(255,246,240,.18))!important}
+  .referenceDate{left:14px!important;bottom:14px!important;padding:10px 13px!important;border-radius:14px!important;box-shadow:0 7px 20px rgba(88,61,63,.08)!important}
+  .referenceDate b{font-size:29px!important}.referenceDate span{font-size:11px!important}.referenceDate p{font-size:12px!important}
+  .reference-today .todayHero{border-radius:18px!important;margin-bottom:12px!important}
+  .reference-today .todayHero .focusList{padding:17px 16px 15px!important}
+  .reference-today .todayGrid>.block:nth-child(1),.reference-today .todayGrid>.block:nth-child(2){border-radius:18px!important;margin-bottom:12px!important}
+  .reference-today .growthRows{gap:10px!important}.reference-today .growthRow{padding:2px 0!important}
+  .mobileNav{height:66px!important;border-radius:22px!important;bottom:calc(8px + env(safe-area-inset-bottom))!important;box-shadow:0 10px 30px rgba(92,68,73,.12)!important}
+  .quickAdd{width:56px!important;height:56px!important;right:20px!important;bottom:92px!important}
+}
+@media(max-width:390px){.referenceHero{height:218px!important}.referenceDate b{font-size:27px!important}}
