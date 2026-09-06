@@ -1,0 +1,2 @@
+/* cache-busting wrapper: full stylesheet is loaded from a unique URL */
+@import url('./journal-polish-v4.css?v=workspace3-core');
