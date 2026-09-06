@@ -1,5 +1,5 @@
 (()=>{
-  const CORE='./journal-reference-v5.js?v=bluebook-core-1';
+  const CORE='./app-core.js';
   const STATE='little-growth-book-rebuild-v2';
   const OUTFITS=[
     ['assets/xavier-wardrobe-1.webp','日常 · 晨雾'],
