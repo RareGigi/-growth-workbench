@@ -1,1 +1,3 @@
-# -growth-workbench
+# 小小生长册
+
+当前主分支仅保留蓝紫色「Grow with You」成长工作台正式版本。
