@@ -1,1 +1,0 @@
-HD assets are assembled client-side from chunk files until direct binary upload is replaced.
