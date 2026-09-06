@@ -1,0 +1,49 @@
+@import url('./journal-polish-v4.css?v=bluebook-base-1');
+
+:root{
+  --bg:#eef1fb;
+  --paper:#fffefe;
+  --paper2:#f7f7fd;
+  --ink:#39405a;
+  --muted:#8b8fa6;
+  --line:#dde1f1;
+  --rose:#eab7c9;
+  --rose2:#df94b4;
+  --blue:#8197d8;
+  --sage:#aabfb8;
+  --mint:#89c9c1;
+  --apricot:#e8c5a7;
+  --lav:#9f91d1;
+  --shadow:0 10px 30px rgba(74,82,129,.08);
+}
+html,body{background:linear-gradient(135deg,#edf1fb 0%,#f5f1fb 52%,#f8f2f7 100%);color:var(--ink)}
+.app{background:radial-gradient(circle at 70% 0%,rgba(183,176,227,.17),transparent 34%),radial-gradient(circle at 8% 45%,rgba(135,164,216,.16),transparent 36%)}
+.sidebar{background:linear-gradient(180deg,#f4f6ff 0%,#edf1fb 56%,#f4f0fa 100%);border-right:1px solid #dce2f2;box-shadow:inset -1px 0 rgba(255,255,255,.7)}
+.brand small,.domainBlock small,.pageDesc{color:#8d91aa}.leafLogo{color:#718bd0;text-shadow:0 4px 16px rgba(112,137,205,.22)}
+.collapseBtn{border-color:#d9def0;background:rgba(255,255,255,.78);color:#6f7fae}.collapseBtn:hover{background:#fff}
+.nav button{color:#727d9d}.nav button:hover{background:rgba(132,151,210,.09)}.nav button.active{background:linear-gradient(135deg,#8399d9,#9d91d0);color:#fff;box-shadow:0 8px 20px rgba(112,129,190,.2)}
+.domainBlock{border-top-color:#d9deef}.domainBlock span{color:#7c839b}.noteCard{background:rgba(255,255,255,.66);border-color:#dce1f0;color:#66708f;box-shadow:0 10px 30px rgba(78,89,132,.06)}
+.main{background:linear-gradient(180deg,rgba(255,255,255,.14),transparent)}
+.search,.pill{border-color:#dce1ef;background:rgba(255,255,255,.82);box-shadow:0 6px 18px rgba(76,84,123,.05)}
+.search:focus{border-color:#a8b4df;box-shadow:0 0 0 4px rgba(131,153,217,.12)}
+.card{background:rgba(255,255,255,.9);border-color:#dfe3f0;box-shadow:var(--shadow);backdrop-filter:blur(12px)}
+.hero{background:#dfe5f4;box-shadow:0 16px 38px rgba(74,86,130,.11)}.hero:after{background:linear-gradient(90deg,rgba(244,247,255,.83),rgba(244,247,255,.12) 39%,transparent 64%)}
+.quoteTape,.dateCard{background:rgba(252,253,255,.92);color:#46506f;box-shadow:0 8px 24px rgba(70,80,120,.09)}
+.nextCard{background:linear-gradient(90deg,#fdfdff,#f1f3fb)}.nextCard button,.primary,.addSquare,.tinyBtn{background:linear-gradient(135deg,#7e96dc,#9a8fd0)!important;border-color:#8b93cf!important;color:#fff!important;box-shadow:0 7px 16px rgba(118,126,190,.18)}
+.check{border-color:#cdd4ea}.task.done .check{background:#859bda;border-color:#859bda}.task{border-top-color:#edf0f7}.reward{color:#d59a61}.filters button{border-color:#e0e3ef;color:#7b829a}.filters .active{background:#eceafa;color:#7169a9;border-color:#d8d3ef}
+.bar{background:#edf0f7}.growthRow:nth-of-type(1) i{background:#8099db}.growthRow:nth-of-type(2) i{background:#ad91d4}.growthRow:nth-of-type(3) i{background:#84beb7}.growthRow:nth-of-type(4) i{background:#e1a5bd}.growthRow:nth-of-type(5) i{background:#8da8db}.growthRow:nth-of-type(6) i{background:#d8bd93}
+.dot{background:#8c9fd9}.trail:nth-child(2n) .dot{background:#a58fd0}.trail:nth-child(3n) .dot{background:#82c0b7}.mood.active .moodFace{background:#e9e5fa;color:#6f65a4}.moodText,.journalBox textarea,.memory textarea{background:#f7f7fc}.countdownRow,.simpleRow{border-top-color:#eceff7}.countdownRow b{color:#9d79b7}
+.calDay{border-color:#e2e6f2;background:#fafbff}.calDay.today{background:#e9edfb;border-color:#aebce2}.calDay i{background:#899fd7}.habitWeek button{border-color:#e0e4ef}.habitWeek button.done{background:#899fd7;border-color:#899fd7}.progress{background:#edf0f7}.progress i{background:linear-gradient(90deg,#8199d7,#aa91cf)}
+.focusRoom{background:linear-gradient(180deg,#fff,#f6f5fd)}.timer{color:#4d5b83}.focusControls button,.focusControls select,.focusRoom>input{border-color:#dfe3ef}.badgeRow span{background:#eeecfa;color:#6f6998}
+.mobileNav{background:rgba(248,249,255,.94)!important;border-color:#dce1ef!important}.mobileNav button.active{background:#e8eafd!important;color:#6777aa!important}.fab{background:linear-gradient(135deg,#7f96da,#9b8fd0)!important;box-shadow:0 12px 26px rgba(104,116,177,.26)!important}
+
+/* visible journal accumulation */
+.journalShelf{margin:12px 0 0;padding:13px 14px;display:flex;align-items:center;gap:12px;background:linear-gradient(90deg,rgba(255,255,255,.9),rgba(240,241,251,.92));border:1px solid #dfe3f0;border-radius:16px;box-shadow:var(--shadow)}
+.journalShelfText{min-width:120px}.journalShelfText b,.journalShelfText small{display:block}.journalShelfText b{font:15px "Songti SC","STSong",serif}.journalShelfText small{font-size:9px;color:#8b90aa;margin-top:3px}.miniStickerRow{display:flex;gap:7px;overflow:hidden}.miniSticker{width:38px;height:38px;flex:0 0 38px;border:1px solid #dce2f0;border-radius:12px;background:#fff;display:grid;place-items:center;box-shadow:0 5px 14px rgba(76,85,128,.06)}.miniSticker svg{width:23px;height:23px;stroke:#7d91cf;fill:#edf0fb;stroke-width:1.6}.miniSticker:nth-child(2n) svg{stroke:#987fc0;fill:#f2eefa}.miniSticker:nth-child(3n) svg{stroke:#77aaa7;fill:#eef8f6}
+
+.collectionGrid{grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr)!important;gap:14px!important}.collectionHero{padding:0!important;overflow:hidden;position:relative}.collectionHeroTop{padding:16px 18px 10px;display:flex;justify-content:space-between;align-items:center}.collectionHeroTop h3{margin:0}.collectionHeroTop small{color:#8b90aa}.wardrobeStage{height:430px;background:linear-gradient(180deg,#edf1fb,#e8e9f6);position:relative;overflow:hidden}.wardrobeStage:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 65%,rgba(54,61,92,.14));pointer-events:none}.wardrobeStage img{width:100%;height:100%;object-fit:cover;display:block}.wardrobeThumbs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px}.wardrobeThumb{border:1px solid #dfe3ef;background:#fafbff;border-radius:12px;padding:5px;overflow:hidden}.wardrobeThumb.active{border-color:#8d9fd6;box-shadow:0 0 0 3px rgba(129,151,216,.12)}.wardrobeThumb img{width:100%;height:96px;display:block;object-fit:cover;border-radius:9px}.wardrobeThumb span{display:block;font-size:9px;margin-top:5px;color:#7e849c}.collectionStack{display:grid;gap:12px}.albumPanel,.badgePanel,.monthPanel{padding:16px}.albumPanel h3,.badgePanel h3,.monthPanel h3{margin:0 0 10px}.stickerGallery{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.stickerTile{aspect-ratio:1;border-radius:14px;border:1px solid #dfe4f1;background:linear-gradient(145deg,#fff,#f1f3fb);display:grid;place-items:center;position:relative}.stickerTile.locked{filter:grayscale(.7);opacity:.35}.stickerTile svg{width:34px;height:34px;stroke:#7f93ce;fill:#eef1fb;stroke-width:1.5}.stickerTile:nth-child(2n) svg{stroke:#9b82c4;fill:#f2eef9}.stickerTile:nth-child(3n) svg{stroke:#73aba6;fill:#eef7f5}.stickerTile small{position:absolute;left:6px;right:6px;bottom:5px;text-align:center;font-size:7.5px;color:#858aa2}.badgeGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.badgeCoin{padding:10px 6px;border:1px solid #dfe3f0;background:#fafbff;border-radius:14px;text-align:center}.badgeMedal{width:42px;height:42px;border-radius:50%;margin:auto;background:radial-gradient(circle at 35% 30%,#fff 0 12%,#d7d4f2 13% 45%,#9b91cf 46% 100%);box-shadow:inset 0 0 0 4px rgba(255,255,255,.55),0 5px 12px rgba(94,88,147,.14)}.badgeCoin b,.badgeCoin small{display:block}.badgeCoin b{font-size:9px;margin-top:6px}.badgeCoin small{font-size:8px;color:#9296aa;margin-top:2px}.monthMemory{border-radius:15px;padding:14px;background:linear-gradient(135deg,#edf1fb,#f5effa);border:1px solid #dee2f1;position:relative;overflow:hidden}.monthMemory:after{content:"✦";position:absolute;right:14px;top:8px;color:#9a8fc8;font-size:28px;opacity:.38}.monthMemory b{font:22px "Songti SC","STSong",serif}.monthMemory p{margin:8px 0 0;font-size:10px;line-height:1.8;color:#747a94}.collectionStats{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.collectionStats span{font-size:8px;padding:5px 8px;border-radius:999px;background:rgba(255,255,255,.7);border:1px solid #dfe3f0}
+
+@media(max-width:900px){
+  html,body{background:#f0f2fb}.hero{box-shadow:none}.journalShelf{margin-top:10px}.journalShelfText{min-width:96px}.miniStickerRow{gap:5px}.miniSticker{width:34px;height:34px;flex-basis:34px}.collectionGrid{grid-template-columns:1fr!important}.wardrobeStage{height:390px}.stickerGallery{grid-template-columns:repeat(4,1fr)}.badgeGrid{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:390px){.wardrobeStage{height:350px}.wardrobeThumb img{height:82px}.journalShelf{padding:11px 12px}}
