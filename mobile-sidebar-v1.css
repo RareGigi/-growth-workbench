@@ -1,13 +1,16 @@
 @media(max-width:820px){
-  .topbar{gap:8px}
-  .mobileProjectBtn{display:grid;gap:3px;place-content:center;width:38px;height:38px;flex:0 0 38px;border:1px solid #d6dff2;border-radius:12px;background:rgba(255,255,255,.92);color:#536dab;box-shadow:0 6px 18px rgba(76,91,140,.08)}
-  .mobileProjectBtn span{display:block;width:16px;height:2px;border-radius:99px;background:currentColor}
+  .topbar{gap:8px;padding-left:12px!important}
+  .mobileProjectBtn{display:flex;align-items:center;justify-content:center;gap:6px;width:72px;height:38px;flex:0 0 72px;border:1px solid #ccd7f1;border-radius:12px;background:linear-gradient(135deg,#eef3ff,#e8e8fb);color:#5068ac;box-shadow:0 6px 18px rgba(76,91,140,.09);font-size:11px;font-weight:700}
+  .mobileProjectBtn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
   .sidebar{display:none!important}
-  .app.mobileSidebarOpen .sidebar{display:block!important;position:fixed;left:0;top:0;bottom:0;width:min(84vw,320px);height:100dvh;z-index:90;overflow:auto;padding-top:max(20px,env(safe-area-inset-top));box-shadow:24px 0 60px rgba(37,50,93,.28);animation:drawerIn .2s ease both}
-  .app.mobileSidebarOpen:after{content:"";position:fixed;inset:0;z-index:80;background:rgba(31,42,78,.26);backdrop-filter:blur(3px)}
-  .mobileSidebarClose{position:absolute;right:12px;top:max(12px,env(safe-area-inset-top));width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.13);color:#fff;font-size:24px;line-height:1}
-  .app.mobileSidebarOpen .projectGroup{display:block!important}
-  .app.mobileSidebarOpen .projectList{max-height:500px}
-  @keyframes drawerIn{from{transform:translateX(-12px);opacity:.65}to{transform:translateX(0);opacity:1}}
+  .app.mobileSidebarOpen .sidebar{display:block!important;position:fixed;left:0;top:0;bottom:0;width:min(86vw,330px);height:100dvh;z-index:90;overflow:auto;padding-top:max(20px,env(safe-area-inset-top));box-shadow:24px 0 60px rgba(37,50,93,.28);animation:drawerIn .22s ease both}
+  .app.mobileSidebarOpen:after{content:"";position:fixed;inset:0;z-index:80;background:rgba(31,42,78,.28);backdrop-filter:blur(3px)}
+  .mobileSidebarClose{position:absolute;right:12px;top:max(12px,env(safe-area-inset-top));width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.14);color:#fff;font-size:24px;line-height:1;z-index:2}
+  .app.mobileSidebarOpen .brand{padding-right:42px}
+  .app.mobileSidebarOpen .projectGroup{display:block!important;margin-top:16px!important}
+  .app.mobileSidebarOpen .projectHead{display:flex!important}
+  .app.mobileSidebarOpen .projectList{display:grid!important;max-height:520px}
+  .app.mobileSidebarOpen .sideQuote{display:block!important}
+  @keyframes drawerIn{from{transform:translateX(-18px);opacity:.55}to{transform:translateX(0);opacity:1}}
 }
 @media(min-width:821px){.mobileProjectBtn,.mobileSidebarClose{display:none!important}}
