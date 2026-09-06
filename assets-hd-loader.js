@@ -1,1 +1,0 @@
-window.BLUE_ASSETS=window.BLUE_ASSETS||{};
