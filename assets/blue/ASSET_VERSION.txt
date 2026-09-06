@@ -1,0 +1,2 @@
+blue-detail-3
+Hero/avatar/outfit/scene assets are being refreshed for sharper rendering and reliable mobile loading.
