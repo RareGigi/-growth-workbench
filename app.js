@@ -214,8 +214,8 @@
     return `<div class="timeline-list">${items.map((entry) => `<div class="timeline-item"><time>${timeLabel(entry.at)}</time><i></i><span>${esc(entry.title)}</span></div>`).join('')}</div>`;
   }
 
-  function stickerSlots(limit = 5) {
-    const owned = state().collection.stickers;
+  function stickerSlots(limit = 5, stickerIds = state().collection.stickers) {
+    const owned = Array.isArray(stickerIds) ? stickerIds : [];
     return `<div class="mini-sticker-slots">${Array.from({ length: limit }, (_, index) => {
       const sticker = Core.STICKERS.find((item) => item.id === owned[index]);
       return sticker ? `<div title="${attr(sticker.name)}">${img(sticker.image, sticker.name, 160, 160)}</div>` : `<div class="empty-slot">${icon('lock')}</div>`;
@@ -553,12 +553,23 @@
     const saved = state().monthlyMemories[currentMonth] || {};
     const stats = monthStats(currentMonth);
     const months = Object.keys(state().monthlyMemories).sort().reverse();
+    const ownedOutfits = Core.OUTFITS.filter((outfit) => state().collection.outfits.includes(outfit.id));
+    const ownedBadges = Core.BADGES.filter((badge) => state().collection.badges.includes(badge.id));
+    const selectedOutfit = ownedOutfits.find((outfit) => outfit.id === saved.outfitId) || ownedOutfits[ownedOutfits.length - 1] || Core.OUTFITS[0];
+    const selectedBadge = ownedBadges.find((badge) => badge.id === saved.badgeId) || ownedBadges[ownedBadges.length - 1] || null;
+    const memoryStickers = saved.stickers?.length ? saved.stickers : state().collection.stickers.slice(-3);
+    const historyCards = months.map((key) => {
+      const memory = state().monthlyMemories[key];
+      const outfit = Core.OUTFITS.find((item) => item.id === memory.outfitId);
+      const badge = Core.BADGES.find((item) => item.id === memory.badgeId);
+      return `<article class="${outfit ? 'with-art' : ''}">${outfit ? `<div class="history-memory-art">${img(outfit.image, `${key} ${outfit.name}纪念卡面`, 853, 1844)}${badge ? `<span title="${attr(badge.name)}">${img(badge.image, badge.name, 180, 180)}</span>` : ''}</div>` : ''}<div class="history-memory-copy"><span>${key.replace('-', ' / ')}</span><h3>${esc(memory.keyword || '未命名月份')}</h3><p>${esc(memory.summary || '这一页暂时没有总结。')}</p><small>完成 ${memory.stats?.completedTasks ?? monthStats(key).completedTasks} 件 · 专注 ${formatMinutes(memory.stats?.focusMinutes ?? monthStats(key).focusMinutes)}${outfit ? ` · ${esc(outfit.name)}` : ''}</small></div></article>`;
+    }).join('');
     return `<div class="memories-tab">
-      <section class="monthly-editor"><div class="monthly-paper"><span>MONTHLY MEMORY</span><h2>${currentMonth.replace('-', ' · ')}</h2><div class="monthly-facts"><p><b>${stats.completedTasks}</b>完成任务</p><p><b>${formatMinutes(stats.focusMinutes)}</b>专注时间</p><p><b>${esc(stats.growthArea)}</b>成长领域</p></div><div class="paper-stickers">${stickerSlots(3)}</div></div>
-        <form data-form="monthly"><label>本月关键词<input name="keyword" maxlength="24" value="${attr(saved.keyword || '')}" placeholder="例如：稳定"></label><label>本月总结<textarea name="summary" rows="5" maxlength="480" placeholder="这个月，我想记住……">${esc(saved.summary || '')}</textarea></label><button type="submit" class="primary-button">保存本月纪念页</button></form>
+      <section class="monthly-editor"><div class="monthly-paper"><span>MONTHLY MEMORY</span><h2>${currentMonth.replace('-', ' · ')}</h2><div class="monthly-paper-grid"><div><div class="monthly-facts"><p><b>${stats.completedTasks}</b>完成任务</p><p><b>${formatMinutes(stats.focusMinutes)}</b>专注时间</p><p><b>${esc(stats.growthArea)}</b>成长领域</p></div><div class="paper-stickers">${stickerSlots(3, memoryStickers)}</div></div><figure class="monthly-character-card">${img(selectedOutfit.image, `${selectedOutfit.name}本月角色卡面`, 853, 1844)}${selectedBadge ? `<span class="monthly-character-badge" title="${attr(selectedBadge.name)}">${img(selectedBadge.image, selectedBadge.name, 180, 180)}</span>` : ''}<figcaption>${esc(selectedOutfit.name)}</figcaption></figure></div></div>
+        <form data-form="monthly"><div class="monthly-collection-fields"><label>本月角色卡面<select name="outfitId">${ownedOutfits.map((outfit) => `<option value="${attr(outfit.id)}" ${outfit.id === selectedOutfit.id ? 'selected' : ''}>${esc(outfit.name)}</option>`).join('')}</select></label><label>本月徽章<select name="badgeId"><option value="">暂不放置</option>${ownedBadges.map((badge) => `<option value="${attr(badge.id)}" ${badge.id === selectedBadge?.id ? 'selected' : ''}>${esc(badge.name)}</option>`).join('')}</select></label></div><label>本月关键词<input name="keyword" maxlength="24" value="${attr(saved.keyword || '')}" placeholder="例如：稳定"></label><label>本月总结<textarea name="summary" rows="5" maxlength="480" placeholder="这个月，我想记住……">${esc(saved.summary || '')}</textarea></label><button type="submit" class="primary-button">保存本月纪念页</button></form>
       </section>
       <section class="scene-collection">${sectionHead('场景收藏', `${state().collection.scenes.length}/${Core.SCENES.length} 已拥有`)}<div>${Core.SCENES.map((scene) => { const owned = state().collection.scenes.includes(scene.id); return `<article class="scene-card ${owned ? '' : 'locked'}">${img(scene.image, scene.name, scene.id === 'today-desk' ? 1672 : 1586, scene.id === 'today-desk' ? 941 : 992)}<span>${owned ? esc(scene.name) : `${icon('lock')}待解锁`}</span></article>`; }).join('')}</div></section>
-      <section class="history-months">${sectionHead('历史月份', `${months.length} 页永久保存`)}${months.length ? `<div>${months.map((key) => { const memory = state().monthlyMemories[key]; return `<article><span>${key.replace('-', ' / ')}</span><h3>${esc(memory.keyword || '未命名月份')}</h3><p>${esc(memory.summary || '这一页暂时没有总结。')}</p><small>完成 ${memory.stats?.completedTasks ?? monthStats(key).completedTasks} 件 · 专注 ${formatMinutes(memory.stats?.focusMinutes ?? monthStats(key).focusMinutes)}</small></article>`; }).join('')}</div>` : emptyState('还没有月度纪念页', '保存这个月，第一本成长册就会出现。')}</section>
+      <section class="history-months">${sectionHead('历史月份', `${months.length} 页永久保存`)}${months.length ? `<div>${historyCards}</div>` : emptyState('还没有月度纪念页', '保存这个月，第一本成长册就会出现。')}</section>
     </div>`;
   }
 
@@ -1078,7 +1089,9 @@
       const key = Core.monthKey();
       const stats = monthStats(key);
       const isFirstSave = !state().monthlyMemories[key];
-      state().monthlyMemories[key] = { month: key, keyword: String(data.keyword || '').trim(), summary: String(data.summary || '').trim(), stickers: state().collection.stickers.slice(-3), stats, createdAt: state().monthlyMemories[key]?.createdAt || Date.now(), updatedAt: Date.now() };
+      const outfitId = state().collection.outfits.includes(String(data.outfitId || '')) ? String(data.outfitId) : state().collection.outfits[0];
+      const badgeId = state().collection.badges.includes(String(data.badgeId || '')) ? String(data.badgeId) : null;
+      state().monthlyMemories[key] = { month: key, keyword: String(data.keyword || '').trim(), summary: String(data.summary || '').trim(), stickers: state().collection.stickers.slice(-3), outfitId, badgeId, stats, createdAt: state().monthlyMemories[key]?.createdAt || Date.now(), updatedAt: Date.now() };
       if (isFirstSave) addActivity('monthly-memory', `保存 ${key} 月度纪念页`, { month: key });
       return saveAndRender('monthly-save', '本月纪念页已保存');
     }

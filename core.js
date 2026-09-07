@@ -395,6 +395,8 @@
       keyword: String(memory.keyword ?? '').slice(0, 24),
       summary: String(memory.summary ?? '').slice(0, 480),
       stickers: uniqueCatalogIds(memory.stickers, STICKERS).slice(-3),
+      outfitId: state.collection.outfits.includes(String(memory.outfitId || '')) ? String(memory.outfitId) : null,
+      badgeId: state.collection.badges.includes(String(memory.badgeId || '')) ? String(memory.badgeId) : null,
       stats: objectOrEmpty(memory.stats),
       createdAt: Number(memory.createdAt) || Date.now(),
       updatedAt: Number(memory.updatedAt) || Date.now()
