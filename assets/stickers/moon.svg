@@ -1,1 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160" fill="none"><path d="M111 25c-17 5-29 21-29 40 0 25 20 45 45 45 4 0 8-1 12-2-11 20-32 34-56 34-35 0-63-28-63-63 0-31 22-56 51-62 14-3 28 0 40 8Z" fill="#8180C1" stroke="#fff" stroke-width="10"/><path d="m51 38 4 9 10 1-7 7 2 10-9-5-9 5 2-10-7-7 10-1 4-9ZM121 29l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1 3-6Z" fill="#F6DFA7"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200" fill="none">
+  <defs><filter id="shadow" x="-25%" y="-25%" width="150%" height="160%"><feDropShadow dx="0" dy="5" stdDeviation="4" flood-color="#53627F" flood-opacity=".2"/></filter></defs>
+  <g filter="url(#shadow)" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M137 31c-29 5-50 31-50 61 0 35 28 63 63 63 8 0 15-1 22-4-16 24-43 39-73 36-45-4-78-44-74-89 4-38 33-69 71-75 15-2 29 1 41 8Z" fill="#8582C8" stroke="#FFFDF9" stroke-width="12"/>
+    <path d="M53 147c10-14 27-21 43-16 11 3 19 11 23 21 15-5 31 4 35 18-15 11-37 17-59 15-17-1-33-8-45-18-1-7 0-14 3-20Z" fill="#E9EFFB" stroke="#FFFDF9" stroke-width="9"/>
+    <path d="M72 48v22M72 70l-8 9M72 70l8 9M153 67v15M153 82l-6 7M153 82l6 7" stroke="#F2D78E" stroke-width="5"/>
+    <path d="m72 81 5 10 11 2-8 8 2 11-10-5-10 5 2-11-8-8 11-2 5-10Zm81 10 3 7 8 1-6 5 2 8-7-4-7 4 2-8-6-5 8-1 3-7Z" fill="#F2D78E" stroke="#FFFDF9" stroke-width="5"/>
+    <circle cx="53" cy="69" r="5" fill="#D69AA7" stroke="#FFFDF9" stroke-width="4"/>
+    <path d="M109 48c6-5 12-5 18 0" stroke="#BFCDEF" stroke-width="4"/>
+  </g>
+</svg>

@@ -1,1 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160" fill="none"><circle cx="80" cy="80" r="61" fill="#E6F1EB" stroke="#fff" stroke-width="10"/><circle cx="80" cy="80" r="49" stroke="#6C9C83" stroke-width="4" stroke-dasharray="5 8"/><path d="M42 73h14v-9h13v32H56v-9H42V73ZM118 73h-14v-9H91v32h13v-9h14V73Z" fill="#fff" stroke="#6C9C83" stroke-width="5" stroke-linejoin="round"/><path d="M69 80h22" stroke="#6C9C83" stroke-width="7"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200" fill="none">
+  <defs><filter id="shadow" x="-25%" y="-25%" width="150%" height="160%"><feDropShadow dx="0" dy="5" stdDeviation="4" flood-color="#53627F" flood-opacity=".2"/></filter></defs>
+  <g filter="url(#shadow)" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m56 139-11 49 35-20 20 25 8-52-52-2Z" fill="#73A08A" stroke="#FFFDF9" stroke-width="10"/>
+    <path d="m144 139 11 49-35-20-20 25-8-52 52-2Z" fill="#8EA5D2" stroke="#FFFDF9" stroke-width="10"/>
+    <path d="m100 8 17 13 21-3 8 19 20 8-2 21 14 16-12 18 5 20-18 11-5 20-21 1-15 15-19-8-19 8-15-15-21-1-5-20-18-11 5-20-12-18 14-16-2-21 20-8 8-19 21 3 17-13Z" fill="#E7F1EB" stroke="#FFFDF9" stroke-width="10"/>
+    <circle cx="100" cy="85" r="58" fill="#FBFEFC" stroke="#6D9B84" stroke-width="5" stroke-dasharray="3 9"/>
+    <path d="M55 111c18 1 28-6 37-22l13 10c8 7 19 11 31 12l12 1c7 1 10 7 7 14-2 5-7 8-13 8H64c-10 0-15-10-9-23Z" fill="#DDEAE3" stroke="#648E78" stroke-width="6"/>
+    <path d="m94 56-11 24h17l-8 27 27-36h-18l11-15H94Z" fill="#F2D58D" stroke="#FFFDF9" stroke-width="6"/>
+    <path d="M76 103h25M70 112h40" stroke="#648E78" stroke-width="4"/>
+    <path d="M47 151c13-7 24-7 34 0M119 150c13-7 24-7 34 0" stroke="#FFFDF9" stroke-width="5"/>
+  </g>
+</svg>

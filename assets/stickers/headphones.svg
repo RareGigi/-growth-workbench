@@ -1,1 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160" fill="none"><path d="M28 85V70c0-31 21-52 52-52s52 21 52 52v15" stroke="#fff" stroke-width="22" stroke-linecap="round"/><path d="M28 85V70c0-31 21-52 52-52s52 21 52 52v15" stroke="#7787C0" stroke-width="10" stroke-linecap="round"/><rect x="16" y="76" width="36" height="58" rx="16" fill="#CBD5ED" stroke="#fff" stroke-width="8"/><rect x="108" y="76" width="36" height="58" rx="16" fill="#CBD5ED" stroke="#fff" stroke-width="8"/><path d="M52 127c9 13 21 18 36 15" stroke="#7787C0" stroke-width="6" stroke-linecap="round"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200" fill="none">
+  <defs><filter id="shadow" x="-25%" y="-25%" width="150%" height="160%"><feDropShadow dx="0" dy="5" stdDeviation="4" flood-color="#53627F" flood-opacity=".2"/></filter></defs>
+  <g filter="url(#shadow)" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="100" cy="108" r="45" fill="#8C88C8" stroke="#FFFDF9" stroke-width="10"/>
+    <path d="M67 81c20 11 43 16 69 13M61 106c23 13 49 18 76 15" stroke="#C9D9F2" stroke-width="5"/>
+    <path d="M27 105V84c0-43 29-71 73-71s73 28 73 71v21" stroke="#FFFDF9" stroke-width="23"/>
+    <path d="M27 105V84c0-43 29-71 73-71s73 28 73 71v21" stroke="#738AC5" stroke-width="10"/>
+    <rect x="16" y="94" width="42" height="72" rx="18" fill="#D6E0F2" stroke="#FFFDF9" stroke-width="10"/>
+    <rect x="142" y="94" width="42" height="72" rx="18" fill="#D6E0F2" stroke="#FFFDF9" stroke-width="10"/>
+    <path d="M58 157c12 17 29 25 50 23" stroke="#738AC5" stroke-width="6"/>
+    <path d="m157 48 3 8 8 2-7 4 2 9-7-5-7 5 2-9-7-4 8-2 5-8Z" fill="#F2D58D" stroke="#FFFDF9" stroke-width="4"/>
+    <path d="M74 109c-16-8-30-8-43 0M127 134c18 8 32 7 43-2" stroke="#F3D98F" stroke-width="4"/>
+  </g>
+</svg>

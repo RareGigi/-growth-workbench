@@ -1,1 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160" fill="none"><path d="m22 54 112-24 9 50-112 24-9-50Z" fill="#9FA7D4" stroke="#fff" stroke-width="10" stroke-linejoin="round"/><path d="m31 105 104-22 7 38-104 22-7-38Z" fill="#D6B0BD" stroke="#fff" stroke-width="10" stroke-linejoin="round"/><path d="m51 48 8 44M79 42l8 44M107 36l8 44" stroke="#EEF1FB" stroke-width="4" stroke-dasharray="7 8"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200" fill="none">
+  <defs><filter id="shadow" x="-25%" y="-25%" width="150%" height="160%"><feDropShadow dx="0" dy="5" stdDeviation="4" flood-color="#53627F" flood-opacity=".2"/></filter></defs>
+  <g filter="url(#shadow)" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m18 55 152-33 12 57-152 33L18 55Z" fill="#92A4D6" stroke="#FFFDF9" stroke-width="11"/>
+    <path d="M41 57c12 6 23 8 35 5s21-9 29-20c12 6 23 8 35 5 8-2 16-6 23-12" stroke="#E8EDF9" stroke-width="7"/>
+    <path d="m31 117 142-16 7 62-142 16-7-62Z" fill="#D5A5B2" stroke="#FFFDF9" stroke-width="11"/>
+    <path d="M50 132h16m15-4h16m15-3h16m15-4h16M55 157h21m17-3h21m18-2h21" stroke="#FAE8EC" stroke-width="5"/>
+    <path d="m28 111 11 5M172 96l-8 8M37 180l10-6M180 163l-10-5" stroke="#FFFDF9" stroke-width="6"/>
+    <path d="m23 28 3 7 8 2-7 4 2 8-7-4-7 4 2-8-7-4 8-2 5-7Z" fill="#F2D68E" stroke="#FFFDF9" stroke-width="4"/>
+  </g>
+</svg>

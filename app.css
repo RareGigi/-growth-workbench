@@ -17,6 +17,7 @@
   --rose: #c98f9c;
   --sage: #6ea086;
   --danger: #b46872;
+  --paper-rule: rgba(137, 153, 193, 0.2);
   --shadow: 0 14px 38px rgba(63, 73, 115, 0.1);
   --shadow-small: 0 8px 20px rgba(63, 73, 115, 0.08);
   --radius-xl: 26px;
@@ -40,14 +41,14 @@
 html {
   min-width: 320px;
   min-height: 100%;
-  background: var(--canvas);
+  background: var(--canvas) url("assets/journal/paper-texture.svg") repeat;
 }
 
 body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
-  background: var(--canvas);
+  background: transparent;
   color: var(--ink);
 }
 
@@ -104,7 +105,7 @@ select {
   width: 100%;
   border: 1px solid var(--line-strong);
   border-radius: 12px;
-  background: #fff;
+  background: var(--paper) url("assets/journal/paper-texture.svg") repeat;
   color: var(--ink);
 }
 
@@ -196,8 +197,21 @@ textarea::placeholder {
   flex-direction: column;
   overflow: hidden;
   border-right: 1px solid var(--line);
-  background: #f8f9fd;
+  background: #f8f9fd url("assets/journal/paper-texture.svg") repeat;
   transition: transform 180ms ease;
+}
+
+.sidebar::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  top: 76px;
+  right: -3px;
+  bottom: 0;
+  width: 24px;
+  background: url("assets/journal/binding.svg") top right / 24px 96px repeat-y;
+  opacity: 0.72;
+  pointer-events: none;
 }
 
 .brand-row {
@@ -290,6 +304,7 @@ textarea::placeholder {
 
 .nav-item.active {
   background: var(--blue-soft);
+  border-radius: 6px 14px 14px 6px;
   color: var(--blue-deep);
   font-weight: 700;
 }
@@ -379,6 +394,10 @@ textarea::placeholder {
 .project-link:hover,
 .project-link.active {
   background: #eef1f8;
+}
+
+.project-link.active {
+  border-radius: 6px 14px 14px 6px;
 }
 
 .project-link > i {
@@ -648,27 +667,33 @@ textarea::placeholder {
 }
 
 .page-header {
+  position: relative;
   display: flex;
   min-height: 126px;
   align-items: flex-end;
   justify-content: space-between;
   gap: 24px;
   padding: 0 4px 26px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--paper-rule);
 }
 
-.eyebrow {
-  display: block;
-  margin-bottom: 8px;
-  color: var(--blue-deep);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.16em;
+.page-header::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 4px;
+  width: 54px;
+  height: 4px;
+  border-radius: 3px;
+  background: rgba(121, 116, 186, 0.48);
 }
 
 .page-header h1,
 .project-hero h1 {
+  display: inline;
   margin: 0;
+  padding: 0 0.04em;
+  background: url("assets/journal/highlight.svg") center bottom / 100% 0.34em no-repeat;
   font-family: "Songti SC", "STSong", serif;
   font-size: clamp(30px, 4vw, 44px);
   font-weight: 700;
@@ -687,7 +712,7 @@ textarea::placeholder {
 .surface {
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
-  background: var(--paper);
+  background: var(--paper) url("assets/journal/paper-texture.svg") repeat;
 }
 
 .plain-section {
@@ -695,7 +720,7 @@ textarea::placeholder {
   padding: 24px 26px;
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
-  background: rgba(255, 253, 249, 0.72);
+  background: rgba(255, 253, 249, 0.78) url("assets/journal/paper-texture.svg") repeat;
 }
 
 .section-head {
@@ -714,10 +739,29 @@ textarea::placeholder {
 }
 
 .section-head h2 {
+  position: relative;
   margin: 0;
+  padding: 0 0.04em;
+  background: url("assets/journal/highlight.svg") center bottom / 100% 0.3em no-repeat;
   font-family: "Songti SC", "STSong", serif;
   font-size: 20px;
   font-weight: 700;
+}
+
+.note-tab,
+.chapter-label,
+.series-label,
+.month-ribbon {
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  padding: 0 10px;
+  border-radius: 4px 10px 10px 4px;
+  background: #dfe6f7;
+  color: var(--blue-deep);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.04em;
 }
 
 .section-head span {
@@ -872,11 +916,27 @@ textarea::placeholder {
 }
 
 .priority-panel {
+  position: relative;
   min-width: 0;
   padding: 20px 22px;
+  background: var(--paper) url("assets/journal/ruled-paper.svg") top left / 100% auto no-repeat;
+}
+
+.priority-panel::before {
+  content: "";
+  position: absolute;
+  top: -7px;
+  left: 42px;
+  width: 72px;
+  height: 15px;
+  border-radius: 2px;
+  background: rgba(224, 203, 165, 0.66);
+  transform: rotate(-1.5deg);
+  pointer-events: none;
 }
 
 .next-panel {
+  position: relative;
   display: flex;
   min-height: 226px;
   flex-direction: column;
@@ -884,7 +944,25 @@ textarea::placeholder {
   justify-content: space-between;
   padding: 24px;
   border-radius: var(--radius-lg);
-  background: var(--violet-soft);
+  border: 1px solid #d9d7ea;
+  background: var(--violet-soft) url("assets/journal/paper-texture.svg") repeat;
+}
+
+.next-panel::after {
+  content: "";
+  position: absolute;
+  top: -7px;
+  right: 30px;
+  width: 58px;
+  height: 15px;
+  border-radius: 2px;
+  background: rgba(202, 214, 238, 0.78);
+  transform: rotate(1.8deg);
+  pointer-events: none;
+}
+
+.next-panel .note-tab {
+  margin-left: -24px;
 }
 
 .next-panel h2 {
@@ -925,6 +1003,10 @@ textarea::placeholder {
 .task-row.done .task-copy b {
   color: var(--muted);
   text-decoration: line-through;
+}
+
+.task-row.done {
+  background: rgba(232, 242, 237, 0.5);
 }
 
 .task-row.cancelled {
@@ -1191,13 +1273,15 @@ textarea::placeholder {
 }
 
 .journal-panel {
-  background: var(--warm-soft);
+  border: 1px solid #e9ded6;
+  background: var(--warm-soft) url("assets/journal/ruled-paper.svg") top left / 100% auto no-repeat;
 }
 
 .journal-panel textarea,
 .review-writing textarea {
   border-color: transparent;
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.54);
+  line-height: 2;
 }
 
 .autosave-note {
@@ -1209,7 +1293,8 @@ textarea::placeholder {
 }
 
 .mood-panel {
-  background: var(--sage-soft);
+  border: 1px solid #d9e6de;
+  background: var(--sage-soft) url("assets/journal/paper-texture.svg") repeat;
 }
 
 .mood-options {
@@ -1257,11 +1342,12 @@ textarea::placeholder {
 }
 
 .weekly-stickers {
+  position: relative;
   margin-top: 18px;
   padding: 20px 24px;
-  border: 1px dashed #cbd1e1;
+  border: 1px solid #d9deeb;
   border-radius: var(--radius-lg);
-  background: rgba(255, 255, 255, 0.48);
+  background: rgba(255, 253, 249, 0.76) url("assets/journal/paper-texture.svg") repeat;
 }
 
 .mini-sticker-slots {
@@ -1271,18 +1357,27 @@ textarea::placeholder {
 }
 
 .mini-sticker-slots > div {
+  position: relative;
   display: grid;
   aspect-ratio: 1;
   place-items: center;
-  border: 1px dashed var(--line-strong);
-  border-radius: 18px;
-  background: #fff;
+  border: 1px solid rgba(193, 201, 220, 0.76);
+  border-radius: 18px 9px 18px 9px;
+  background: rgba(255, 255, 255, 0.58);
 }
 
 .mini-sticker-slots .image-shell {
-  width: 72%;
-  height: 72%;
+  width: 82%;
+  height: 82%;
   background: transparent;
+}
+
+.mini-sticker-slots > div:nth-child(3n + 1) .image-shell {
+  transform: rotate(-2deg);
+}
+
+.mini-sticker-slots > div:nth-child(3n + 2) .image-shell {
+  transform: rotate(1.5deg);
 }
 
 .mini-sticker-slots .image-shell img {
@@ -1305,7 +1400,7 @@ textarea::placeholder {
   padding: 10px;
   border: 1px solid var(--line);
   border-radius: 18px;
-  background: var(--paper);
+  background: var(--paper) url("assets/journal/paper-texture.svg") repeat;
 }
 
 .capture-bar input {
@@ -1358,13 +1453,25 @@ textarea::placeholder {
 }
 
 .project-hero {
+  position: relative;
   display: flex;
   min-height: 190px;
   align-items: flex-end;
   justify-content: space-between;
   gap: 24px;
   padding: 32px 6px 26px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--paper-rule);
+}
+
+.project-title-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.chapter-label {
+  flex: 0 0 auto;
 }
 
 .project-progress {
@@ -1417,7 +1524,13 @@ textarea::placeholder {
 }
 
 .next-chapter {
-  background: var(--violet-soft);
+  position: relative;
+  border: 1px solid #d9d7ea;
+  background: var(--violet-soft) url("assets/journal/paper-texture.svg") repeat;
+}
+
+.next-chapter .note-tab {
+  margin-left: -26px;
 }
 
 .next-chapter h2 {
@@ -1436,7 +1549,7 @@ textarea::placeholder {
 
 .weekly-focus {
   border: 1px solid var(--line);
-  background: var(--paper);
+  background: var(--paper) url("assets/journal/ruled-paper.svg") top left / 100% auto no-repeat;
 }
 
 .weekly-focus ol,
@@ -1897,7 +2010,7 @@ textarea::placeholder {
   padding: 20px 24px;
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
-  background: var(--paper);
+  background: var(--paper) url("assets/journal/ruled-paper.svg") top left / 100% auto no-repeat;
 }
 
 .habit-calendar-head,
@@ -1984,7 +2097,7 @@ textarea::placeholder {
   margin-top: 26px;
   border: 1px solid var(--line);
   border-radius: var(--radius-xl);
-  background: var(--paper);
+  background: var(--paper) url("assets/journal/paper-texture.svg") repeat;
 }
 
 .review-summary,
@@ -1994,11 +2107,13 @@ textarea::placeholder {
 }
 
 .review-summary {
-  background: var(--violet-soft);
+  background: var(--violet-soft) url("assets/journal/paper-texture.svg") repeat;
 }
 
 .review-summary h2 {
-  margin: 22px 0 26px;
+  margin: 0 0 26px;
+  padding-bottom: 6px;
+  background: url("assets/journal/highlight.svg") left bottom / min(230px, 100%) 8px no-repeat;
   font-family: "Songti SC", "STSong", serif;
   font-size: 28px;
 }
@@ -2072,18 +2187,21 @@ textarea::placeholder {
 }
 
 .next-week {
-  background: var(--sage-soft);
+  border: 1px solid #d9e6de;
+  background: var(--sage-soft) url("assets/journal/paper-texture.svg") repeat;
 }
 
 .review-writing {
-  background: var(--warm-soft);
+  border: 1px solid #e9ded6;
+  background: var(--warm-soft) url("assets/journal/ruled-paper.svg") top left / 100% auto no-repeat;
 }
 
 .review-stickers {
   margin-top: 18px;
   padding: 22px 24px;
-  border: 1px dashed var(--line-strong);
+  border: 1px solid var(--line);
   border-radius: var(--radius-lg);
+  background: rgba(255, 253, 249, 0.76) url("assets/journal/paper-texture.svg") repeat;
 }
 
 .review-stickers .mini-sticker-slots {
@@ -2149,25 +2267,27 @@ textarea::placeholder {
   display: grid;
   width: min(500px, 100%);
   grid-template-columns: repeat(4, 1fr);
-  gap: 4px;
+  gap: 2px;
   margin: 22px auto;
-  padding: 4px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: rgba(246, 248, 252, 0.98);
+  padding: 0 6px;
+  border-bottom: 1px solid var(--line-strong);
+  background: rgba(242, 244, 250, 0.98);
 }
 
 .collection-tabs button {
   min-height: 44px;
-  border-radius: 10px;
+  margin-bottom: -1px;
+  border: 1px solid transparent;
+  border-radius: 11px 11px 0 0;
   color: var(--muted);
   font-size: 12px;
 }
 
 .collection-tabs button.active {
-  background: #fff;
+  border-color: var(--line-strong);
+  border-bottom-color: var(--paper);
+  background: var(--paper);
   color: var(--blue-deep);
-  box-shadow: var(--shadow-small);
   font-weight: 700;
 }
 
@@ -2178,7 +2298,7 @@ textarea::placeholder {
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: var(--radius-xl);
-  background: var(--paper);
+  background: var(--paper) url("assets/journal/paper-texture.svg") repeat;
 }
 
 .character-intro > .image-shell {
@@ -2307,6 +2427,8 @@ textarea::placeholder {
 }
 
 .outfit-card-copy > span {
+  display: block;
+  margin-bottom: 5px;
   color: var(--blue-deep);
   font-size: 10px;
   font-weight: 700;
@@ -2314,7 +2436,7 @@ textarea::placeholder {
 }
 
 .outfit-card-copy h3 {
-  margin: 5px 0 4px;
+  margin: 0 0 4px;
   font-family: "Songti SC", "STSong", serif;
   font-size: 19px;
 }
@@ -2362,40 +2484,101 @@ textarea::placeholder {
 }
 
 .collection-sheet {
-  padding: 24px;
+  position: relative;
+  padding: 30px 28px 30px 36px;
   border: 1px solid var(--line);
-  border-radius: var(--radius-xl);
-  background: var(--paper);
+  border-radius: 8px 24px 24px 8px;
+  background: var(--paper) url("assets/journal/paper-texture.svg") repeat;
+}
+
+.collection-sheet::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  top: 22px;
+  bottom: 22px;
+  left: -10px;
+  width: 24px;
+  background: url("assets/journal/binding.svg") top left / 24px 96px repeat-y;
+  opacity: 0.72;
+  pointer-events: none;
+}
+
+.sticker-book-note {
+  max-width: 520px;
+  margin: -4px 0 22px;
+  color: var(--muted);
+  font-family: "Songti SC", "STSong", serif;
+  font-size: 12px;
+  line-height: 1.7;
 }
 
 .sticker-book {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 12px;
+  gap: 20px 12px;
 }
 
 .sticker-tile {
   display: flex;
   min-width: 0;
-  min-height: 190px;
+  min-height: 224px;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 14px;
-  border: 1px dashed var(--line-strong);
-  border-radius: 16px;
+  justify-content: flex-start;
+  padding: 4px 6px 12px;
   text-align: center;
 }
 
-.sticker-tile.owned {
-  background: var(--paper-blue);
+.sticker-pocket {
+  position: relative;
+  display: grid;
+  width: min(142px, 100%);
+  aspect-ratio: 1;
+  place-items: center;
+  border: 1px solid rgba(190, 199, 220, 0.78);
+  border-radius: 23px 10px 23px 10px;
+  background: rgba(239, 243, 251, 0.72);
 }
 
-.sticker-tile .image-shell,
-.locked-art {
-  width: 88px;
-  height: 88px;
+.sticker-pocket > i {
+  position: absolute;
+  z-index: 2;
+  top: -7px;
+  left: 50%;
+  width: 48px;
+  height: 14px;
+  border-radius: 2px;
+  background: rgba(228, 205, 166, 0.72);
+  transform: translateX(-50%) rotate(-1.5deg);
+}
+
+.sticker-tile:nth-child(3n + 2) .sticker-pocket {
+  border-radius: 10px 23px 10px 23px;
+}
+
+.sticker-tile:nth-child(3n + 2) .sticker-pocket > i {
+  background: rgba(191, 205, 235, 0.78);
+  transform: translateX(-50%) rotate(1.8deg);
+}
+
+.sticker-tile:nth-child(3n) .sticker-pocket > i {
+  background: rgba(214, 167, 177, 0.48);
+  transform: translateX(-50%) rotate(-2.2deg);
+}
+
+.sticker-tile .image-shell {
+  width: 118px;
+  height: 118px;
   background: transparent;
+}
+
+.sticker-tile:nth-child(4n + 1) .image-shell {
+  transform: rotate(-2deg);
+}
+
+.sticker-tile:nth-child(4n + 3) .image-shell {
+  transform: rotate(1.7deg);
 }
 
 .sticker-tile .image-shell img {
@@ -2409,9 +2592,38 @@ textarea::placeholder {
   color: #b5bdcc;
 }
 
+.locked-art {
+  position: absolute;
+  z-index: 3;
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(190, 198, 215, 0.8);
+  border-radius: 50%;
+  background: rgba(255, 253, 249, 0.94);
+}
+
+.locked-art .icon {
+  width: 16px;
+}
+
+.sticker-tile.locked .sticker-pocket {
+  border-color: rgba(201, 206, 219, 0.7);
+  background: rgba(244, 245, 248, 0.64);
+}
+
+.sticker-tile.locked .image-shell {
+  filter: grayscale(0.5);
+  opacity: 0.34;
+}
+
+.sticker-meta {
+  width: 100%;
+  min-width: 0;
+}
+
 .sticker-tile h3,
 .badge-tile h3 {
-  margin: 9px 0 4px;
+  margin: 12px 0 4px;
   font-size: 13px;
 }
 
@@ -2488,15 +2700,16 @@ textarea::placeholder {
   pointer-events: none;
 }
 
-.monthly-paper > span {
-  color: var(--violet);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.18em;
+.monthly-paper .month-ribbon {
+  position: absolute;
+  z-index: 2;
+  top: 28px;
+  right: 28px;
+  background: rgba(255, 253, 249, 0.76);
 }
 
 .monthly-paper h2 {
-  margin: 12px 0 38px;
+  margin: 0 0 38px;
   font-family: "Songti SC", "STSong", serif;
   font-size: 42px;
 }
@@ -2786,9 +2999,9 @@ textarea::placeholder {
   width: min(620px, 100%);
   max-height: min(860px, calc(100vh - 48px));
   overflow-y: auto;
-  border: 1px solid var(--line);
+  border: 0;
   border-radius: 22px;
-  background: var(--paper);
+  background: var(--paper) url("assets/journal/paper-texture.svg") repeat;
   box-shadow: 0 24px 70px rgba(34, 40, 66, 0.22);
 }
 
@@ -2802,15 +3015,13 @@ textarea::placeholder {
   justify-content: space-between;
   padding: 15px 20px 12px 24px;
   border-bottom: 1px solid var(--line);
-  background: var(--paper);
-}
-
-.modal-card > header .eyebrow {
-  margin-bottom: 2px;
+  background: var(--paper) url("assets/journal/paper-texture.svg") repeat;
 }
 
 .modal-card > header h2 {
   margin: 0;
+  padding-bottom: 4px;
+  background: url("assets/journal/highlight.svg") left bottom / 100% 6px no-repeat;
   font-family: "Songti SC", "STSong", serif;
   font-size: 22px;
 }
@@ -3004,6 +3215,10 @@ textarea::placeholder {
   line-height: 1.8;
 }
 
+.outfit-detail-copy .series-label {
+  margin-top: 8px;
+}
+
 .purchase-button {
   align-self: flex-start;
 }
@@ -3028,7 +3243,7 @@ textarea::placeholder {
   align-items: center;
   gap: 9px;
   padding: 10px 15px;
-  border: 1px solid var(--line);
+  border: 0;
   border-radius: 14px;
   background: #fff;
   box-shadow: var(--shadow);
@@ -3078,6 +3293,7 @@ textarea::placeholder {
     z-index: 80;
     width: min(86vw, 340px);
     padding-top: env(safe-area-inset-top, 0px);
+    border-right: 0;
     box-shadow: var(--shadow);
     transform: translateX(-105%);
   }
@@ -3195,9 +3411,9 @@ textarea::placeholder {
     height: 66px;
     grid-template-columns: repeat(5, 1fr);
     padding: 5px 4px;
-    border: 1px solid rgba(207, 213, 228, 0.92);
+    border: 0;
     border-radius: 20px;
-    background: rgba(255, 253, 249, 0.98);
+    background: rgba(255, 253, 249, 0.98) url("assets/journal/paper-texture.svg") repeat;
     box-shadow: 0 12px 34px rgba(52, 62, 94, 0.18);
   }
 
@@ -3405,6 +3621,12 @@ textarea::placeholder {
 }
 
 @media (max-width: 540px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+
   .topbar {
     gap: 7px;
     padding-right: 12px;
@@ -3424,7 +3646,7 @@ textarea::placeholder {
     min-height: 44px;
     padding-right: 8px;
     padding-left: 35px;
-    font-size: 12px;
+    font-size: 16px;
   }
 
   .global-search > .icon {
@@ -3697,12 +3919,25 @@ textarea::placeholder {
   }
 
   .collection-sheet {
-    padding: 16px;
+    padding: 20px 14px 22px 24px;
   }
 
   .sticker-tile {
-    min-height: 170px;
-    padding: 10px;
+    min-height: 194px;
+    padding: 4px 3px 10px;
+  }
+
+  .sticker-pocket {
+    width: min(128px, 100%);
+  }
+
+  .sticker-tile .image-shell {
+    width: 106px;
+    height: 106px;
+  }
+
+  .sticker-book-note {
+    margin-bottom: 18px;
   }
 
   .badge-tile {
@@ -3724,6 +3959,11 @@ textarea::placeholder {
   .monthly-paper {
     min-height: 390px;
     padding: 26px 22px;
+  }
+
+  .monthly-paper .month-ribbon {
+    top: 18px;
+    right: 18px;
   }
 
   .monthly-paper-grid {

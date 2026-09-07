@@ -100,7 +100,7 @@
     return Math.round((tasks.filter((task) => task.status === 'done').length + milestones.filter((item) => item.done).length) / total * 100);
   };
   const emptyState = (title, body = '', action = '') => `<div class="empty-state"><span>${icon('logo')}</span><strong>${esc(title)}</strong>${body ? `<p>${esc(body)}</p>` : ''}${action}</div>`;
-  const pageHeader = (eyebrow, title, description, action = '') => `<header class="page-header"><div><span class="eyebrow">${esc(eyebrow)}</span><h1>${esc(title)}</h1><p>${esc(description)}</p></div>${action}</header>`;
+  const pageHeader = (_marker, title, description, action = '') => `<header class="page-header"><div><h1>${esc(title)}</h1><p>${esc(description)}</p></div>${action}</header>`;
   const sectionHead = (title, meta = '', action = '') => `<div class="section-head"><div><h2>${esc(title)}</h2>${meta ? `<span>${esc(meta)}</span>` : ''}</div>${action}</div>`;
 
   function addActivity(type, title, meta = {}, timestamp = Date.now(), date = TODAY()) {
@@ -116,8 +116,14 @@
   function saveAndRender(reason, message = '', preserveScroll = true) {
     const unlocked = Core.save(reason);
     const count = unlocked.stickers.length + unlocked.badges.length + unlocked.scenes.length;
+    const unlockedNames = [
+      ...unlocked.stickers.map((id) => Core.STICKERS.find((item) => item.id === id)?.name),
+      ...unlocked.badges.map((id) => Core.BADGES.find((item) => item.id === id)?.name),
+      ...unlocked.scenes.map((id) => Core.SCENES.find((item) => item.id === id)?.name)
+    ].filter(Boolean);
+    const unlockMessage = count > 2 ? `新解锁 ${count} 件收藏` : unlockedNames.length ? `新收藏：${unlockedNames.join('、')}` : '';
     const storageMessage = unlocked.persisted === false ? '浏览器未允许本地保存' : '';
-    announce([message, count ? `新解锁 ${count} 件收藏` : '', storageMessage].filter(Boolean).join(' · '));
+    announce([message, unlockMessage, storageMessage].filter(Boolean).join(' · '));
     render({ preserveScroll });
   }
 
@@ -253,7 +259,7 @@
           <div class="task-list">${priorities.length ? priorities.map((task) => taskRow(task)).join('') : emptyState('还没有重点任务', '添加今天最值得完成的一件事。', `<button type="button" class="text-button" data-action="task-new">添加重点</button>`)}</div>
         </section>
         <section class="next-panel">
-          <span class="eyebrow">接下来</span>
+          <span class="note-tab">接下来</span>
           <div><h2>${esc(nextTask?.title || '先选一件值得投入的事')}</h2><p>${nextTask ? `${esc(nextTask.area)} · ${nextTask.minutes} 分钟` : '新建任务后，这里会给出下一步。'}</p></div>
           <button type="button" class="primary-button" data-action="focus-from-task" data-id="${attr(nextTask?.id || '')}" ${nextTask ? '' : 'disabled'}>${icon('focus')}开始专注</button>
         </section>
@@ -322,12 +328,12 @@
     const milestones = (project.milestones || []).filter((item) => item.title).sort((a, b) => String(a.date).localeCompare(String(b.date)));
     return `<div class="page inner-page project-page">
       <header class="project-hero">
-        <div><span class="eyebrow">CURRENT CHAPTER · ${esc(project.area)}</span><h1>${esc(project.name)}</h1><p>${esc(project.goal || '为这个章节写下一句清楚的目标。')}</p></div>
+        <div><div class="project-title-line"><h1>${esc(project.name)}</h1><span class="chapter-label">${esc(project.area)} · 成长章节</span></div><p>${esc(project.goal || '为这个章节写下一句清楚的目标。')}</p></div>
         <button type="button" class="secondary-button" data-action="project-edit" data-id="${attr(project.id)}">${icon('edit')}编辑项目</button>
       </header>
       <section class="project-progress"><div><span>当前进度</span><b>${progress}%</b></div><div class="progress-track"><i style="width:${progress}%"></i></div></section>
       <div class="project-story-grid">
-        <section class="next-chapter"><span class="eyebrow">下一步</span><h2>${esc(next || '还没有写下下一步')}</h2><p>${next ? '把它做得足够小，就能开始。' : '编辑项目，写下一件可以立刻行动的事。'}</p></section>
+        <section class="next-chapter"><span class="note-tab">下一步</span><h2>${esc(next || '还没有写下下一步')}</h2><p>${next ? '把它做得足够小，就能开始。' : '编辑项目，写下一件可以立刻行动的事。'}</p></section>
         <section class="weekly-focus"><div class="section-head"><div><h2>本周重点</h2><span>最多 3 项</span></div></div>${weeklyFocus.length ? `<ol>${weeklyFocus.map((item) => `<li>${esc(item)}</li>`).join('')}</ol>` : emptyState('还没有本周重点', '编辑项目时可以写入。')}</section>
       </div>
       <section class="plain-section project-tasks">${sectionHead('项目任务', `${completed.length}/${tasks.length} 已完成`, `<button type="button" class="round-action" data-action="task-new" data-project-id="${attr(project.id)}" aria-label="添加项目任务">${icon('plus')}</button>`)}<div class="task-list bordered">${tasks.length ? tasks.map((task) => taskRow(task)).join('') : emptyState('这个章节还没有任务', '添加一个真正能推动项目的小步骤。')}</div></section>
@@ -477,7 +483,7 @@
     return `<div class="page inner-page review-page">
       ${pageHeader('WEEKLY LETTER', '本周复盘', `${dateLabel(start)} — ${dateLabel(end)}`)}
       <section class="review-spread">
-        <div class="review-summary"><span class="eyebrow">THIS WEEK</span><h2>这一周留下了什么</h2><div class="review-stat-list">${stats.map(([label, value, unit]) => `<div><span>${label}</span><b>${value}<small>${unit}</small></b></div>`).join('')}</div></div>
+        <div class="review-summary"><h2>这一周留下了什么</h2><div class="review-stat-list">${stats.map(([label, value, unit]) => `<div><span>${label}</span><b>${value}<small>${unit}</small></b></div>`).join('')}</div></div>
         <div class="review-insights">${sectionHead('看见投入', '只根据本周真实记录')}
           <dl><div><dt>最投入领域</dt><dd>${esc(summary.invested || '暂无记录')}</dd></div><div><dt>最投入一天</dt><dd>${summary.mostActive ? dateLabel(summary.mostActive) : '暂无记录'}</dd></div><div><dt>延期最多</dt><dd>${esc(summary.delayed?.title || '暂无延期')}</dd></div><div><dt>计划 vs 实际</dt><dd>${formatMinutes(summary.plannedMinutes)} / ${formatMinutes(summary.actualMinutes)}</dd></div></dl>
         </div>
@@ -503,7 +509,7 @@
     const favorite = state().collection.favorites.includes(outfit.id);
     return `<article class="outfit-card ${owned ? 'owned' : 'locked'}">
       <button type="button" class="outfit-image" data-action="outfit-open" data-id="${outfit.id}">${img(outfit.image, `${outfit.name}限定卡面`, 853, 1844)}<span class="outfit-state">${owned ? '已收藏' : `${icon('lock')}待解锁`}</span></button>
-      <div class="outfit-card-copy"><span>${esc(outfit.series)}</span><h3>${esc(outfit.name)}</h3><p>${esc(outfit.palette)}</p><div>${owned ? `<b>已拥有</b>` : `<b>${icon('coin')}${outfit.price}</b>`}<button type="button" data-action="outfit-favorite" data-id="${outfit.id}" class="${favorite ? 'active' : ''}" aria-label="${favorite ? '取消收藏' : '收藏'}">${icon('heart')}</button></div></div>
+      <div class="outfit-card-copy"><h3>${esc(outfit.name)}</h3><span>${esc(outfit.series)}</span><p>${esc(outfit.palette)}</p><div>${owned ? `<b>已拥有</b>` : `<b>${icon('coin')}${outfit.price}</b>`}<button type="button" data-action="outfit-favorite" data-id="${outfit.id}" class="${favorite ? 'active' : ''}" aria-label="${favorite ? '取消收藏' : '收藏'}">${icon('heart')}</button></div></div>
     </article>`;
   }
 
@@ -515,7 +521,7 @@
       return outfit.release === filter;
     });
     return `<div class="wardrobe-tab">
-      <section class="character-intro">${img('assets/character/identity.webp', '银灰发男性角色基础形象', 1122, 1402)}<div><span class="eyebrow">MY CHARACTER</span><h2>同一个人，不同章节</h2><p>卡面会随服装主题改变发型、配饰、动作与背景；解锁后进入收藏，不做分层换装。</p><dl><div><dt>已收藏</dt><dd>${state().collection.outfits.length}/10</dd></div><div><dt>可用金币</dt><dd>${state().rewards.coins}</dd></div></dl></div></section>
+      <section class="character-intro">${img('assets/character/identity.webp', '银灰发男性角色基础形象', 1122, 1402)}<div><h2>同一个人，不同章节</h2><p>卡面会随服装主题改变发型、配饰、动作与背景；解锁后进入收藏，不做分层换装。</p><dl><div><dt>已收藏</dt><dd>${state().collection.outfits.length}/10</dd></div><div><dt>可用金币</dt><dd>${state().rewards.coins}</dd></div></dl></div></section>
       <section class="outfit-shop">${sectionHead('限定卡面衣橱', '十套独立高清收藏')}
         <div class="segmented wardrobe-filters">${[['all', '全部'], ['new', '新品'], ['basic', '基础'], ['limited', '限定'], ['owned', '已拥有']].map(([value, label]) => `<button type="button" data-action="wardrobe-filter" data-value="${value}" class="${filter === value ? 'active' : ''}">${label}</button>`).join('')}</div>
         <div class="outfit-grid">${filtered.length ? filtered.map(outfitCard).join('') : emptyState('这个分类还没有卡面')}</div>
@@ -524,9 +530,9 @@
   }
 
   function stickersTab() {
-    return `<section class="collection-sheet">${sectionHead('贴纸册', `${state().collection.stickers.length}/${Core.STICKERS.length} 已解锁`)}<div class="sticker-book">${Core.STICKERS.map((sticker) => {
+    return `<section class="collection-sheet sticker-collection">${sectionHead('贴纸册', `${state().collection.stickers.length}/${Core.STICKERS.length} 已解锁`)}<p class="sticker-book-note">每一枚都来自真实完成的事情，按获得顺序收进固定收藏位。</p><div class="sticker-book">${Core.STICKERS.map((sticker) => {
       const owned = state().collection.stickers.includes(sticker.id);
-      return `<article class="sticker-tile ${owned ? 'owned' : 'locked'}">${owned ? img(sticker.image, sticker.name, 160, 160) : `<div class="locked-art">${icon('lock')}</div>`}<h3>${owned ? esc(sticker.name) : '待发现'}</h3><p>${esc(sticker.hint)}</p></article>`;
+      return `<article class="sticker-tile ${owned ? 'owned' : 'locked'}"><div class="sticker-pocket"><i aria-hidden="true"></i>${img(sticker.image, sticker.name, 200, 200)}${owned ? '' : `<div class="locked-art" aria-label="未解锁">${icon('lock')}</div>`}</div><div class="sticker-meta"><h3>${esc(sticker.name)}</h3><p>${esc(sticker.hint)}</p></div></article>`;
     }).join('')}</div></section>`;
   }
 
@@ -565,7 +571,7 @@
       return `<article class="${outfit ? 'with-art' : ''}">${outfit ? `<div class="history-memory-art">${img(outfit.image, `${key} ${outfit.name}纪念卡面`, 853, 1844)}${badge ? `<span title="${attr(badge.name)}">${img(badge.image, badge.name, 180, 180)}</span>` : ''}</div>` : ''}<div class="history-memory-copy"><span>${key.replace('-', ' / ')}</span><h3>${esc(memory.keyword || '未命名月份')}</h3><p>${esc(memory.summary || '这一页暂时没有总结。')}</p><small>完成 ${memory.stats?.completedTasks ?? monthStats(key).completedTasks} 件 · 专注 ${formatMinutes(memory.stats?.focusMinutes ?? monthStats(key).focusMinutes)}${outfit ? ` · ${esc(outfit.name)}` : ''}</small></div></article>`;
     }).join('');
     return `<div class="memories-tab">
-      <section class="monthly-editor"><div class="monthly-paper"><span>MONTHLY MEMORY</span><h2>${currentMonth.replace('-', ' · ')}</h2><div class="monthly-paper-grid"><div><div class="monthly-facts"><p><b>${stats.completedTasks}</b>完成任务</p><p><b>${formatMinutes(stats.focusMinutes)}</b>专注时间</p><p><b>${esc(stats.growthArea)}</b>成长领域</p></div><div class="paper-stickers">${stickerSlots(3, memoryStickers)}</div></div><figure class="monthly-character-card">${img(selectedOutfit.image, `${selectedOutfit.name}本月角色卡面`, 853, 1844)}${selectedBadge ? `<span class="monthly-character-badge" title="${attr(selectedBadge.name)}">${img(selectedBadge.image, selectedBadge.name, 180, 180)}</span>` : ''}<figcaption>${esc(selectedOutfit.name)}</figcaption></figure></div></div>
+      <section class="monthly-editor"><div class="monthly-paper"><span class="month-ribbon">月度纪念</span><h2>${currentMonth.replace('-', ' · ')}</h2><div class="monthly-paper-grid"><div><div class="monthly-facts"><p><b>${stats.completedTasks}</b>完成任务</p><p><b>${formatMinutes(stats.focusMinutes)}</b>专注时间</p><p><b>${esc(stats.growthArea)}</b>成长领域</p></div><div class="paper-stickers">${stickerSlots(3, memoryStickers)}</div></div><figure class="monthly-character-card">${img(selectedOutfit.image, `${selectedOutfit.name}本月角色卡面`, 853, 1844)}${selectedBadge ? `<span class="monthly-character-badge" title="${attr(selectedBadge.name)}">${img(selectedBadge.image, selectedBadge.name, 180, 180)}</span>` : ''}<figcaption>${esc(selectedOutfit.name)}</figcaption></figure></div></div>
         <form data-form="monthly"><div class="monthly-collection-fields"><label>本月角色卡面<select name="outfitId">${ownedOutfits.map((outfit) => `<option value="${attr(outfit.id)}" ${outfit.id === selectedOutfit.id ? 'selected' : ''}>${esc(outfit.name)}</option>`).join('')}</select></label><label>本月徽章<select name="badgeId"><option value="">暂不放置</option>${ownedBadges.map((badge) => `<option value="${attr(badge.id)}" ${badge.id === selectedBadge?.id ? 'selected' : ''}>${esc(badge.name)}</option>`).join('')}</select></label></div><label>本月关键词<input name="keyword" maxlength="24" value="${attr(saved.keyword || '')}" placeholder="例如：稳定"></label><label>本月总结<textarea name="summary" rows="5" maxlength="480" placeholder="这个月，我想记住……">${esc(saved.summary || '')}</textarea></label><button type="submit" class="primary-button">保存本月纪念页</button></form>
       </section>
       <section class="scene-collection">${sectionHead('场景收藏', `${state().collection.scenes.length}/${Core.SCENES.length} 已拥有`)}<div>${Core.SCENES.map((scene) => { const owned = state().collection.scenes.includes(scene.id); return `<article class="scene-card ${owned ? '' : 'locked'}">${img(scene.image, scene.name, scene.id === 'today-desk' ? 1672 : 1586, scene.id === 'today-desk' ? 941 : 992)}<span>${owned ? esc(scene.name) : `${icon('lock')}待解锁`}</span></article>`; }).join('')}</div></section>
@@ -583,7 +589,7 @@
   const projectOptions = (selected = '') => `<option value="">不属于项目</option>${state().projects.map((project) => `<option value="${attr(project.id)}" ${project.id === selected ? 'selected' : ''}>${esc(project.name)}</option>`).join('')}`;
 
   function modalFrame(title, body, className = '') {
-    return `<div class="modal-layer" data-action="modal-backdrop"><section class="modal-card ${className}" role="dialog" aria-modal="true" aria-label="${attr(title)}"><header><div><span class="eyebrow">GROW WITH YOU</span><h2>${esc(title)}</h2></div><button type="button" data-action="modal-close" aria-label="关闭">${icon('close')}</button></header>${body}</section></div>`;
+    return `<div class="modal-layer" data-action="modal-backdrop"><section class="modal-card ${className}" role="dialog" aria-modal="true" aria-label="${attr(title)}"><header><h2>${esc(title)}</h2><button type="button" data-action="modal-close" aria-label="关闭">${icon('close')}</button></header>${body}</section></div>`;
   }
 
   function taskModal(data = {}) {
@@ -635,7 +641,7 @@
     const outfit = Core.OUTFITS.find((item) => item.id === id);
     if (!outfit) return '';
     const owned = state().collection.outfits.includes(id);
-    return modalFrame(outfit.name, `<div class="outfit-detail"><div class="outfit-detail-art">${img(outfit.image, `${outfit.name}完整限定卡面`, 853, 1844, { className: 'detail-image' })}</div><div class="outfit-detail-copy"><span class="eyebrow">${esc(outfit.series)}</span><h3>${esc(outfit.name)}</h3><dl><div><dt>发型</dt><dd>${esc(outfit.hair)}</dd></div><div><dt>配饰</dt><dd>${esc(outfit.accessories)}</dd></div><div><dt>色彩</dt><dd>${esc(outfit.palette)}</dd></div></dl><p>独立动作、发型、配饰与场景构成完整卡面。解锁后永久进入收藏册。</p>${owned ? `<div class="owned-mark">${icon('check')}已永久收藏</div>` : `<button type="button" class="primary-button purchase-button" data-action="outfit-buy" data-id="${outfit.id}">${icon('coin')}${outfit.price} 金币解锁</button>`}</div></div>`, 'outfit-modal');
+    return modalFrame(outfit.name, `<div class="outfit-detail"><div class="outfit-detail-art">${img(outfit.image, `${outfit.name}完整限定卡面`, 853, 1844, { className: 'detail-image' })}</div><div class="outfit-detail-copy"><h3>${esc(outfit.name)}</h3><span class="series-label">${esc(outfit.series)}</span><dl><div><dt>发型</dt><dd>${esc(outfit.hair)}</dd></div><div><dt>配饰</dt><dd>${esc(outfit.accessories)}</dd></div><div><dt>色彩</dt><dd>${esc(outfit.palette)}</dd></div></dl><p>独立动作、发型、配饰与场景构成完整卡面。解锁后永久进入收藏册。</p>${owned ? `<div class="owned-mark">${icon('check')}已永久收藏</div>` : `<button type="button" class="primary-button purchase-button" data-action="outfit-buy" data-id="${outfit.id}">${icon('coin')}${outfit.price} 金币解锁</button>`}</div></div>`, 'outfit-modal');
   }
 
   function renderModal() {
