@@ -1,67 +1,70 @@
-# Product
+# 小小生长册 · Product
 
-<!-- impeccable:product-schema 1 -->
+> Grow with You — 一本会奖励我的长期成长电子手账。
 
-## Platform
+## 产品定义
 
-web
+小小生长册是一款以真实行动为核心的个人成长产品：80% 是清楚可靠的效率工具，20% 是温柔的电子手账与收藏反馈。用户每天可以计划、执行、记录和复盘；长期则能回看项目、日记、成长数据、贴纸、徽章、限定卡面与月度纪念。
 
-## Users
+它不使用签到惩罚、体力、钻石或复杂换装。成长值只累计，金币来自真实任务与专注，并可用于永久解锁收藏卡面。
 
-Primary user: the owner of this personal growth workbench, used daily on iPhone and desktop to plan, focus, record, and review real-life growth across study, work, writing, exercise, English, podcasts, and custom projects.
+## 核心体验
 
-## Product Purpose
+1. 默认进入「今日」，首屏依次看到日期场景、今日重点、下一件事与统一快速添加。
+2. 任务、专注、习惯、成长记录会生成真实轨迹，并进入周复盘和月度统计。
+3. 项目只在侧栏或移动抽屉中列出；点击后打开一本成长册的当前章节，而不是项目数据库。
+4. 收藏是长期档案：卡面、贴纸、徽章、场景和月度手账都有明确的真实解锁来源。
+5. 所有用户内容只写入 `growth-journal-v1`，刷新后继续存在。
 
-Turn everyday planning and self-development into a usable long-term electronic journal. Real actions become tasks, focus sessions, habits, notes, reflections, and durable records; completion also creates light rewards such as coins, stars, stickers, badges, outfits, and monthly memories.
+## 正式功能
 
-Success means the product is pleasant enough to open every day, practical enough to replace scattered planning tools, and durable enough that a year later it reads like a personal growth book rather than a cold dashboard.
+| 模块 | 可用能力 | 数据来源 |
+| --- | --- | --- |
+| 今日 | 最多 3 个重点、普通任务筛选、下一件事、成长列表、轨迹、心情、日记 | 当天真实记录 |
+| 收集箱 | 捕捉、放到今天、安排日期、转项目任务、删除 | 用户输入 |
+| 项目 | 目标、进度、下一步、本周重点、项目任务、累计数据、节点 | 项目与关联记录 |
+| 日历 | 月视图、任务数、专注标记、节点标记、日期详情 | 任务 / 专注 / 节点 |
+| 专注 | 25 / 45 / 60 分钟，开始、暂停、继续、结束、刷新续时 | 真实计时器 |
+| 习惯 | 最近 7 天点按记录，可新增和移除，无断签惩罚 | 用户点按 |
+| 复盘 | 六项周统计、投入洞察、计划与实际、下周建议、一句话复盘 | 本周真实数据 |
+| 笔记 | 新建、编辑、删除、关联项目、全局搜索 | 用户输入 |
+| 收藏 | 10 套限定卡面、17 枚贴纸、6 枚视觉徽章、4 个场景、月度纪念 | 奖励规则 / 金币购买 |
 
-## Positioning
+## 卡面收藏
 
-A personal productivity workspace where serious planning and review are the primary mechanism, while restrained collectible journal rewards make the history of real work emotionally worth revisiting.
+卡面是完整主题插画，不是人体分层换装。十套卡面共用银灰发男性的身份特征与修长九头身方向，同时允许服装对应的发型、配饰、动作、构图和背景自然变化。
 
-## Operating Context
+- 日常：昼光信笺
+- 学院：绒兔秘约
+- 居家：午后静读
+- 夏日：海风絮语
+- 古风：云汉长明
+- 情人节：蔷薇密约
+- 周年：星轨誓约
+- 辉光典藏：逐光礼赞
+- 暗夜典藏：星夜加冕
+- 节日：烟火来信
 
-- Daily planning and task completion.
-- Long-running projects such as CPA study, career development, writing, exercise, English, podcasts, and custom goals.
-- Focus sessions and time tracking.
-- Inbox capture for thoughts that should not immediately become scheduled tasks.
-- Weekly review, monthly memory pages, mood and one-line diary.
-- Collection of stickers, badges, outfits, and scenes earned through real activity.
-- Frequent iPhone portrait use; desktop is used for denser planning and review.
+每套均为独立高清文件。解锁后永久进入衣橱收藏，不提供部件叠加或更换当前立绘的伪换装逻辑。
 
-## Capabilities and Constraints
+## 数据与迁移
 
-- Static web app deployed with GitHub Pages.
-- Existing user data must remain in localStorage and survive refreshes.
-- Real task, focus, habit, plan, note, journal, reward, outfit, and collection state must be persisted.
-- Sidebar projects must be collapsible on desktop and available as an off-canvas drawer on mobile.
-- Mobile is a first-class layout, not a scaled-down desktop.
-- No old moon-garden, home-building, complex layered human dress-up, or abandoned visual systems.
-- Dress-up remains simplified to fixed-ratio complete outfits and accessories.
-- Avoid fake data presented as completed functionality.
-- No punishment loops, streak-loss shaming, or aggressive failure states.
+- 正式 key：`growth-journal-v1`
+- 旧数据只在正式 key 不存在时读取一次。
+- 可迁移任务、项目、收集箱、专注、习惯、心情、日记、笔记、奖励和既有收藏。
+- 迁移后仅写正式 key；旧 key 保留为只读安全备份。
+- 损坏 JSON、错误数组成员、失效项目引用、异常计时器与失效收藏 ID 会在启动时安全修复或忽略。
+- 默认只有 4 个空项目章节、5 个空习惯和 1 张基础卡面；没有虚构的完成数据。
 
-## Brand Commitments
+## 长期原则
 
-- Product name: 小小生长册 / Grow with You.
-- Visual direction is the user-approved blue-violet growth-workbench world: misty blue, periwinkle, muted violet, warm ivory light, and very limited pink accents.
-- Character direction: silver-haired, calm/cool male character with consistent face and proportion; current art is provisional and may be refined later.
-- Overall tone: gentle, cute, refined, journal-like, but not childish.
-- The interface should feel like a polished life/productivity app with about 20% journal decoration, not a corporate admin dashboard.
+- 功能先于装饰，记录先于惩罚。
+- 星星只增不减；任务或习惯取消勾选不会重复发奖。
+- 月度纪念永久保存，同月再次编辑不会重复生成轨迹。
+- UI 图标为同一套 SVG 线性图标，不以 emoji 代替正式图标。
+- 首屏图像与非首屏图像采用明确尺寸、固定比例、异步解码和失败占位，避免布局跳动。
+- iPhone 竖屏优先；底栏、浮动按钮与弹层统一处理 Safari safe area。
 
-## Evidence on Hand
+## 完成标准
 
-- Existing working GitHub Pages code in this repository.
-- Existing real localStorage data model in `core.js`.
-- Current image assets in `assets/blue/`.
-- User-approved visual references and generated blue-violet dashboard references from the design process.
-- No third-party commercial claims, testimonials, or external user data should be invented.
-
-## Product Principles
-
-1. Real usefulness comes before game decoration.
-2. Record over punishment: an incomplete day can still be meaningful.
-3. One visual language across planning, focus, review, and collection.
-4. Rewards must reflect real actions and accumulate into a long-term personal archive.
-5. Mobile interactions must stay obvious, touchable, and calm.
+新建与完成任务、奖励增长、轨迹写入、番茄记录、项目关联、日记和笔记保存、习惯记录、复盘统计、贴纸与徽章解锁、金币购买卡面、刷新恢复、月度纪念保存必须形成一条可重复验证的真实闭环。

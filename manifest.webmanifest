@@ -1,1 +1,20 @@
-{"name":"小小生长册","short_name":"生长册","start_url":"./","scope":"./","display":"standalone","background_color":"#dfe6f8","theme_color":"#dfe6f8","description":"蓝紫色电子成长手账：任务、计划、专注、习惯、复盘与收藏。","icons":[{"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]}
+{
+  "name": "小小生长册 · Grow with You",
+  "short_name": "小小生长册",
+  "description": "一本会奖励我的长期成长电子手账。",
+  "lang": "zh-CN",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f2f4fa",
+  "theme_color": "#eef1fb",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

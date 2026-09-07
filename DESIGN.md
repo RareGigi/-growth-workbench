@@ -1,136 +1,82 @@
-# Design
+# 小小生长册 · Design
 
-<!-- impeccable design authority for 小小生长册 -->
+本文件是产品的唯一视觉设计权威。每轮审查按 Impeccable 的 `shape → critique → polish → adapt → harden` 执行。
 
-## Visitor Mode
+## 视觉命题
 
-Operate.
+清透的蓝紫色电子手账：冷静清爽的人物，带温度的环境与 UI。整体为现代生活 App、日程工具与轻收藏系统的交集，不做粉色少女网页、后台 Dashboard 或重度游戏大厅。
 
-The primary job is to plan, act, and review. Expressive illustration supports the work but never competes with task clarity.
+比例约为 80% 正式产品 UI + 20% 手账装饰。装饰只出现在场景、纸张、贴纸槽位和收藏卡面，不牺牲信息层级。
 
-## Visual World
+## 唯一设计令牌
 
-A blue-violet illustrated personal study room at night: clear cool air, warm desk light, silver-blue moonlight, books, flowers, small celestial objects, and restrained journal ephemera. The character is part of the user's ritual rather than a separate game.
+| 角色 | 色值 | 使用方式 |
+| --- | --- | --- |
+| 画布 | `#f2f4fa` | 页面背景 |
+| 纸张 | `#fffdf9` | 主内容表面 |
+| 雾蓝 | `#e8eefb` | 选中态与安静强调 |
+| 淡蓝紫 | `#eeecf8` | 手账与收藏表面 |
+| 暖杏 | `#f7f0eb` | 少量温暖区域 |
+| 鼠尾草 | `#eaf2ed` | 习惯与运动反馈 |
+| 主文字 | `#293047` | 标题与正文 |
+| 次文字 | `#505872` | 说明文字 |
+| 主蓝 | `#6c88c8` | 主操作与进度 |
+| 蓝紫 | `#7974ba` | 收藏与成长强调 |
+| 雾粉 | `#c98f9c` | 极少量辅助强调 |
 
-This replaces all abandoned pink-first, moon-garden, home-building, and Q-body worlds. Do not blend them back in.
+阴影只用两级蓝灰软阴影；主要表面圆角 20–26px，控件圆角 12–14px。禁止新增临时变量、页面专属视觉体系或覆盖式修复文件。
 
-## Palette
+## 字体与信息层级
 
-- Canvas: `#edf2fb`
-- Canvas cool depth: `#dfe8f7`
-- Paper: `#fbfcff`
-- Ink: `#24345f`
-- Muted ink: `#6678a5`
-- Primary blue: `#617ed2`
-- Periwinkle: `#8799e7`
-- Violet: `#8f83d9`
-- Cyan accent: `#58b5c0`
-- Warm accent: `#e8ad72`
-- Pink accent (rare): `#e69ab6`
-- Sidebar: `#263d79` to `#334d8f`, not black.
-- Borders: blue-tinted, never neutral gray.
+- UI：系统无衬线字体栈，正文手机端不低于 12px，主要正文保持 14–16px。
+- 日期、回顾与月度标题：宋体系统回退，形成纸页气质。
+- 页面标题不追求巨型营销字，优先让任务与行动进入视野。
+- 输入框必须有可见边界与蓝色 `focus-visible` 焦点环。
 
-Pink is an accent, not a surface color.
+## 布局
 
-## Typography
+桌面端使用 252px 可折叠侧栏，收起为 72px；主内容最大宽度由阅读密度控制。项目仅存在于侧栏项目区，项目详情只展示当前项目。
 
-Chinese UI uses a refined serif/sans pairing available from local/system fallbacks without downloading font files:
-- Display/date/reflective journal moments: `STSong`, `Songti SC`, `Noto Serif CJK SC`, serif.
-- UI/body: `PingFang SC`, `Hiragino Sans GB`, `Microsoft YaHei`, sans-serif.
+900px 以下改为移动模式：固定侧栏变成抽屉，顶部保留「项目」按钮，底部只保留今日、日历、专注、复盘、收藏。页面底部、底栏、浮动加号和弹层都叠加 `env(safe-area-inset-bottom)`。
 
-Do not use giant display text. Keep mobile body text at least 14px and controls at least 44px touch height.
+今日移动首屏控制为短顶部栏 + 190px 场景 + 紧凑重点任务；空状态高度约 120–160px，不制造半屏空白。
 
-## Spatial Thesis
+## 组件纪律
 
-Primary path on desktop:
-sidebar project context → today hero → today's tasks/next action → timeline/focus → supporting growth information → collection/review.
+- 只为有明确语义的内容组使用卡片，不做卡片套卡片。
+- 今日成长使用轻量横条列表，不拆成 KPI 卡。
+- 任务完成仅显示轻提示，不弹庆祝大窗。
+- 所有正式导航和操作使用同一套内联 SVG 描边图标。
+- 手机操作热区至少 44×44px。
+- 贴纸只能进入固定槽位，不开放自由拖拽铺满页面。
+- 收藏页使用分段标签，避免一屏堆满衣橱、贴纸、徽章和纪念。
 
-Primary path on mobile:
-project drawer button → date/hero → today tasks → focus/next action → lightweight growth summary → bottom navigation.
+## 图像系统
 
-Use a 4px spacing base with semantic steps: 4, 8, 12, 16, 24, 32, 48.
+| 类型 | 规格 | 策略 |
+| --- | --- | --- |
+| 今日场景 | 1672×941 WebP | 首屏 eager + high priority |
+| 专注 / 收藏场景 | 1586×992 WebP | 非首屏 lazy |
+| 人物身份图 | 1122×1402 WebP | 固定比例 |
+| 限定卡面 | 853×1844 WebP，共 10 张 | 独立文件、统一卡面比例 |
+| 贴纸 | 17 个独立 SVG | 固定收藏槽位 |
+| 徽章 | 6 个独立 SVG | 正式徽章视觉 |
 
-## Sidebar
+图片只承载场景与人物，不烤入日期、按钮、搜索框、Logo 或说明文字。所有 `<img>` 都提供 `width`、`height`、`decoding="async"`；非首屏增加 `loading="lazy"`。加载失败时由固定尺寸容器显示简洁占位。
 
-Desktop sidebar is a stable vertical rail with:
-- brand and collapse control;
-- primary navigation;
-- a real collapsible `项目` section;
-- projects showing name, area, and progress;
-- compact character/signature footer.
+## 卡面人物规则
 
-When collapsed, preserve recognizable navigation and project dots without text.
+人物保持同一身份：银灰发、蓝灰眼、清冷温和的成年男性面容与修长九头身方向。卡面不是换装贴图，所以姿势、相机距离、发型、手持、配饰和背景可以随主题变化；严禁把人物挤到近景造成头重脚轻，也不再用上衣 / 裤子 / 鞋子分层对齐。
 
-Mobile does not hide projects. A visible `项目` button in the top bar opens the same sidebar as an off-canvas drawer. The project group remains fully usable inside the drawer.
+古风、夏日、情人节、周年和庆典等主题使用原创服装语言与独立叙事场景，追求五星收藏卡面的完成度，但不复制第三方卡面构图、标识或文字。
 
-## Surfaces
+## 动效与适配
 
-### Today
-Illustration-led hero plus a clear date card. Below it, use larger meaningful regions rather than many equal KPI cards:
-- today tasks;
-- timeline / next action;
-- focus;
-- growth summary;
-- mood + one-line diary;
-- habits/countdowns;
-- weekly stickers / wardrobe / scenes as a quieter lower layer.
+- 抽屉与页面反馈使用 140–220ms 的轻微位移 / 淡入。
+- 不使用满屏粒子、夸张弹窗或大量连续动画。
+- `prefers-reduced-motion` 下将动效压缩至近乎即时。
+- 断点重点验证：桌面、768px、430px、390px，以及 320–380px 的极窄兜底。
 
-### Plans
-Treat long-term plans as growth books, not kanban boards. Current project is prominent; other plans remain browsable.
+## Harden 清单
 
-### Focus
-Quietest page. One task, timer, accumulated time, and character/scene.
-
-### Review / Journal
-Read like a beautiful weekly/monthly spread, not analytics software.
-
-### Collection
-Strong archive feeling. Character/wardrobe is one region; stickers, badges, scenes, and monthly memories are grouped by meaning.
-
-## Components
-
-- Cards are used only for meaningful surface groups; avoid cards inside cards.
-- Corners: 16–22px on major surfaces, 10–14px on controls.
-- Shadows: blue-tinted, soft, offset downward.
-- Borders: 1px tinted blue.
-- Icons: consistent authored SVG stroke/outline style. Do not use emoji as formal UI icons.
-- Progress: slim linear bars, not decorative rings except the focus timer where the circle is functional.
-- Inputs: visible focus ring in primary blue, no low-contrast placeholders.
-
-## Illustration & Assets
-
-- `assets/blue/hero.webp`: wide hero scene, at least roughly 1600px wide.
-- `assets/blue/avatar.webp`: high-resolution character art, used consistently.
-- `assets/blue/outfits.webp`: dedicated outfit strip, not screenshots cropped from unrelated UI.
-- `assets/blue/scenes.webp`: dedicated scene strip.
-- Use `object-fit` and fixed aspect boxes so images never stretch.
-- Failure state must show a designed blue-violet placeholder, never a broken-image icon.
-
-## Motion
-
-One authored motion grammar only:
-- sidebar/drawer: 180–220ms ease-out;
-- page transition: subtle 140–180ms opacity + 4px translate;
-- task completion: check/fill and reward text, no confetti modal;
-- respect reduced-motion.
-
-## Responsive
-
-- Desktop ≥ 1024: persistent sidebar and multi-column content.
-- Tablet 720–1023: narrower sidebar or compact rail, 2-column content.
-- Mobile < 720: off-canvas project drawer, single-column reading order, bottom 5-item navigation.
-- Avoid horizontal scrolling for core task surfaces.
-- Safe-area padding on iPhone bottom navigation and drawer.
-
-## Anti-patterns
-
-Do not:
-- reintroduce pink-first surfaces;
-- nest cards;
-- add glass blur just for decoration;
-- use generic gray text on blue surfaces;
-- use unicode/emoji as the main icon system;
-- create more one-off override stylesheets;
-- add a new visual system for one page;
-- scale tiny source images to hero size;
-- hide the project system on mobile.
+坏图不撑高；空数组有紧凑空状态；损坏存储可恢复；旧数据仅迁移一次；计时器以绝对时间校正刷新误差；重复点击不重复发奖；同月反复保存不重复生成纪念轨迹；弹层锁定背景滚动；底部导航与浮动按钮互不遮挡。
