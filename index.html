@@ -7,29 +7,13 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="app.css?v=impeccable-3">
-  <style>
-    /* Projects live in the left sidebar only. The plan surface shows only the selected project. */
-    .sideNav button[data-page="plans"]{display:none!important}
-    .planBooks .planBook:not(.selected){display:none!important}
-    .planBooks{grid-template-columns:minmax(0,760px)!important;justify-content:start}
-    .planBook.selected{min-height:220px}
-    /* Keep current raster previews close to their native density until HD replacements land. */
-    .outfitStrip i{height:126px!important}
-    .sceneStrip i{height:90px!important}
-    .projectsList button{min-height:48px}
-    @media(max-width:719px){
-      .planBooks{grid-template-columns:1fr!important}
-      .outfitStrip i{height:116px!important}
-      .sceneStrip i{height:82px!important}
-      .projectsList button{min-height:50px}
-    }
-  </style>
+  <link rel="stylesheet" href="app.css?v=impeccable-4">
+  <link rel="stylesheet" href="impeccable-finish.css?v=impeccable-4">
   <title>小小生长册</title>
 </head>
 <body>
   <div id="app"></div>
-  <script src="core.js?v=impeccable-3"></script>
-  <script src="app.js?v=impeccable-3"></script>
+  <script src="core.js?v=impeccable-4"></script>
+  <script src="app.js?v=impeccable-4"></script>
 </body>
 </html>
