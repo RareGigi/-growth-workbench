@@ -49,6 +49,6 @@ node --check app.js
 npx --yes impeccable detect --json .
 ```
 
-发布前还需在正式预览中检查桌面、768px iPad、430px iPhone 与 390px iPhone：导航、溢出、点击热区、图片、空状态、滚动、弹层、底栏与 Safari safe area。
+发布前还需在正式预览中检查桌面、768px iPad、430px iPhone 与 390px iPhone：导航抽屉、今日分段、溢出、点击热区、图片、空状态、滚动、弹层、浮动按钮与 Safari safe area。
 
 产品范围与验收标准见 [PRODUCT.md](PRODUCT.md)，唯一视觉规范见 [DESIGN.md](DESIGN.md)。

@@ -2979,8 +2979,11 @@ textarea::placeholder {
   width: 24px;
 }
 
-.mobile-nav,
 .drawer-scrim {
+  display: none;
+}
+
+.today-section-tabs {
   display: none;
 }
 
@@ -3292,10 +3295,14 @@ textarea::placeholder {
   .sidebar-collapsed .sidebar {
     z-index: 80;
     width: min(86vw, 340px);
+    overflow-x: hidden;
+    overflow-y: auto;
     padding-top: env(safe-area-inset-top, 0px);
     border-right: 0;
     box-shadow: var(--shadow);
+    overscroll-behavior: contain;
     transform: translateX(-105%);
+    -webkit-overflow-scrolling: touch;
   }
 
   .drawer-open .sidebar {
@@ -3394,65 +3401,61 @@ textarea::placeholder {
   }
 
   #view {
-    padding: 18px 20px calc(110px + var(--safe-bottom));
+    padding: 18px 20px calc(86px + var(--safe-bottom));
   }
 
   .page-header {
     min-height: 110px;
   }
 
-  .mobile-nav {
-    position: fixed;
-    z-index: 60;
-    right: 10px;
-    bottom: calc(8px + var(--safe-bottom));
-    left: 10px;
+  .today-section-tabs {
+    position: sticky;
+    z-index: 18;
+    top: calc(var(--topbar-height) + env(safe-area-inset-top, 0px) + 6px);
     display: grid;
-    height: 66px;
-    grid-template-columns: repeat(5, 1fr);
-    padding: 5px 4px;
-    border: 0;
-    border-radius: 20px;
-    background: rgba(255, 253, 249, 0.98) url("assets/journal/paper-texture.svg") repeat;
-    box-shadow: 0 12px 34px rgba(52, 62, 94, 0.18);
-  }
-
-  .mobile-nav button {
-    display: flex;
-    min-width: 44px;
-    min-height: 54px;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    grid-template-columns: repeat(3, 1fr);
     gap: 3px;
+    margin: 12px 0 2px;
+    padding: 4px;
+    border: 1px solid rgba(199, 207, 227, 0.82);
     border-radius: 15px;
+    background: #f6f8fc url("assets/journal/paper-texture.svg") repeat;
+    box-shadow: 0 7px 18px rgba(52, 62, 94, 0.08);
+  }
+
+  .today-section-tabs button {
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: 11px;
     color: var(--muted);
+    font-size: 12px;
+    font-weight: 650;
   }
 
-  .mobile-nav button.active {
-    background: var(--blue-soft);
+  .today-section-tabs button.active {
+    background: var(--paper);
     color: var(--blue-deep);
+    box-shadow: 0 2px 9px rgba(56, 66, 104, 0.1);
   }
 
-  .mobile-nav .icon {
-    width: 20px;
-    height: 20px;
+  .today-section {
+    display: none;
   }
 
-  .mobile-nav span {
-    font-size: 9px;
+  .today-section.active {
+    display: block;
   }
 
   .global-fab {
     right: 18px;
-    bottom: calc(86px + var(--safe-bottom));
-    width: 54px;
-    height: 54px;
+    bottom: calc(18px + var(--safe-bottom));
+    width: 52px;
+    height: 52px;
   }
 
   .toast {
     right: 16px;
-    bottom: calc(150px + var(--safe-bottom));
+    bottom: calc(82px + var(--safe-bottom));
   }
 
   .collection-tabs {
@@ -3666,7 +3669,7 @@ textarea::placeholder {
   }
 
   #view {
-    padding: 12px 14px calc(108px + var(--safe-bottom));
+    padding: 12px 14px calc(82px + var(--safe-bottom));
   }
 
   .inner-page {
@@ -3709,6 +3712,20 @@ textarea::placeholder {
     padding: 17px 14px;
   }
 
+  .today-hero {
+    height: 172px;
+  }
+
+  .today-lead-grid {
+    gap: 12px;
+    margin-top: 12px;
+  }
+
+  .today-page .empty-state {
+    min-height: 116px;
+    padding: 14px;
+  }
+
   .task-row {
     grid-template-columns: 44px minmax(0, 1fr) 42px;
     gap: 5px;
@@ -3723,7 +3740,8 @@ textarea::placeholder {
   }
 
   .next-panel {
-    padding: 20px;
+    min-height: 142px;
+    padding: 18px;
   }
 
   .next-panel h2 {
@@ -3952,13 +3970,18 @@ textarea::placeholder {
   }
 
   .monthly-paper h2 {
-    margin-bottom: 24px;
-    font-size: 34px;
+    max-width: calc(100% - 94px);
+    margin-bottom: 22px;
+    font-size: 31px;
   }
 
   .monthly-paper {
     min-height: 390px;
-    padding: 26px 22px;
+    padding: 26px 20px 30px;
+  }
+
+  .monthly-paper::after {
+    inset: 10px;
   }
 
   .monthly-paper .month-ribbon {
@@ -3967,13 +3990,13 @@ textarea::placeholder {
   }
 
   .monthly-paper-grid {
-    grid-template-columns: minmax(0, 1fr) 94px;
-    gap: 12px;
+    grid-template-columns: minmax(0, 1fr) 102px;
+    gap: 10px;
   }
 
   .monthly-character-card {
-    width: 94px;
-    height: 204px;
+    width: 102px;
+    height: 220px;
     border-radius: 12px;
   }
 
@@ -3991,7 +4014,8 @@ textarea::placeholder {
   }
 
   .paper-stickers .mini-sticker-slots {
-    grid-template-columns: repeat(3, minmax(44px, 1fr));
+    grid-template-columns: repeat(3, minmax(40px, 1fr));
+    gap: 6px;
   }
 
   .monthly-character-badge {

@@ -15,6 +15,7 @@
   let timerFinishing = false;
   let toastTimer = null;
   let toastMessage = '';
+  let todaySection = 'tasks';
 
   const NAV = [
     ['today', '今日', 'today'],
@@ -26,7 +27,6 @@
     ['notes', '笔记', 'note'],
     ['collection', '收藏', 'collection']
   ];
-  const MOBILE_NAV = ['today', 'calendar', 'focus', 'review', 'collection'];
   const ICONS = {
     logo: '<path d="M12 2.8c1.7 2.5 4.1 4.1 7.3 4.8-2.6 1.9-4.1 4.5-4.3 7.8-1.8-2.4-4.3-4-7.5-4.6 2.7-1.9 4.2-4.6 4.5-8z"/><path d="M6.3 14.5c1 1.3 2.2 2.1 3.9 2.4-1.4 1-2.2 2.3-2.3 4-.9-1.3-2.3-2.1-3.9-2.4 1.4-1 2.2-2.3 2.3-4z"/>',
     today: '<path d="M5 5.8h14v13H5z"/><path d="M8 3.5v4.2M16 3.5v4.2M5 10h14M8.2 14h3.2M8.2 16.8h6.8"/>',
@@ -251,43 +251,51 @@
     const completedCount = todayTasks.filter((task) => task.status === 'done').length;
     const growth = todayGrowth();
     const moods = ['开心', '平静', '一般', '疲惫', '焦虑'];
+    const todaySections = [['tasks', '任务'], ['growth', '成长'], ['journal', '手记']];
     return `<div class="page today-page">
       ${hero()}
-      <div class="today-lead-grid">
-        <section class="surface priority-panel">
-          ${sectionHead('今日重点', `${completedCount}/${todayTasks.length} 已完成`, `<button type="button" class="round-action" data-action="task-new" aria-label="添加重点任务">${icon('plus')}</button>`)}
-          <div class="task-list">${priorities.length ? priorities.map((task) => taskRow(task)).join('') : emptyState('还没有重点任务', '添加今天最值得完成的一件事。', `<button type="button" class="text-button" data-action="task-new">添加重点</button>`)}</div>
-        </section>
-        <section class="next-panel">
-          <span class="note-tab">接下来</span>
-          <div><h2>${esc(nextTask?.title || '先选一件值得投入的事')}</h2><p>${nextTask ? `${esc(nextTask.area)} · ${nextTask.minutes} 分钟` : '新建任务后，这里会给出下一步。'}</p></div>
-          <button type="button" class="primary-button" data-action="focus-from-task" data-id="${attr(nextTask?.id || '')}" ${nextTask ? '' : 'disabled'}>${icon('focus')}开始专注</button>
-        </section>
-      </div>
-      <section class="plain-section ordinary-tasks">
-        ${sectionHead('普通任务', '按领域查看')}
-        <div class="segmented task-filters" role="group" aria-label="任务分类">${['全部', '学习', '工作', '生活', '自定义'].map((item) => `<button type="button" data-action="task-filter" data-value="${item}" class="${filter === item ? 'active' : ''}">${item}</button>`).join('')}</div>
-        <div class="task-list bordered">${ordinary.length ? ordinary.map((task) => taskRow(task)).join('') : emptyState('这里还没有任务', filter === '全部' ? '用右下角的＋快速添加。' : `今天没有${filter}类任务。`)}</div>
-      </section>
-      <div class="today-detail-grid">
-        <section class="plain-section growth-panel">
-          ${sectionHead('今日成长', '不比较，只记录', `<button type="button" class="text-button" data-action="growth-new">记录</button>`)}
-          <div class="growth-list">${growth.map((item) => `<div class="growth-row"><span>${item.area}</span><div class="growth-track"><i style="width:${Math.min(100, item.value / item.goal * 100)}%;--area:${Core.AREA_META[item.area].color}"></i></div><b>${item.label}</b></div>`).join('')}</div>
-        </section>
-        <section class="plain-section timeline-panel">${sectionHead('今日轨迹', `${state().activity.filter((entry) => entry.date === TODAY()).length} 条真实记录`)}${activityTimeline()}</section>
-      </div>
-      <div class="today-note-grid">
-        <section class="journal-panel">
-          ${sectionHead('一句话日记', '自动保存')}
-          <textarea id="today-journal" rows="3" maxlength="240" placeholder="今天状态怎么样？">${esc(state().journal[TODAY()] || '')}</textarea>
-          <span class="autosave-note" id="journal-status">输入后自动保存</span>
-        </section>
-        <section class="mood-panel">
-          ${sectionHead('今日心情', '只做记录，不做诊断')}
-          <div class="mood-options">${moods.map((mood) => `<button type="button" data-action="mood-set" data-value="${mood}" class="${state().mood[TODAY()] === mood ? 'active' : ''}">${faceIcon(mood)}<span>${mood}</span></button>`).join('')}</div>
+      <nav class="today-section-tabs" role="tablist" aria-label="今日内容">${todaySections.map(([value, label]) => `<button type="button" role="tab" data-action="today-section" data-value="${value}" aria-selected="${todaySection === value}" class="${todaySection === value ? 'active' : ''}">${label}</button>`).join('')}</nav>
+      <div class="today-section ${todaySection === 'tasks' ? 'active' : ''}" data-today-panel="tasks">
+        <div class="today-lead-grid">
+          <section class="surface priority-panel">
+            ${sectionHead('今日重点', `${completedCount}/${todayTasks.length} 已完成`, `<button type="button" class="round-action" data-action="task-new" aria-label="添加重点任务">${icon('plus')}</button>`)}
+            <div class="task-list">${priorities.length ? priorities.map((task) => taskRow(task)).join('') : emptyState('还没有重点任务', '添加今天最值得完成的一件事。', `<button type="button" class="text-button" data-action="task-new">添加重点</button>`)}</div>
+          </section>
+          <section class="next-panel">
+            <span class="note-tab">接下来</span>
+            <div><h2>${esc(nextTask?.title || '先选一件值得投入的事')}</h2><p>${nextTask ? `${esc(nextTask.area)} · ${nextTask.minutes} 分钟` : '新建任务后，这里会给出下一步。'}</p></div>
+            <button type="button" class="primary-button" data-action="focus-from-task" data-id="${attr(nextTask?.id || '')}" ${nextTask ? '' : 'disabled'}>${icon('focus')}开始专注</button>
+          </section>
+        </div>
+        <section class="plain-section ordinary-tasks">
+          ${sectionHead('普通任务', '按领域查看')}
+          <div class="segmented task-filters" role="group" aria-label="任务分类">${['全部', '学习', '工作', '生活', '自定义'].map((item) => `<button type="button" data-action="task-filter" data-value="${item}" class="${filter === item ? 'active' : ''}">${item}</button>`).join('')}</div>
+          <div class="task-list bordered">${ordinary.length ? ordinary.map((task) => taskRow(task)).join('') : emptyState('这里还没有任务', filter === '全部' ? '用右下角的＋快速添加。' : `今天没有${filter}类任务。`)}</div>
         </section>
       </div>
-      <section class="weekly-stickers">${sectionHead('本周新收藏', '贴纸使用固定槽位', `<button type="button" class="text-button" data-action="collection-tab" data-tab="stickers">打开贴纸册</button>`)}${stickerSlots(5)}</section>
+      <div class="today-section ${todaySection === 'growth' ? 'active' : ''}" data-today-panel="growth">
+        <div class="today-detail-grid">
+          <section class="plain-section growth-panel">
+            ${sectionHead('今日成长', '不比较，只记录', `<button type="button" class="text-button" data-action="growth-new">记录</button>`)}
+            <div class="growth-list">${growth.map((item) => `<div class="growth-row"><span>${item.area}</span><div class="growth-track"><i style="width:${Math.min(100, item.value / item.goal * 100)}%;--area:${Core.AREA_META[item.area].color}"></i></div><b>${item.label}</b></div>`).join('')}</div>
+          </section>
+          <section class="plain-section timeline-panel">${sectionHead('今日轨迹', `${state().activity.filter((entry) => entry.date === TODAY()).length} 条真实记录`)}${activityTimeline()}</section>
+        </div>
+      </div>
+      <div class="today-section ${todaySection === 'journal' ? 'active' : ''}" data-today-panel="journal">
+        <div class="today-note-grid">
+          <section class="journal-panel">
+            ${sectionHead('一句话日记', '自动保存')}
+            <textarea id="today-journal" rows="3" maxlength="240" placeholder="今天状态怎么样？">${esc(state().journal[TODAY()] || '')}</textarea>
+            <span class="autosave-note" id="journal-status">输入后自动保存</span>
+          </section>
+          <section class="mood-panel">
+            ${sectionHead('今日心情', '只做记录，不做诊断')}
+            <div class="mood-options">${moods.map((mood) => `<button type="button" data-action="mood-set" data-value="${mood}" class="${state().mood[TODAY()] === mood ? 'active' : ''}">${faceIcon(mood)}<span>${mood}</span></button>`).join('')}</div>
+          </section>
+        </div>
+        <section class="weekly-stickers">${sectionHead('本周新收藏', '贴纸使用固定槽位', `<button type="button" class="text-button" data-action="collection-tab" data-tab="stickers">打开贴纸册</button>`)}${stickerSlots(5)}</section>
+      </div>
     </div>`;
   }
 
@@ -661,14 +669,10 @@
     return renderers[modal.type]?.() || '';
   }
 
-  function mobileNav() {
-    return `<nav class="mobile-nav" aria-label="底部导航">${NAV.filter(([page]) => MOBILE_NAV.includes(page)).map(([page, label, iconName]) => `<button type="button" data-action="navigate" data-page="${page}" class="${state().ui.page === page ? 'active' : ''}">${icon(iconName)}<span>${label}</span></button>`).join('')}</nav>`;
-  }
-
   function shell() {
     const pages = { today: todayPage, inbox: inboxPage, project: projectPage, calendar: calendarPage, focus: focusPage, habits: habitsPage, review: reviewPage, notes: notesPage, collection: collectionPage };
     const current = pages[state().ui.page] || todayPage;
-    return `<div class="app-shell ${state().ui.sidebarCollapsed ? 'sidebar-collapsed' : ''} ${drawerOpen ? 'drawer-open' : ''}"><button type="button" class="drawer-scrim" data-action="drawer-close" aria-label="关闭项目抽屉"></button>${sidebar()}<main class="main-shell">${topbar()}<div id="view">${current()}</div></main>${mobileNav()}<button type="button" class="global-fab" data-action="quick-open" aria-label="快速添加">${icon('plus')}</button>${renderModal()}<div class="toast ${toastMessage ? 'show' : ''}" role="status">${icon('logo')}<span>${esc(toastMessage)}</span></div></div>`;
+    return `<div class="app-shell ${state().ui.sidebarCollapsed ? 'sidebar-collapsed' : ''} ${drawerOpen ? 'drawer-open' : ''}"><button type="button" class="drawer-scrim" data-action="drawer-close" aria-label="关闭项目抽屉"></button>${sidebar()}<main class="main-shell">${topbar()}<div id="view">${current()}</div></main><button type="button" class="global-fab" data-action="quick-open" aria-label="快速添加">${icon('plus')}</button>${renderModal()}<div class="toast ${toastMessage ? 'show' : ''}" role="status">${icon('logo')}<span>${esc(toastMessage)}</span></div></div>`;
   }
 
   function render(options = {}) {
@@ -860,9 +864,13 @@
     const action = target.dataset.action;
     const id = target.dataset.id;
     if (action === 'navigate') return navigate(target.dataset.page);
-    if (action === 'sidebar-collapse') { state().ui.sidebarCollapsed = !state().ui.sidebarCollapsed; return saveAndRender('sidebar'); }
+    if (action === 'sidebar-collapse') {
+      if (window.matchMedia('(max-width: 900px)').matches) { drawerOpen = false; return render({ preserveScroll: true }); }
+      state().ui.sidebarCollapsed = !state().ui.sidebarCollapsed;
+      return saveAndRender('sidebar');
+    }
     if (action === 'projects-collapse') { state().ui.projectsCollapsed = !state().ui.projectsCollapsed; return saveAndRender('projects-collapse'); }
-    if (action === 'drawer-open') { drawerOpen = true; return render({ preserveScroll: true }); }
+    if (action === 'drawer-open') { drawerOpen = true; state().ui.sidebarCollapsed = false; return render({ preserveScroll: true }); }
     if (action === 'drawer-close') { drawerOpen = false; return render({ preserveScroll: true }); }
     if (action === 'quick-open') return openModal({ type: 'quick' });
     if (action === 'modal-close' || action === 'modal-backdrop' && target === event.target) return closeModal();
@@ -877,6 +885,12 @@
     if (action === 'task-postpone') return postponeTask(id);
     if (action === 'task-cancel') return cancelTask(id);
     if (action === 'task-filter') { state().ui.taskFilter = target.dataset.value; return saveAndRender('task-filter'); }
+    if (action === 'today-section') {
+      const section = target.dataset.value;
+      if (!['tasks', 'growth', 'journal'].includes(section)) return;
+      todaySection = section;
+      return render({ preserveScroll: true });
+    }
     if (action === 'growth-new') return openModal({ type: 'growth' });
     if (action === 'mood-set') {
       const mood = target.dataset.value;
