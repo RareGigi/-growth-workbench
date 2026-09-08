@@ -128,6 +128,7 @@
     activity: [],
     notes: [],
     weeklyReviews: {},
+    planning: { defaultMinutes: 60, defaultEnergy: 'steady', lastTracks: ['tax', 'english', 'podcast', 'cpa', 'writing'], lastProjectId: '', lastInput: '', adoptedPlans: [] },
     rewards: { stars: 0, coins: 0 },
     collection: { outfits: ['daily-daylight'], featuredOutfitId: 'daily-daylight', stickers: [], badges: [], scenes: ['today-desk', 'focus-night'], favorites: [] },
     monthlyMemories: {}
@@ -315,6 +316,29 @@
     if (!projectIds.has(String(rawUi.selectedProjectId || ''))) state.ui.selectedProjectId = state.projects[0].id;
 
     state.tasks = (Array.isArray(state.tasks) ? state.tasks : []).map((task) => normaliseTask(task, task?.date, projectNameToId)).filter(Boolean).map((task) => ({ ...task, projectId: projectIds.has(String(task.projectId || '')) ? String(task.projectId) : null }));
+    const rawPlanning = objectOrEmpty(state.planning);
+    const allowedPlanMinutes = new Set([30, 60, 90, 120]);
+    const allowedEnergy = new Set(['low', 'steady', 'high']);
+    const allowedTracks = new Set(['tax', 'english', 'podcast', 'cpa', 'writing']);
+    state.planning = {
+      defaultMinutes: allowedPlanMinutes.has(Number(rawPlanning.defaultMinutes)) ? Number(rawPlanning.defaultMinutes) : 60,
+      defaultEnergy: allowedEnergy.has(rawPlanning.defaultEnergy) ? rawPlanning.defaultEnergy : 'steady',
+      lastTracks: [...new Set(Array.isArray(rawPlanning.lastTracks) ? rawPlanning.lastTracks : base.planning.lastTracks)].filter((track) => allowedTracks.has(track)),
+      lastProjectId: projectIds.has(String(rawPlanning.lastProjectId || '')) ? String(rawPlanning.lastProjectId) : '',
+      lastInput: String(rawPlanning.lastInput || '').slice(0, 160),
+      adoptedPlans: (Array.isArray(rawPlanning.adoptedPlans) ? rawPlanning.adoptedPlans : []).map((plan) => {
+        if (!plan || typeof plan !== 'object') return null;
+        return {
+          id: text(plan.id, uid('plan')),
+          date: validDate(plan.date),
+          style: ['minimum', 'balanced', 'complete'].includes(plan.style) ? plan.style : 'balanced',
+          energy: allowedEnergy.has(plan.energy) ? plan.energy : 'steady',
+          projectId: projectIds.has(String(plan.projectId || '')) ? String(plan.projectId) : null,
+          taskIds: (Array.isArray(plan.taskIds) ? plan.taskIds : []).map(String).filter((id) => state.tasks.some((task) => task.id === id)).slice(0, 5),
+          createdAt: Number(plan.createdAt) || Date.now()
+        };
+      }).filter(Boolean).slice(-60)
+    };
     state.inbox = (Array.isArray(state.inbox) ? state.inbox : []).map((item) => {
       if (!item || typeof item !== 'object' || !text(item.text || item.title)) return null;
       return { id: text(item.id, uid('inbox')), text: text(item.text || item.title), createdAt: Number(item.createdAt) || Date.now() };

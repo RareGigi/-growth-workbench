@@ -27,6 +27,43 @@
     ['notes', '笔记', 'note'],
     ['collection', '收藏', 'collection']
   ];
+  const PLAN_TRACKS = Object.freeze([
+    {
+      id: 'tax', name: '税务师', area: '学习', projectName: '税务师', match: ['税务师', '税法', '涉税'],
+      goal: '完成税务师当前备考科目的系统学习、练习与复盘。',
+      nextStep: '确定本周要推进的一个税务师知识点。',
+      weeklyFocus: ['学习一个核心知识点', '完成对应练习并订正', '整理本周错题'],
+      steps: [['学习税务师当前知识点', 25], ['完成一组税务师练习', 25], ['整理税务师错题', 15]]
+    },
+    {
+      id: 'english', name: '英语', area: '英语', projectName: '英语积累', match: ['英语', '单词', '听力', '口语'],
+      goal: '建立可以长期坚持的英语输入、复习与输出节奏。',
+      nextStep: '完成一次短时英语输入。',
+      weeklyFocus: ['完成三次英语输入', '复习本周词汇与表达', '做一次简短输出'],
+      steps: [['英语输入：听读一段材料', 20], ['复习词汇与表达', 15], ['用英语写 3 句话', 10]]
+    },
+    {
+      id: 'podcast', name: '播客', area: '播客', projectName: '播客积累', match: ['播客', '小宇宙', '节目'],
+      goal: '稳定收听值得留下的内容，并形成自己的观点记录。',
+      nextStep: '选择一期真正想听的节目。',
+      weeklyFocus: ['完整收听一期节目', '记下三个有用要点', '留下一句自己的想法'],
+      steps: [['收听一期播客', 30], ['记下 3 个要点', 10], ['写一句自己的想法', 5]]
+    },
+    {
+      id: 'cpa', name: 'CPA', area: '学习', projectName: 'CPA', match: ['CPA', 'cpa', '审计', '经济法'],
+      goal: '完成 CPA 当前科目的学习、练习与错题复盘。',
+      nextStep: '确定一个可以在今天推进的专题。',
+      weeklyFocus: ['学习一个核心专题', '完成对应练习并订正', '整理本周错题'],
+      steps: [['学习 CPA 当前专题', 25], ['完成一组 CPA 练习', 25], ['整理 CPA 错题', 15]]
+    },
+    {
+      id: 'writing', name: '写作', area: '写作', projectName: '第五时', match: ['写作', '小说', '第五时', '章节', '字数'],
+      goal: '稳定推进长篇作品，并留下可持续修改的阶段稿。',
+      nextStep: '确定下一段的目标，先写下 300 字。',
+      weeklyFocus: ['完成本周新增字数', '回读并标记结构问题', '整理下一章提纲'],
+      steps: [['梳理下一段要写什么', 10], ['继续写作', 30], ['回读并标记修改处', 15]]
+    }
+  ]);
   const ICONS = {
     logo: '<path d="M12 2.8c1.7 2.5 4.1 4.1 7.3 4.8-2.6 1.9-4.1 4.5-4.3 7.8-1.8-2.4-4.3-4-7.5-4.6 2.7-1.9 4.2-4.6 4.5-8z"/><path d="M6.3 14.5c1 1.3 2.2 2.1 3.9 2.4-1.4 1-2.2 2.3-2.3 4-.9-1.3-2.3-2.1-3.9-2.4 1.4-1 2.2-2.3 2.3-4z"/>',
     today: '<path d="M5 5.8h14v13H5z"/><path d="M8 3.5v4.2M16 3.5v4.2M5 10h14M8.2 14h3.2M8.2 16.8h6.8"/>',
@@ -87,6 +124,231 @@
   const inRange = (date, start, end) => date >= start && date <= end;
   const taskById = (id) => state().tasks.find((task) => task.id === id);
   const projectById = (id) => state().projects.find((project) => project.id === id);
+  const planTrackById = (id) => PLAN_TRACKS.find((track) => track.id === id);
+  const projectForTrack = (track) => {
+    if (!track) return null;
+    return state().projects.find((project) => project.name === track.projectName)
+      || state().projects.find((project) => track.match.some((keyword) => project.name.toLowerCase().includes(keyword.toLowerCase())))
+      || null;
+  };
+  const trackForText = (value) => {
+    const text = String(value || '').toLowerCase();
+    return PLAN_TRACKS.find((track) => track.match.some((keyword) => text.includes(keyword.toLowerCase()))) || null;
+  };
+  const rewardForMinutes = (minutes) => Core.clamp(Math.ceil((Number(minutes) || 25) / 5), 5, 20);
+
+  function parseSmartTask(value) {
+    const source = String(value || '').trim();
+    let date = TODAY();
+    if (/后天/.test(source)) date = Core.addDays(TODAY(), 2);
+    else if (/明天|明晚/.test(source)) date = Core.addDays(TODAY(), 1);
+    const explicitDate = /(\d{1,2})\s*月\s*(\d{1,2})\s*日?/.exec(source);
+    if (explicitDate) {
+      const now = new Date();
+      const candidate = new Date(now.getFullYear(), Number(explicitDate[1]) - 1, Number(explicitDate[2]));
+      if (candidate.getTime() < new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()) candidate.setFullYear(candidate.getFullYear() + 1);
+      date = Core.localDateKey(candidate);
+    } else {
+      const weekdayMatch = /(?:本周|下周|周)([一二三四五六日天])/.exec(source);
+      if (weekdayMatch) {
+        const targetDay = { 一: 1, 二: 2, 三: 3, 四: 4, 五: 5, 六: 6, 日: 0, 天: 0 }[weekdayMatch[1]];
+        const todayDay = Core.parseDateKey(TODAY()).getDay();
+        let offset = (targetDay - todayDay + 7) % 7;
+        if (source.includes('下周')) offset += 7;
+        date = Core.addDays(TODAY(), offset);
+      }
+    }
+
+    let minutes = 25;
+    if (/半\s*(?:个)?小时/.test(source)) minutes = 30;
+    else if (/一刻钟/.test(source)) minutes = 15;
+    else {
+      const hourMatch = /(\d+(?:\.\d+)?)\s*(?:个)?小时/.exec(source);
+      const minuteMatch = /(\d{1,4})\s*(?:分钟|min)/i.exec(source);
+      if (hourMatch) minutes = Math.round(Number(hourMatch[1]) * 60);
+      else if (minuteMatch) minutes = Number(minuteMatch[1]);
+    }
+    minutes = Core.clamp(minutes, 1, 1440);
+
+    const explicitProject = [...state().projects].sort((a, b) => b.name.length - a.name.length).find((project) => source.toLowerCase().includes(project.name.toLowerCase()));
+    const track = trackForText(source);
+    const project = explicitProject || projectForTrack(track);
+    const area = project?.area || track?.area || (/运动|跳操|跑步|健身|拉伸/.test(source) ? '运动' : /工作|客户|底稿/.test(source) ? '工作' : /买|取|寄|生活/.test(source) ? '生活' : '学习');
+    const priority = /重点|最重要|优先/.test(source);
+    let title = source
+      .replace(/\d{1,2}\s*月\s*\d{1,2}\s*日?/g, ' ')
+      .replace(/今天|今晚|明天|明晚|后天|本周[一二三四五六日天]?|下周[一二三四五六日天]?|周[一二三四五六日天]/g, ' ')
+      .replace(/(?:花|用|安排)?\s*\d+(?:\.\d+)?\s*(?:个)?小时/g, ' ')
+      .replace(/(?:花|用|安排)?\s*\d{1,4}\s*(?:分钟|min)/gi, ' ')
+      .replace(/半\s*(?:个)?小时|一刻钟/g, ' ')
+      .replace(/重点|最重要|优先/g, ' ')
+      .replace(/^[\s，,。；;！!]*(?:请)?(?:帮我)?(?:我)?(?:只有|有)?[\s，,。；;！!]*/g, '')
+      .replace(/^(?:想要?|我要|需要|准备|计划|安排一下|安排|添加|记一下|做一下)/, '')
+      .replace(/[，,。；;！!]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (!title) title = track ? `推进${track.name}` : '新任务';
+    return { title: title.slice(0, 100), area, minutes, reward: rewardForMinutes(minutes), priority, date, projectId: project?.id || null, trackId: track?.id || null };
+  }
+
+  function taskMatchesTrack(task, track) {
+    const project = task.projectId ? projectById(task.projectId) : null;
+    if (project && projectForTrack(track)?.id === project.id) return true;
+    if (['english', 'podcast', 'writing'].includes(track.id) && task.area === track.area) return true;
+    return track.match.some((keyword) => task.title.toLowerCase().includes(keyword.toLowerCase()));
+  }
+
+  function candidatesForTrack(track) {
+    const project = projectForTrack(track);
+    const existing = state().tasks
+      .filter((task) => task.status === 'todo' && task.date <= TODAY() && taskMatchesTrack(task, track))
+      .sort((a, b) => Number(b.priority) - Number(a.priority) || a.date.localeCompare(b.date) || a.createdAt - b.createdAt)
+      .slice(0, 3)
+      .map((task) => ({ title: task.title, minutes: task.minutes, area: task.area, trackId: track.id, projectId: task.projectId || project?.id || null, sourceTaskId: task.id, source: '已有任务' }));
+    const suggestions = [project?.nextStep, ...(project?.weeklyFocus || [])]
+      .filter(Boolean)
+      .map((title) => ({ title, minutes: 25, area: track.area, trackId: track.id, projectId: project?.id || null, sourceTaskId: null, source: '项目下一步' }));
+    track.steps.forEach(([title, minutes]) => suggestions.push({ title, minutes, area: track.area, trackId: track.id, projectId: project?.id || null, sourceTaskId: null, source: '计划方案' }));
+    const seen = new Set();
+    return [...existing, ...suggestions].filter((item) => {
+      const key = item.title.trim().toLowerCase();
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
+  function allocatePlan(candidates, budget) {
+    const count = budget < 25 ? 1 : budget < 50 ? 2 : Math.min(5, candidates.length);
+    const selected = candidates.slice(0, Math.max(1, count));
+    let remaining = budget;
+    return selected.map((candidate, index) => {
+      const rest = selected.length - index - 1;
+      const available = Math.max(10, remaining - rest * 10);
+      const proposed = Math.max(10, Math.min(Number(candidate.minutes) || 25, available));
+      const minutes = index === selected.length - 1 ? Math.min(remaining, proposed) : Math.max(10, Math.floor(proposed / 5) * 5);
+      remaining = Math.max(0, remaining - minutes);
+      return { ...candidate, minutes };
+    });
+  }
+
+  function generateDailyPlans(totalMinutes, energy, trackIds) {
+    const tracks = trackIds.map(planTrackById).filter(Boolean);
+    const queues = tracks.map((track) => candidatesForTrack(track));
+    const candidates = [];
+    const seenCandidates = new Set();
+    const maxLength = Math.max(0, ...queues.map((queue) => queue.length));
+    for (let round = 0; round < maxLength; round += 1) {
+      queues.forEach((queue) => {
+        const candidate = queue[round];
+        if (!candidate) return;
+        const key = candidate.sourceTaskId ? `task:${candidate.sourceTaskId}` : `suggestion:${candidate.trackId}:${candidate.title.toLowerCase()}`;
+        if (seenCandidates.has(key)) return;
+        seenCandidates.add(key);
+        candidates.push(candidate);
+      });
+    }
+    const total = Core.clamp(totalMinutes, 15, 240);
+    const first = Math.min(total, energy === 'low' ? 15 : energy === 'high' ? 25 : 20);
+    const ratio = energy === 'low' ? 0.5 : energy === 'high' ? 0.8 : 0.68;
+    const middle = Math.min(total, Math.max(first + 5, Math.round(total * ratio / 5) * 5));
+    const definitions = [
+      { id: 'minimum', name: '保底版', note: '只守住今天最重要的一小步', budget: first },
+      { id: 'balanced', name: '均衡版', note: '留出余量，也能看到推进', budget: middle },
+      { id: 'complete', name: '完整版', note: '按现有时间完成一轮安排', budget: total }
+    ];
+    return definitions.map((definition) => {
+      const items = allocatePlan(candidates, definition.budget);
+      return { ...definition, items, focusMinutes: items.reduce((sum, item) => sum + item.minutes, 0) };
+    });
+  }
+
+  function ensureTrackProject(trackId) {
+    const track = planTrackById(trackId);
+    if (!track) return null;
+    const existing = projectForTrack(track);
+    if (existing) return existing;
+    const project = { id: Core.uid('project'), name: track.projectName, area: track.area, goal: track.goal, nextStep: track.nextStep, weeklyFocus: [...track.weeklyFocus], milestones: [], createdAt: Date.now() };
+    state().projects.push(project);
+    return project;
+  }
+
+  function addSmartTask(source) {
+    const parsed = parseSmartTask(source);
+    const trackProject = parsed.projectId ? null : ensureTrackProject(parsed.trackId);
+    let priority = parsed.priority;
+    const priorities = state().tasks.filter((task) => task.date === parsed.date && task.priority && task.status !== 'cancelled').length;
+    let warning = '';
+    if (priority && priorities >= 3) {
+      priority = false;
+      warning = ' · 当天重点已满，已放入普通任务';
+    }
+    const task = {
+      id: Core.uid('task'),
+      title: parsed.title,
+      area: parsed.area,
+      minutes: parsed.minutes,
+      reward: parsed.reward,
+      priority,
+      status: 'todo',
+      date: parsed.date,
+      projectId: parsed.projectId || trackProject?.id || null,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      completedAt: null,
+      rewardGranted: false,
+      actualMinutes: 0,
+      postponedCount: 0
+    };
+    state().tasks.push(task);
+    state().planning.lastInput = String(source || '').trim().slice(0, 160);
+    const when = parsed.date === TODAY() ? '今天' : parsed.date === Core.addDays(TODAY(), 1) ? '明天' : dateLabel(parsed.date);
+    return { task, message: `已加入${when} · ${parsed.minutes} 分钟${warning}` };
+  }
+
+  function adoptDailyPlan(planId) {
+    if (modal?.type !== 'planner' || modal.step !== 'results') return;
+    const tracks = modal.tracks?.length ? modal.tracks : state().planning.lastTracks;
+    const plans = generateDailyPlans(modal.minutes, modal.energy, tracks);
+    const plan = plans.find((item) => item.id === planId);
+    if (!plan?.items.length) return;
+    const selectedSourceIds = new Set(plan.items.map((item) => item.sourceTaskId).filter(Boolean));
+    let priorityCount = state().tasks.filter((task) => task.date === TODAY() && task.priority && task.status !== 'cancelled' && !selectedSourceIds.has(task.id)).length;
+    const taskIds = [];
+    plan.items.forEach((item) => {
+      const trackProject = ensureTrackProject(item.trackId);
+      const priority = priorityCount < 3;
+      const values = {
+        title: item.title,
+        area: item.area,
+        minutes: Core.clamp(item.minutes, 1, 1440),
+        reward: rewardForMinutes(item.minutes),
+        priority,
+        date: TODAY(),
+        projectId: item.projectId || trackProject?.id || null,
+        updatedAt: Date.now()
+      };
+      const existing = item.sourceTaskId ? taskById(item.sourceTaskId) : state().tasks.find((task) => task.status === 'todo' && task.title.trim().toLowerCase() === item.title.trim().toLowerCase() && (!task.projectId || task.projectId === values.projectId));
+      if (existing) Object.assign(existing, values, { status: 'todo', completedAt: null });
+      else {
+        const task = { id: Core.uid('task'), ...values, status: 'todo', createdAt: Date.now(), completedAt: null, rewardGranted: false, actualMinutes: 0, postponedCount: 0 };
+        state().tasks.push(task);
+        taskIds.push(task.id);
+      }
+      if (existing) taskIds.push(existing.id);
+      if (priority) priorityCount += 1;
+    });
+    state().planning.defaultMinutes = Number(modal.minutes);
+    state().planning.defaultEnergy = modal.energy;
+    state().planning.lastTracks = [...tracks];
+    state().planning.adoptedPlans.push({ id: Core.uid('plan'), date: TODAY(), style: plan.id, energy: modal.energy, taskIds, createdAt: Date.now() });
+    state().planning.adoptedPlans = state().planning.adoptedPlans.slice(-60);
+    focusDraftTaskId = taskIds[0] || '';
+    state().ui.page = 'today';
+    todaySection = 'tasks';
+    modal = null;
+    return saveAndRender('planner-adopt', `已采用${plan.name} · 安排 ${taskIds.length} 项`, false);
+  }
   const tasksForDate = (date = TODAY()) => state().tasks.filter((task) => task.date === date);
   const activeTasks = (date = TODAY()) => tasksForDate(date).filter((task) => task.status !== 'cancelled');
   const sessionSeconds = (session) => Number(session.actualSeconds) || (Number(session.actualMinutes) || 0) * 60;
@@ -255,6 +517,10 @@
       ${hero()}
       <nav class="today-section-tabs" role="tablist" aria-label="今日内容">${todaySections.map(([value, label]) => `<button type="button" role="tab" data-action="today-section" data-value="${value}" aria-selected="${todaySection === value}" class="${todaySection === value ? 'active' : ''}">${label}</button>`).join('')}</nav>
       <div class="today-section ${todaySection === 'tasks' ? 'active' : ''}" data-today-panel="tasks">
+        <section class="smart-planning-bar" aria-label="快捷安排">
+          <form data-form="smart-task-inline">${icon('logo')}<input name="text" maxlength="160" autocomplete="off" aria-label="一句话添加任务" placeholder="一句话添加：明晚 CPA 审计 45 分钟" required><button type="submit" aria-label="加入任务">${icon('arrow')}</button></form>
+          <button type="button" class="plan-launch-button" data-action="planner-open">${icon('today')}<span><b>给我方案</b><small>按时间与状态安排</small></span>${icon('next')}</button>
+        </section>
         <div class="today-lead-grid">
           <section class="surface priority-panel">
             ${sectionHead('今日重点', `${completedCount}/${todayTasks.length} 已完成`, `<button type="button" class="round-action" data-action="task-new" aria-label="添加重点任务">${icon('plus')}</button>`)}
@@ -263,7 +529,7 @@
           <section class="next-panel">
             <span class="note-tab">接下来</span>
             <div><h2>${esc(nextTask?.title || '先选一件值得投入的事')}</h2><p>${nextTask ? `${esc(nextTask.area)} · ${nextTask.minutes} 分钟` : '新建任务后，这里会给出下一步。'}</p></div>
-            <button type="button" class="primary-button" data-action="focus-from-task" data-id="${attr(nextTask?.id || '')}" ${nextTask ? '' : 'disabled'}>${icon('focus')}开始专注</button>
+            ${nextTask ? `<button type="button" class="primary-button" data-action="focus-from-task" data-id="${attr(nextTask.id)}">${icon('focus')}开始专注</button>` : `<button type="button" class="primary-button" data-action="planner-open">${icon('today')}生成今日方案</button>`}
           </section>
         </div>
         <section class="plain-section ordinary-tasks">
@@ -610,8 +876,25 @@
   }
 
   function quickModal() {
-    const actions = [['task', 'check', '新任务', '安排一件要完成的事'], ['capture', 'inbox', '快速记录', '先放进收集箱'], ['focus', 'focus', '开始番茄', '直接进入专注室'], ['journal', 'note', '一句话日记', '留下今天的句子'], ['growth', 'growth', '成长记录', '学习、写作、运动或播客']];
+    const actions = [['smart', 'logo', '一句话任务', '自动识别日期、时间与项目'], ['capture', 'inbox', '快速记录', '先放进收集箱'], ['focus', 'focus', '开始番茄', '直接进入专注室'], ['journal', 'note', '一句话日记', '留下今天的句子'], ['growth', 'growth', '成长记录', '学习、写作、运动或播客']];
     return modalFrame('快速添加', `<div class="quick-actions">${actions.map(([kind, iconName, title, description]) => `<button type="button" data-action="quick-choice" data-kind="${kind}"><span>${icon(iconName)}</span><b>${title}</b><small>${description}</small>${icon('next')}</button>`).join('')}</div>`, 'quick-modal');
+  }
+
+  function smartTaskModal() {
+    const examples = ['今晚 CPA 审计 45 分钟 重点', '明天英语 20 分钟', '周六播客 30 分钟', '今晚税务师 30 分钟', '今晚写作 45 分钟'];
+    return modalFrame('一句话添加', `<form data-form="smart-task"><label>把任务直接写成一句话<textarea id="smart-task-input" name="text" rows="3" maxlength="160" placeholder="例如：明晚 CPA 审计专题六 45 分钟" required autofocus></textarea></label><div class="smart-examples" aria-label="示例">${examples.map((example) => `<button type="button" data-action="smart-example" data-value="${attr(example)}">${esc(example)}</button>`).join('')}</div><div class="smart-preview" id="smart-task-preview"><span>${icon('logo')}</span><div><small>识别结果</small><strong>输入后会在这里确认</strong><p>日期、时间、领域与项目会自动判断，保存后仍可编辑。</p></div></div><footer><button type="button" class="secondary-button" data-action="modal-close">取消</button><button type="submit" class="primary-button">直接加入</button></footer></form>`);
+  }
+
+  function plannerModal() {
+    const selectedTracks = modal.tracks?.length ? modal.tracks : (state().planning.lastTracks.length ? state().planning.lastTracks : PLAN_TRACKS.map((track) => track.id));
+    const minutes = Number(modal.minutes || state().planning.defaultMinutes || 60);
+    const energy = modal.energy || state().planning.defaultEnergy || 'steady';
+    if (modal.step === 'results') {
+      const plans = generateDailyPlans(minutes, energy, selectedTracks);
+      const energyName = { low: '低电量', steady: '一般', high: '状态不错' }[energy];
+      return modalFrame('三套今日方案', `<div class="planner-results"><div class="planner-summary"><span>${icon('today')}</span><p><b>${minutes} 分钟 · ${esc(energyName)}</b><small>${selectedTracks.map((id) => planTrackById(id)?.name).filter(Boolean).join(' · ')}</small></p><button type="button" data-action="planner-back">重新选择</button></div><div class="plan-options">${plans.map((plan) => `<article><header><div><span>${esc(plan.name)}</span><h3>${plan.focusMinutes} 分钟</h3></div><small>${esc(plan.note)}</small></header><ol>${plan.items.map((item) => `<li><i></i><div><b>${esc(item.title)}</b><span>${esc(planTrackById(item.trackId)?.name || item.area)} · ${item.minutes} 分钟 · ${esc(item.source)}</span></div></li>`).join('')}</ol><button type="button" class="primary-button" data-action="planner-adopt" data-plan="${plan.id}">采用这套方案</button></article>`).join('')}</div><p class="planner-footnote">采用后会直接进入今日任务；已有任务会移到今天，不会重复建立。</p></div>`, 'planner-modal');
+    }
+    return modalFrame('帮我安排今天', `<form data-form="planner-setup"><div class="planner-intro"><span>${icon('logo')}</span><div><b>不用自己拆任务</b><p>只选今天的时间、状态和想推进的内容。</p></div></div><fieldset class="choice-field"><legend>今天能留出多久？</legend><div class="choice-pills time-pills">${[30, 60, 90, 120].map((value) => `<label><input type="radio" name="minutes" value="${value}" ${minutes === value ? 'checked' : ''}><span>${value === 120 ? '2 小时' : `${value} 分钟`}</span></label>`).join('')}</div></fieldset><fieldset class="choice-field"><legend>今天的状态？</legend><div class="choice-pills energy-pills">${[['low', '低电量'], ['steady', '一般'], ['high', '状态不错']].map(([value, label]) => `<label><input type="radio" name="energy" value="${value}" ${energy === value ? 'checked' : ''}><span>${label}</span></label>`).join('')}</div></fieldset><fieldset class="choice-field"><legend>这次想安排哪些？</legend><div class="track-pills">${PLAN_TRACKS.map((track) => `<label><input type="checkbox" name="track" value="${track.id}" ${selectedTracks.includes(track.id) ? 'checked' : ''}><span>${esc(track.name)}</span></label>`).join('')}</div><small id="planner-selection-note">可以多选；时间不够时，方案会自动减少项目。</small></fieldset><footer><button type="button" class="secondary-button" data-action="modal-close">取消</button><button type="submit" class="primary-button">生成三套方案</button></footer></form>`, 'planner-modal');
   }
 
   function captureModal() {
@@ -629,7 +912,8 @@
   function projectModal(project = null) {
     const focus = (project?.weeklyFocus || []).join('\n');
     const milestones = (project?.milestones || []).map((item) => `${item.date || ''} | ${item.title}`).join('\n');
-    return modalFrame(project ? '编辑项目' : '新建项目', `<form data-form="project"><input type="hidden" name="id" value="${attr(project?.id || '')}"><div class="form-grid"><label>项目名称<input name="name" maxlength="40" value="${attr(project?.name || '')}" required autofocus></label><label>领域<select name="area">${areaOptions(project?.area || '学习')}</select></label><label class="wide">目标<input name="goal" maxlength="160" value="${attr(project?.goal || '')}" placeholder="这个章节最终想抵达哪里？"></label><label class="wide">下一步<input name="nextStep" maxlength="120" value="${attr(project?.nextStep || '')}" placeholder="足够小、可以立刻开始的一步"></label><label class="wide">本周重点（每行一项，最多 3 项）<textarea name="weeklyFocus" rows="3">${esc(focus)}</textarea></label><label class="wide">重要节点（日期 | 内容，每行一项）<textarea name="milestones" rows="4" placeholder="2026-09-15 | 完成专题六">${esc(milestones)}</textarea></label></div><footer><button type="button" class="secondary-button" data-action="modal-close">取消</button><button type="submit" class="primary-button">保存项目</button></footer></form>`);
+    const templates = `<div class="project-template-picker"><div><b>${project ? '补全项目方案' : '从一个方案开始'}</b><small>${project ? '只补充空白项，不覆盖已经写好的内容。' : '点选后仍可自由修改。'}</small></div><div>${PLAN_TRACKS.map((track) => `<button type="button" data-action="project-template" data-template="${track.id}">${esc(track.name)}</button>`).join('')}</div><p id="project-template-status"></p></div>`;
+    return modalFrame(project ? '编辑项目' : '新建项目', `<form data-form="project"><input type="hidden" name="id" value="${attr(project?.id || '')}">${templates}<div class="form-grid"><label>项目名称<input name="name" maxlength="40" value="${attr(project?.name || '')}" required autofocus></label><label>领域<select name="area">${areaOptions(project?.area || '学习')}</select></label><label class="wide">目标<input name="goal" maxlength="160" value="${attr(project?.goal || '')}" placeholder="这个章节最终想抵达哪里？"></label><label class="wide">下一步<input name="nextStep" maxlength="120" value="${attr(project?.nextStep || '')}" placeholder="足够小、可以立刻开始的一步"></label><label class="wide">本周重点（每行一项，最多 3 项）<textarea name="weeklyFocus" rows="3">${esc(focus)}</textarea></label><label class="wide">重要节点（日期 | 内容，每行一项）<textarea name="milestones" rows="4" placeholder="2026-09-15 | 完成专题六">${esc(milestones)}</textarea></label></div><footer><button type="button" class="secondary-button" data-action="modal-close">取消</button><button type="submit" class="primary-button">保存项目</button></footer></form>`);
   }
 
   function inboxMoveModal(kind, id) {
@@ -659,6 +943,8 @@
     if (!modal) return '';
     const renderers = {
       quick: () => quickModal(),
+      smart: () => smartTaskModal(),
+      planner: () => plannerModal(),
       task: () => taskModal(modal),
       capture: () => captureModal(),
       journal: () => journalModal(),
@@ -861,6 +1147,24 @@
     if (result) result.innerHTML = searchResults();
   }
 
+  function updateSmartTaskPreview(value) {
+    const preview = document.querySelector('#smart-task-preview');
+    if (!preview) return;
+    const title = preview.querySelector('strong');
+    const detail = preview.querySelector('p');
+    const source = String(value || '').trim();
+    if (!source) {
+      if (title) title.textContent = '输入后会在这里确认';
+      if (detail) detail.textContent = '日期、时间、领域与项目会自动判断，保存后仍可编辑。';
+      return;
+    }
+    const parsed = parseSmartTask(source);
+    const project = projectById(parsed.projectId);
+    const when = parsed.date === TODAY() ? '今天' : parsed.date === Core.addDays(TODAY(), 1) ? '明天' : dateLabel(parsed.date);
+    if (title) title.textContent = parsed.title;
+    if (detail) detail.textContent = [when, parsed.area, `${parsed.minutes} 分钟`, project?.name, parsed.priority ? '今日重点' : '普通任务'].filter(Boolean).join(' · ');
+  }
+
   app.addEventListener('click', (event) => {
     const target = event.target.closest('[data-action]');
     if (!target) return;
@@ -877,6 +1181,31 @@
     if (action === 'drawer-close') { drawerOpen = false; return render({ preserveScroll: true }); }
     if (action === 'quick-open') return openModal({ type: 'quick' });
     if (action === 'modal-close' || action === 'modal-backdrop' && target === event.target) return closeModal();
+    if (action === 'planner-open') return openModal({ type: 'planner', step: 'setup' });
+    if (action === 'planner-back') { modal = { ...modal, step: 'setup' }; return render({ preserveScroll: true }); }
+    if (action === 'planner-adopt') return adoptDailyPlan(target.dataset.plan);
+    if (action === 'smart-example') {
+      const input = document.querySelector('#smart-task-input');
+      if (!input) return;
+      input.value = target.dataset.value || '';
+      input.focus();
+      return updateSmartTaskPreview(input.value);
+    }
+    if (action === 'project-template') {
+      const track = planTrackById(target.dataset.template);
+      const form = target.closest('form');
+      if (!track || !form) return;
+      const isNew = !form.elements.id?.value;
+      const fill = (name, value) => { const field = form.elements[name]; if (field && (isNew || !String(field.value || '').trim())) field.value = value; };
+      fill('name', track.projectName);
+      fill('goal', track.goal);
+      fill('nextStep', track.nextStep);
+      fill('weeklyFocus', track.weeklyFocus.join('\n'));
+      if (isNew && form.elements.area) form.elements.area.value = track.area;
+      const status = document.querySelector('#project-template-status');
+      if (status) status.textContent = `已套用${track.name}方案，可以继续修改。`;
+      return;
+    }
     if (action === 'quick-choice') {
       const kind = target.dataset.kind;
       if (kind === 'focus') { modal = null; state().ui.page = 'focus'; Core.save('navigate'); return render({ preserveScroll: false }); }
@@ -1012,6 +1341,33 @@
     if (!form) return;
     event.preventDefault();
     const data = Object.fromEntries(new FormData(form).entries());
+    if (form.dataset.form === 'smart-task-inline' || form.dataset.form === 'smart-task') {
+      const source = String(data.text || '').trim();
+      if (!source) return;
+      const result = addSmartTask(source);
+      modal = null;
+      return saveAndRender('smart-task-add', result.message);
+    }
+    if (form.dataset.form === 'planner-setup') {
+      const formData = new FormData(form);
+      const minutes = Number(formData.get('minutes'));
+      const energy = String(formData.get('energy') || 'steady');
+      const tracks = formData.getAll('track').map(String).filter((id) => planTrackById(id));
+      if (!tracks.length) {
+        const note = form.querySelector('#planner-selection-note');
+        if (note) {
+          note.textContent = '请至少选择一项想推进的内容。';
+          note.classList.add('form-error');
+        }
+        return;
+      }
+      state().planning.defaultMinutes = [30, 60, 90, 120].includes(minutes) ? minutes : 60;
+      state().planning.defaultEnergy = ['low', 'steady', 'high'].includes(energy) ? energy : 'steady';
+      state().planning.lastTracks = tracks;
+      Core.save('planner-preferences');
+      modal = { type: 'planner', step: 'results', minutes: state().planning.defaultMinutes, energy: state().planning.defaultEnergy, tracks };
+      return render({ preserveScroll: true });
+    }
     if (form.dataset.form === 'inbox' || form.dataset.form === 'capture') {
       const text = String(data.text || '').trim();
       if (!text) return;
@@ -1129,6 +1485,10 @@
   });
 
   app.addEventListener('input', (event) => {
+    if (event.target.id === 'smart-task-input') {
+      updateSmartTaskPreview(event.target.value);
+      return;
+    }
     if (event.target.id === 'global-search') {
       searchQuery = event.target.value;
       updateSearchPopover();
