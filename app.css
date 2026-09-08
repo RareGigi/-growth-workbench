@@ -464,19 +464,6 @@ textarea::placeholder {
   text-align: right;
 }
 
-.sidebar-note {
-  margin: auto 24px 24px;
-  color: var(--muted);
-  font-family: var(--font-ui);
-  font-size: 12px;
-  line-height: 1.8;
-  white-space: nowrap;
-}
-
-.sidebar-note span {
-  color: var(--ink-soft);
-}
-
 .sidebar-collapsed .sidebar {
   width: var(--sidebar-mini);
 }
@@ -497,8 +484,7 @@ textarea::placeholder {
 .sidebar-collapsed .projects-title span,
 .sidebar-collapsed .projects-title .chevron,
 .sidebar-collapsed .project-add,
-.sidebar-collapsed .project-links,
-.sidebar-collapsed .sidebar-note {
+.sidebar-collapsed .project-links {
   display: none;
 }
 
@@ -3451,11 +3437,22 @@ textarea::placeholder {
     overflow-x: hidden;
     overflow-y: auto;
     padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
     border-right: 0;
     box-shadow: var(--shadow);
     overscroll-behavior: contain;
     transform: translateX(-105%);
     -webkit-overflow-scrolling: touch;
+  }
+
+  .brand-row,
+  .side-nav,
+  .sidebar-projects {
+    flex: 0 0 auto;
+  }
+
+  .sidebar-projects {
+    min-height: auto;
   }
 
   .drawer-open .sidebar {
@@ -3478,8 +3475,7 @@ textarea::placeholder {
   .sidebar-collapsed .projects-title span,
   .sidebar-collapsed .projects-title .chevron,
   .sidebar-collapsed .project-add,
-  .sidebar-collapsed .project-links,
-  .sidebar-collapsed .sidebar-note {
+  .sidebar-collapsed .project-links {
     display: initial;
   }
 

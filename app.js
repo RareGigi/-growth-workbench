@@ -147,7 +147,6 @@
         <div class="projects-title"><button type="button" data-action="projects-collapse">${icon('folder')}<span>项目</span>${icon('chevron', 'chevron')}</button><button type="button" class="project-add" data-action="project-new" aria-label="新建项目">${icon('plus')}</button></div>
         <div class="project-links">${projects || emptyState('还没有项目')}</div>
       </section>
-      <p class="sidebar-note"><span>一本会奖励我的</span><br>长期成长电子手账。</p>
     </aside>`;
   }
 
