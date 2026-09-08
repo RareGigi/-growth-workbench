@@ -1,16 +1,16 @@
 :root {
-  --canvas: #f2f4fa;
-  --paper: #fffdf9;
+  --canvas: #f4f6fb;
+  --paper: #fffefa;
   --paper-blue: #f6f8fd;
   --blue-soft: #e8eefb;
   --violet-soft: #eeecf8;
   --warm-soft: #f7f0eb;
   --sage-soft: #eaf2ed;
-  --ink: #293047;
-  --ink-soft: #505872;
-  --muted: #7f879e;
-  --line: #dfe3ee;
-  --line-strong: #cfd5e4;
+  --ink: #252c42;
+  --ink-soft: #4f5871;
+  --muted: #788197;
+  --line: #e2e6ef;
+  --line-strong: #cfd6e4;
   --blue: #6c88c8;
   --blue-deep: #536caa;
   --violet: #7974ba;
@@ -18,11 +18,11 @@
   --sage: #6ea086;
   --danger: #b46872;
   --paper-rule: rgba(137, 153, 193, 0.2);
-  --shadow: 0 14px 38px rgba(63, 73, 115, 0.1);
-  --shadow-small: 0 8px 20px rgba(63, 73, 115, 0.08);
-  --radius-xl: 26px;
-  --radius-lg: 20px;
-  --radius-md: 14px;
+  --shadow: 0 14px 34px rgba(56, 66, 101, 0.08);
+  --shadow-small: 0 7px 18px rgba(56, 66, 101, 0.06);
+  --radius-xl: 20px;
+  --radius-lg: 16px;
+  --radius-md: 12px;
   --sidebar-width: 252px;
   --sidebar-mini: 72px;
   --topbar-height: 72px;
@@ -54,7 +54,10 @@ body {
   color: var(--ink);
   caret-color: var(--blue-deep);
   font-family: var(--font-ui);
+  font-size: 16px;
   line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 ::selection {
@@ -79,7 +82,8 @@ body {
   background-clip: padding-box;
 }
 
-body.modal-open {
+body.modal-open,
+body.drawer-open-body {
   overflow: hidden;
 }
 
@@ -92,6 +96,7 @@ select {
 
 button {
   color: inherit;
+  touch-action: manipulation;
 }
 
 button:not(:disabled),
@@ -151,7 +156,7 @@ textarea {
 
 input::placeholder,
 textarea::placeholder {
-  color: #a2a8b9;
+  color: #727b92;
 }
 
 .sr-only {
@@ -285,8 +290,8 @@ textarea::placeholder {
 .brand small {
   margin-top: 2px;
   color: var(--muted);
-  font-size: 10px;
-  letter-spacing: 0.1em;
+  font-size: 12px;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
@@ -322,6 +327,7 @@ textarea::placeholder {
   border-radius: 12px;
   padding: 0 12px;
   color: var(--ink-soft);
+  font-size: 15px;
   text-align: left;
 }
 
@@ -359,7 +365,7 @@ textarea::placeholder {
   border-radius: 999px;
   background: #fff;
   color: var(--blue-deep);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .sidebar-projects {
@@ -409,6 +415,8 @@ textarea::placeholder {
 
 .project-link {
   display: grid;
+  width: 100%;
+  min-width: 0;
   min-height: 52px;
   grid-template-columns: 8px 1fr 30px;
   align-items: center;
@@ -448,18 +456,18 @@ textarea::placeholder {
 }
 
 .project-link b {
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .project-link small {
   margin-top: 3px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .project-link em {
   color: var(--blue-deep);
-  font-size: 11px;
+  font-size: 12px;
   font-style: normal;
   text-align: right;
 }
@@ -606,7 +614,7 @@ textarea::placeholder {
 
 .search-popover b {
   overflow: hidden;
-  font-size: 13px;
+  font-size: 14px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -614,7 +622,7 @@ textarea::placeholder {
 .search-popover small,
 .search-popover p {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .search-popover p {
@@ -656,13 +664,13 @@ textarea::placeholder {
 
 .wallet small {
   color: var(--muted);
-  font-size: 9px;
+  font-size: 12px;
   line-height: 1;
 }
 
 .wallet b {
   color: var(--ink);
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.2;
 }
 
@@ -682,7 +690,7 @@ textarea::placeholder {
 .page-header {
   position: relative;
   display: flex;
-  min-height: 126px;
+  min-height: 112px;
   align-items: flex-end;
   justify-content: space-between;
   gap: 24px;
@@ -695,8 +703,8 @@ textarea::placeholder {
   position: absolute;
   bottom: -2px;
   left: 4px;
-  width: 54px;
-  height: 4px;
+  width: 36px;
+  height: 3px;
   border-radius: 3px;
   background: rgba(121, 116, 186, 0.48);
 }
@@ -705,12 +713,11 @@ textarea::placeholder {
 .project-hero h1 {
   display: inline;
   margin: 0;
-  padding: 0 0.04em;
-  background: url("assets/journal/highlight.svg") center bottom / 100% 0.34em no-repeat;
+  padding: 0;
   font-family: var(--font-display);
-  font-size: clamp(30px, 3.2vw, 38px);
+  font-size: 32px;
   font-weight: 700;
-  letter-spacing: -0.015em;
+  letter-spacing: 0;
   line-height: 1.16;
   text-wrap: balance;
 }
@@ -720,8 +727,8 @@ textarea::placeholder {
   max-width: 620px;
   margin: 8px 0 0;
   color: var(--muted);
-  font-size: 14px;
-  line-height: 1.7;
+  font-size: 15px;
+  line-height: 1.65;
 }
 
 .surface {
@@ -756,12 +763,11 @@ textarea::placeholder {
 .section-head h2 {
   position: relative;
   margin: 0;
-  padding: 0 0.04em;
-  background: url("assets/journal/highlight.svg") center bottom / 100% 0.3em no-repeat;
+  padding: 0;
   font-family: var(--font-display);
-  font-size: 19px;
+  font-size: 18px;
   font-weight: 700;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
   line-height: 1.25;
 }
 
@@ -776,14 +782,14 @@ textarea::placeholder {
   border-radius: 4px 10px 10px 4px;
   background: #dfe6f7;
   color: var(--blue-deep);
-  font-size: 10px;
-  font-weight: 750;
+  font-size: 12px;
+  font-weight: 700;
   letter-spacing: 0.04em;
 }
 
 .section-head span {
   color: var(--muted);
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .primary-button,
@@ -797,7 +803,7 @@ textarea::placeholder {
   gap: 8px;
   border-radius: 12px;
   padding: 0 17px;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
 }
 
@@ -859,7 +865,7 @@ textarea::placeholder {
 
 .empty-state p {
   margin: 5px 0 0;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.6;
 }
 
@@ -909,9 +915,9 @@ textarea::placeholder {
 .hero-date span {
   display: block;
   font-family: var(--font-display);
-  font-size: clamp(30px, 4vw, 40px);
+  font-size: 36px;
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
 }
 
 .hero-date b {
@@ -1000,14 +1006,14 @@ textarea::placeholder {
 
 .plan-launch-button b {
   line-height: 1.3;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .plan-launch-button small {
   overflow: hidden;
   margin-top: 2px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1164,7 +1170,7 @@ textarea::placeholder {
 .task-copy b {
   overflow: hidden;
   font-size: 14px;
-  font-weight: 650;
+  font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1175,7 +1181,7 @@ textarea::placeholder {
   gap: 6px;
   margin-top: 5px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .task-copy span i {
@@ -1237,7 +1243,7 @@ textarea::placeholder {
 
 .task-menu > div button {
   display: flex;
-  min-height: 42px;
+  min-height: 44px;
   align-items: center;
   gap: 9px;
   padding: 0 12px;
@@ -1270,7 +1276,7 @@ textarea::placeholder {
 
 .segmented button {
   min-width: 58px;
-  min-height: 36px;
+  min-height: 44px;
   flex: 0 0 auto;
   border-radius: 10px;
   padding: 0 12px;
@@ -1403,7 +1409,7 @@ textarea::placeholder {
   display: block;
   margin-top: 7px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
   text-align: right;
 }
 
@@ -1453,7 +1459,7 @@ textarea::placeholder {
 }
 
 .mood-options span {
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .weekly-stickers {
@@ -1542,7 +1548,7 @@ textarea::placeholder {
 
 .inbox-row > time {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .inbox-row > div {
@@ -1560,6 +1566,8 @@ textarea::placeholder {
 }
 
 .inbox-row .danger-text {
+  min-width: 44px;
+  padding: 0;
   color: var(--danger);
 }
 
@@ -1706,7 +1714,7 @@ textarea::placeholder {
 
 .project-totals span {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .project-totals b {
@@ -1766,7 +1774,7 @@ textarea::placeholder {
 
 .milestones time {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .calendar-sheet {
@@ -1818,7 +1826,7 @@ textarea::placeholder {
 .calendar-week span {
   padding: 10px 0;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   text-align: center;
 }
 
@@ -1868,7 +1876,7 @@ textarea::placeholder {
 .calendar-day > span {
   margin-top: 9px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .calendar-day > i {
@@ -1902,7 +1910,7 @@ textarea::placeholder {
   gap: 18px;
   padding-top: 14px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .calendar-sheet > footer span {
@@ -1927,7 +1935,7 @@ textarea::placeholder {
 .agenda-columns h3 {
   margin: 0 0 8px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.1em;
 }
 
@@ -1979,7 +1987,7 @@ textarea::placeholder {
   border-radius: 999px;
   background: rgba(255, 253, 249, 0.9);
   color: var(--ink-soft);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .timer-panel {
@@ -1999,7 +2007,7 @@ textarea::placeholder {
   margin-bottom: 13px;
   color: var(--ink-soft);
   font-size: 12px;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .timer-ring {
@@ -2049,7 +2057,7 @@ textarea::placeholder {
 }
 
 .duration-switch button {
-  min-height: 42px;
+  min-height: 44px;
   border-radius: 11px;
   color: var(--muted);
 }
@@ -2090,7 +2098,7 @@ textarea::placeholder {
 
 .focus-totals small {
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .focus-totals b {
@@ -2141,7 +2149,7 @@ textarea::placeholder {
   min-height: 54px;
   border-bottom: 1px solid var(--line);
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .habit-calendar-head time {
@@ -2166,7 +2174,7 @@ textarea::placeholder {
 
 .habit-row > span {
   font-size: 14px;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .habit-row > button:not(.habit-remove) {
@@ -2202,7 +2210,7 @@ textarea::placeholder {
   margin: 14px 4px 0;
   color: var(--muted);
   font-family: var(--font-ui);
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .review-spread {
@@ -2211,14 +2219,53 @@ textarea::placeholder {
   overflow: hidden;
   margin-top: 26px;
   border: 1px solid var(--line);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
   background: var(--paper) url("assets/journal/paper-texture.svg") repeat;
+}
+
+.review-empty {
+  display: grid;
+  min-height: 150px;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  margin-top: 24px;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--paper) url("assets/journal/paper-texture.svg") repeat;
+}
+
+.review-empty > .icon {
+  width: 44px;
+  height: 44px;
+  padding: 10px;
+  border-radius: 13px;
+  background: var(--violet-soft);
+  color: var(--violet);
+}
+
+.review-empty h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 20px;
+  line-height: 1.3;
+}
+
+.review-empty p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.review-writing-alone {
+  margin-top: 14px;
 }
 
 .review-summary,
 .review-insights {
-  min-height: 360px;
-  padding: 30px;
+  min-height: 330px;
+  padding: 28px;
 }
 
 .review-summary {
@@ -2227,11 +2274,10 @@ textarea::placeholder {
 
 .review-summary h2 {
   margin: 0 0 18px;
-  padding-bottom: 6px;
-  background: url("assets/journal/highlight.svg") left bottom / min(230px, 100%) 8px no-repeat;
+  padding-bottom: 0;
   font-family: var(--font-display);
-  font-size: 24px;
-  letter-spacing: -0.015em;
+  font-size: 22px;
+  letter-spacing: 0;
   line-height: 1.3;
 }
 
@@ -2250,18 +2296,18 @@ textarea::placeholder {
 
 .review-stat-list span {
   color: var(--ink-soft);
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .review-stat-list b {
-  font-size: 18px;
+  font-size: 19px;
   font-variant-numeric: tabular-nums;
 }
 
 .review-stat-list small {
   margin-left: 3px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .review-insights dl {
@@ -2279,13 +2325,13 @@ textarea::placeholder {
 
 .review-insights dt {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .review-insights dd {
   margin: 0;
-  font-size: 14px;
-  font-weight: 650;
+  font-size: 15px;
+  font-weight: 600;
   text-align: right;
 }
 
@@ -2349,7 +2395,7 @@ textarea::placeholder {
 
 .note-row span {
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .note-row h2 {
@@ -2397,7 +2443,7 @@ textarea::placeholder {
   border: 1px solid transparent;
   border-radius: 11px 11px 0 0;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .collection-tabs button.active {
@@ -2414,7 +2460,7 @@ textarea::placeholder {
   grid-template-columns: minmax(230px, 0.68fr) minmax(300px, 1.32fr);
   overflow: hidden;
   border: 1px solid var(--line);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
   background: var(--paper) url("assets/journal/paper-texture.svg") repeat;
 }
 
@@ -2422,6 +2468,7 @@ textarea::placeholder {
   position: relative;
   display: block;
   width: 100%;
+  min-width: 0;
   min-height: 330px;
   overflow: hidden;
   padding: 0;
@@ -2431,6 +2478,7 @@ textarea::placeholder {
 
 .character-featured .image-shell {
   width: 100%;
+  min-width: 0;
   height: 100%;
 }
 
@@ -2455,7 +2503,7 @@ textarea::placeholder {
   padding: 0 10px;
   background: rgba(255, 253, 249, 0.92);
   color: var(--blue-deep);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -2466,6 +2514,7 @@ textarea::placeholder {
 .character-intro > div {
   display: flex;
   flex-direction: column;
+  min-width: 0;
   justify-content: center;
   padding: clamp(26px, 4vw, 52px);
 }
@@ -2473,14 +2522,14 @@ textarea::placeholder {
 .character-intro h2 {
   margin: 6px 0 10px;
   font-family: var(--font-display);
-  font-size: clamp(26px, 3vw, 32px);
-  letter-spacing: -0.015em;
+  font-size: 28px;
+  letter-spacing: 0;
   line-height: 1.2;
 }
 
 .character-kicker {
   color: var(--blue-deep);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.06em;
 }
@@ -2489,7 +2538,7 @@ textarea::placeholder {
   max-width: 52ch;
   margin: 0;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.72;
 }
 
@@ -2506,7 +2555,7 @@ textarea::placeholder {
 
 .character-intro dt {
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .character-intro dd {
@@ -2544,12 +2593,13 @@ textarea::placeholder {
   min-width: 0;
   overflow: hidden;
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: 16px;
   background: var(--paper);
 }
 
 .outfit-card.featured {
-  border-color: rgba(83, 108, 170, 0.48);
+  border-color: rgba(83, 108, 170, 0.68);
+  box-shadow: 0 0 0 2px rgba(83, 108, 170, 0.08);
 }
 
 .outfit-image {
@@ -2559,6 +2609,15 @@ textarea::placeholder {
   overflow: hidden;
   padding: 0;
   background: var(--blue-soft);
+}
+
+.outfit-image:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+.outfit-image:disabled img {
+  transform: none;
 }
 
 .outfit-image .image-shell {
@@ -2591,7 +2650,7 @@ textarea::placeholder {
   padding: 0 9px;
   background: rgba(255, 253, 249, 0.92);
   color: var(--ink-soft);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -2607,7 +2666,7 @@ textarea::placeholder {
   display: block;
   margin-bottom: 5px;
   color: var(--blue-deep);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.08em;
 }
@@ -2623,7 +2682,7 @@ textarea::placeholder {
   overflow: hidden;
   margin: 0;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -2641,7 +2700,7 @@ textarea::placeholder {
   align-items: center;
   gap: 5px;
   color: var(--ink-soft);
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .outfit-card-copy > div b .icon {
@@ -2657,40 +2716,22 @@ textarea::placeholder {
   color: var(--muted);
 }
 
-.outfit-card-copy > div button.active {
-  color: var(--rose);
+.outfit-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
 }
 
-.outfit-feature-action {
-  display: flex;
-  width: calc(100% - 24px);
-  min-height: 44px;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  margin: -2px 12px 12px;
-  border-radius: 11px;
-  background: var(--paper-blue);
+.outfit-card-copy > div .outfit-details-button {
+  width: auto;
+  padding: 0 8px;
   color: var(--blue-deep);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
 }
 
-.outfit-feature-action:hover {
-  background: var(--blue-soft);
-}
-
-.outfit-feature-action.active,
-.outfit-feature-action.active:disabled {
-  border: 1px solid rgba(83, 108, 170, 0.22);
-  background: var(--blue-soft);
-  color: var(--blue-deep);
-  cursor: default;
-  opacity: 1;
-}
-
-.outfit-feature-action .icon {
-  width: 15px;
+.outfit-card-copy > div button.active {
+  color: var(--rose);
 }
 
 .collection-sheet {
@@ -2841,7 +2882,7 @@ textarea::placeholder {
 .badge-tile p {
   margin: 0;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.5;
 }
 
@@ -2882,7 +2923,7 @@ textarea::placeholder {
 
 .quiet-label {
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .monthly-editor {
@@ -2890,7 +2931,7 @@ textarea::placeholder {
   grid-template-columns: minmax(300px, 0.9fr) minmax(320px, 1.1fr);
   overflow: hidden;
   border: 1px solid var(--line);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
   background: var(--paper);
 }
 
@@ -2921,8 +2962,8 @@ textarea::placeholder {
 .monthly-paper h2 {
   margin: 0 0 30px;
   font-family: var(--font-display);
-  font-size: 34px;
-  letter-spacing: -0.02em;
+  font-size: 30px;
+  letter-spacing: 0;
   line-height: 1.15;
 }
 
@@ -2946,12 +2987,12 @@ textarea::placeholder {
   margin: 0;
   border-bottom: 1px solid rgba(94, 92, 145, 0.16);
   color: var(--ink-soft);
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .monthly-facts b {
   color: var(--ink);
-  font-size: 18px;
+  font-size: 17px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -2972,7 +3013,7 @@ textarea::placeholder {
   border: 1px solid rgba(94, 92, 145, 0.2);
   border-radius: 16px;
   background: var(--blue-soft);
-  box-shadow: 0 10px 24px rgba(63, 73, 115, 0.12);
+  box-shadow: 0 8px 20px rgba(63, 73, 115, 0.09);
 }
 
 .monthly-character-card > .image-shell {
@@ -2993,8 +3034,8 @@ textarea::placeholder {
   border-radius: 9px;
   background: rgba(255, 253, 249, 0.9);
   color: var(--ink-soft);
-  font-size: 9px;
-  font-weight: 750;
+  font-size: 12px;
+  font-weight: 700;
   text-align: center;
 }
 
@@ -3037,7 +3078,7 @@ textarea::placeholder {
   display: block;
   margin-top: 6px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 400;
 }
 
@@ -3085,7 +3126,7 @@ textarea::placeholder {
   border-radius: 999px;
   padding: 0 11px;
   background: rgba(255, 253, 249, 0.92);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -3156,7 +3197,7 @@ textarea::placeholder {
 .history-months article > span,
 .history-months article small {
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .history-months h3 {
@@ -3315,7 +3356,7 @@ textarea::placeholder {
 .form-hint {
   margin: 4px 0;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.6;
 }
 
@@ -3364,7 +3405,7 @@ textarea::placeholder {
 .quick-actions small {
   align-self: start;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .quick-actions button > .icon {
@@ -3388,7 +3429,7 @@ textarea::placeholder {
   border-radius: 999px;
   background: var(--paper-blue);
   color: var(--ink-soft);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .smart-examples button:hover,
@@ -3430,7 +3471,7 @@ textarea::placeholder {
 
 .smart-preview small {
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .smart-preview strong {
@@ -3443,7 +3484,7 @@ textarea::placeholder {
 .smart-preview p {
   margin: 4px 0 0;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.55;
 }
 
@@ -3469,7 +3510,7 @@ textarea::placeholder {
 .planner-intro p {
   margin: 3px 0 0;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .choice-field {
@@ -3490,7 +3531,7 @@ textarea::placeholder {
   display: block;
   margin-top: 8px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .choice-pills,
@@ -3557,7 +3598,7 @@ textarea::placeholder {
 
 .choice-field > small.form-error {
   color: var(--danger);
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .planner-results {
@@ -3587,7 +3628,7 @@ textarea::placeholder {
 .planner-summary small {
   overflow: hidden;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -3596,7 +3637,7 @@ textarea::placeholder {
   min-height: 44px;
   padding: 0 8px;
   color: var(--blue-deep);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
 }
 
@@ -3637,8 +3678,8 @@ textarea::placeholder {
 
 .plan-options article header span {
   color: var(--blue-deep);
-  font-size: 11px;
-  font-weight: 750;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .plan-options h3 {
@@ -3651,7 +3692,7 @@ textarea::placeholder {
   display: block;
   margin-top: 7px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.45;
 }
 
@@ -3692,13 +3733,13 @@ textarea::placeholder {
 }
 
 .plan-options li b {
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .plan-options li span {
   margin-top: 3px;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .plan-options article > .primary-button {
@@ -3709,7 +3750,7 @@ textarea::placeholder {
 .planner-footnote {
   margin: 13px 4px 0;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
   text-align: center;
 }
 
@@ -3735,7 +3776,7 @@ textarea::placeholder {
 
 .project-template-picker small {
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
   text-align: right;
 }
 
@@ -3749,7 +3790,7 @@ textarea::placeholder {
   min-height: 15px;
   margin: 7px 1px 0;
   color: var(--sage);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .outfit-modal {
@@ -3786,7 +3827,7 @@ textarea::placeholder {
   margin: 8px 0 16px;
   font-family: var(--font-display);
   font-size: 32px;
-  letter-spacing: -0.015em;
+  letter-spacing: 0;
   line-height: 1.2;
 }
 
@@ -3817,7 +3858,7 @@ textarea::placeholder {
 
 .outfit-detail-copy dt {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .outfit-detail-copy dd {
@@ -3915,10 +3956,14 @@ textarea::placeholder {
     padding-top: env(safe-area-inset-top, 0px);
     padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
     border-right: 0;
-    box-shadow: var(--shadow);
+    box-shadow: 18px 0 38px rgba(45, 53, 82, 0.14);
     overscroll-behavior: contain;
     transform: translateX(-105%);
     -webkit-overflow-scrolling: touch;
+  }
+
+  .sidebar::after {
+    display: none;
   }
 
   .brand-row,
@@ -3944,18 +3989,23 @@ textarea::placeholder {
     flex: 1;
   }
 
-  .sidebar-collapsed .brand span,
+  .sidebar-collapsed .brand span {
+    display: flex;
+  }
+
   .sidebar-collapsed .collapse-button,
+  .sidebar-collapsed .project-add {
+    display: grid;
+  }
+
   .sidebar-collapsed .nav-item span,
   .sidebar-collapsed .nav-count,
   .sidebar-collapsed .projects-title span,
-  .sidebar-collapsed .projects-title .chevron,
-  .sidebar-collapsed .project-add,
-  .sidebar-collapsed .project-links {
-    display: initial;
+  .sidebar-collapsed .projects-title .chevron {
+    display: block;
   }
 
-  .sidebar-collapsed .collapse-button {
+  .sidebar-collapsed .project-links {
     display: grid;
   }
 
@@ -4022,7 +4072,7 @@ textarea::placeholder {
   }
 
   .wallet b {
-    font-size: 11px;
+    font-size: 12px;
   }
 
   #view {
@@ -4030,7 +4080,7 @@ textarea::placeholder {
   }
 
   .page-header {
-    min-height: 110px;
+    min-height: 92px;
   }
 
   .today-section-tabs {
@@ -4045,7 +4095,7 @@ textarea::placeholder {
     border: 1px solid rgba(199, 207, 227, 0.82);
     border-radius: 15px;
     background: #f6f8fc url("assets/journal/paper-texture.svg") repeat;
-    box-shadow: 0 7px 18px rgba(52, 62, 94, 0.08);
+    box-shadow: var(--shadow-small);
   }
 
   .today-section-tabs button {
@@ -4053,14 +4103,14 @@ textarea::placeholder {
     min-height: 44px;
     border-radius: 11px;
     color: var(--muted);
-    font-size: 12px;
-    font-weight: 650;
+    font-size: 14px;
+    font-weight: 600;
   }
 
   .today-section-tabs button.active {
     background: var(--paper);
     color: var(--blue-deep);
-    box-shadow: 0 2px 9px rgba(56, 66, 104, 0.1);
+    box-shadow: 0 2px 8px rgba(56, 66, 104, 0.07);
   }
 
   .today-section {
@@ -4128,7 +4178,7 @@ textarea::placeholder {
   }
 
   .plan-options > article {
-    min-height: 330px;
+    min-height: 316px;
     scroll-snap-align: start;
   }
 
@@ -4154,7 +4204,7 @@ textarea::placeholder {
   }
 
   .hero-date b {
-    font-size: 10px;
+    font-size: 12px;
   }
 
   .hero-date p {
@@ -4204,7 +4254,7 @@ textarea::placeholder {
   }
 
   .calendar-day > span {
-    font-size: 8px;
+    font-size: 12px;
   }
 
   .day-agenda {
@@ -4223,11 +4273,11 @@ textarea::placeholder {
 
   .review-summary h2 {
     margin-bottom: 14px;
-    font-size: 21px;
+    font-size: 20px;
   }
 
   .review-stat-list > div {
-    min-height: 42px;
+    min-height: 44px;
   }
 
   .review-insights dl > div {
@@ -4264,7 +4314,7 @@ textarea::placeholder {
   }
 
   .character-intro h2 {
-    font-size: 23px;
+    font-size: 21px;
   }
 
   .character-intro dl {
@@ -4323,7 +4373,7 @@ textarea::placeholder {
 
   .mobile-projects-button {
     padding: 0 8px;
-    font-size: 12px;
+    font-size: 14px;
   }
 
   .mobile-projects-button .icon {
@@ -4350,11 +4400,11 @@ textarea::placeholder {
   }
 
   .wallet b {
-    font-size: 10px;
+    font-size: 12px;
   }
 
   #view {
-    padding: 10px 14px calc(76px + var(--safe-bottom));
+    padding: 10px 16px calc(104px + var(--safe-bottom));
   }
 
   .inner-page {
@@ -4362,21 +4412,22 @@ textarea::placeholder {
   }
 
   .page-header {
-    min-height: 88px;
+    min-height: 78px;
     align-items: flex-start;
     flex-direction: column;
     justify-content: flex-end;
-    gap: 9px;
-    padding-bottom: 14px;
+    gap: 6px;
+    padding-bottom: 12px;
   }
 
   .page-header h1 {
-    font-size: 27px;
+    font-size: 26px;
+    letter-spacing: 0;
   }
 
   .page-header p {
     margin-top: 5px;
-    font-size: 13px;
+    font-size: 14px;
     line-height: 1.55;
   }
 
@@ -4385,9 +4436,10 @@ textarea::placeholder {
   }
 
   .section-head > div {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 3px;
+    align-items: baseline;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 4px 8px;
   }
 
   .section-head h2 {
@@ -4443,11 +4495,11 @@ textarea::placeholder {
   }
 
   .plan-launch-button b {
-    font-size: 12px;
+    font-size: 13px;
   }
 
   .plan-launch-button small {
-    font-size: 9px;
+    font-size: 12px;
   }
 
   .today-lead-grid {
@@ -4470,7 +4522,7 @@ textarea::placeholder {
   }
 
   .task-copy b {
-    font-size: 13px;
+    font-size: 14px;
   }
 
   .next-panel {
@@ -4631,7 +4683,57 @@ textarea::placeholder {
 
   .review-insights dd {
     overflow-wrap: anywhere;
+    font-size: 14px;
+  }
+
+  .review-empty {
+    min-height: 0;
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 12px;
+    margin-top: 14px;
+    padding: 18px 16px;
+  }
+
+  .review-empty > .primary-button {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .review-empty h2 {
+    font-size: 18px;
+  }
+
+  .review-empty p {
     font-size: 13px;
+    line-height: 1.55;
+  }
+
+  .review-stat-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1px;
+    overflow: hidden;
+    border: 1px solid rgba(87, 88, 132, 0.11);
+    border-radius: 12px;
+    background: rgba(87, 88, 132, 0.11);
+  }
+
+  .review-stat-list > div {
+    min-height: 76px;
+    align-items: flex-start;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    padding: 10px 12px;
+    border: 0;
+    background: rgba(248, 247, 253, 0.92);
+  }
+
+  .review-stat-list span {
+    font-size: 13px;
+  }
+
+  .review-stat-list b {
+    font-size: 18px;
   }
 
   .review-stickers {
@@ -4656,18 +4758,16 @@ textarea::placeholder {
     border-radius: 14px;
   }
 
+  .outfit-image .image-shell {
+    aspect-ratio: 3 / 4;
+  }
+
   .outfit-card-copy {
     padding: 11px 11px 12px;
   }
 
   .outfit-card-copy h3 {
-    font-size: 16px;
-  }
-
-  .outfit-feature-action {
-    width: calc(100% - 20px);
-    margin: -2px 10px 10px;
-    padding-inline: 8px;
+    font-size: 17px;
   }
 
   .outfit-card-copy p {
@@ -4722,7 +4822,7 @@ textarea::placeholder {
   .monthly-paper h2 {
     max-width: calc(100% - 94px);
     margin-bottom: 18px;
-    font-size: 26px;
+    font-size: 24px;
   }
 
   .monthly-paper {
@@ -4752,11 +4852,11 @@ textarea::placeholder {
 
   .monthly-facts p {
     min-height: 44px;
-    font-size: 10px;
+    font-size: 13px;
   }
 
   .monthly-facts b {
-    font-size: 15px;
+    font-size: 16px;
   }
 
   .paper-stickers {
@@ -4783,6 +4883,10 @@ textarea::placeholder {
     grid-template-columns: 1fr;
   }
 
+  .monthly-editor > form {
+    padding: 24px 18px 28px;
+  }
+
   .modal-layer {
     align-items: end;
     padding: 10px;
@@ -4790,7 +4894,7 @@ textarea::placeholder {
   }
 
   .modal-card {
-    max-height: calc(92vh - var(--safe-bottom));
+    max-height: calc(92dvh - var(--safe-bottom));
     border-radius: 22px 22px 16px 16px;
   }
 
@@ -4903,7 +5007,16 @@ textarea::placeholder {
   }
 
   .character-intro p {
-    font-size: 12px;
+    font-size: 13px;
+  }
+
+  .calendar-sheet {
+    overflow-x: auto;
+  }
+
+  .calendar-week,
+  .calendar-grid {
+    min-width: 308px;
   }
 
   .mobile-projects-button {

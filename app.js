@@ -399,15 +399,15 @@
       const progress = projectProgress(project.id);
       return `<button type="button" class="project-link ${current === 'project' && state().ui.selectedProjectId === project.id ? 'active' : ''}" data-action="project-open" data-id="${attr(project.id)}"><i style="--project-index:${index}"></i><span><b>${esc(project.name)}</b><small>${esc(project.area)} · ${progress}%</small></span><em>${progress}</em></button>`;
     }).join('');
-    return `<aside class="sidebar" aria-label="主导航">
+    return `<aside class="sidebar" id="app-sidebar" aria-label="主导航">
       <div class="brand-row">
         <button type="button" class="brand" data-action="navigate" data-page="today" aria-label="回到今日">${icon('logo')}<span><b>小小生长册</b><small>Grow with You</small></span></button>
         <button type="button" class="collapse-button" data-action="sidebar-collapse" aria-label="${state().ui.sidebarCollapsed ? '展开侧栏' : '收起侧栏'}">${icon(state().ui.sidebarCollapsed ? 'next' : 'back')}</button>
       </div>
       <nav class="side-nav">${nav}</nav>
       <section class="sidebar-projects ${state().ui.projectsCollapsed ? 'closed' : ''}">
-        <div class="projects-title"><button type="button" data-action="projects-collapse">${icon('folder')}<span>项目</span>${icon('chevron', 'chevron')}</button><button type="button" class="project-add" data-action="project-new" aria-label="新建项目">${icon('plus')}</button></div>
-        <div class="project-links">${projects || emptyState('还没有项目')}</div>
+        <div class="projects-title"><button type="button" data-action="projects-collapse" aria-expanded="${!state().ui.projectsCollapsed}" aria-controls="sidebar-project-list">${icon('folder')}<span>项目</span>${icon('chevron', 'chevron')}</button><button type="button" class="project-add" data-action="project-new" aria-label="新建项目">${icon('plus')}</button></div>
+        <div class="project-links" id="sidebar-project-list">${projects || emptyState('还没有项目')}</div>
       </section>
     </aside>`;
   }
@@ -428,7 +428,7 @@
 
   function topbar() {
     return `<header class="topbar">
-      <button type="button" class="mobile-projects-button" data-action="drawer-open">${icon('menu')}<span>项目</span></button>
+      <button type="button" class="mobile-projects-button" data-action="drawer-open" aria-controls="app-sidebar" aria-expanded="${drawerOpen}">${icon('menu')}<span>项目</span></button>
       <div class="global-search">${icon('search')}<input id="global-search" type="search" value="${attr(searchQuery)}" placeholder="搜索任务、笔记、项目…" autocomplete="off" aria-label="全局搜索"><div id="search-results">${searchResults()}</div></div>
       <div class="wallet" aria-label="成长奖励"><span>${icon('growth')}<small>累计成长</small><b>${state().rewards.stars}</b></span><span>${icon('coin')}<small>金币</small><b>${state().rewards.coins}</b></span></div>
       </header>`;
@@ -515,12 +515,8 @@
     const todaySections = [['tasks', '任务'], ['growth', '成长'], ['journal', '手记']];
     return `<div class="page today-page">
       ${hero()}
-      <nav class="today-section-tabs" role="tablist" aria-label="今日内容">${todaySections.map(([value, label]) => `<button type="button" role="tab" data-action="today-section" data-value="${value}" aria-selected="${todaySection === value}" class="${todaySection === value ? 'active' : ''}">${label}</button>`).join('')}</nav>
-      <div class="today-section ${todaySection === 'tasks' ? 'active' : ''}" data-today-panel="tasks">
-        <section class="smart-planning-bar" aria-label="快捷安排">
-          <form data-form="smart-task-inline">${icon('logo')}<input name="text" maxlength="160" autocomplete="off" aria-label="一句话添加任务" placeholder="一句话添加：明晚 CPA 审计 45 分钟" required><button type="submit" aria-label="加入任务">${icon('arrow')}</button></form>
-          <button type="button" class="plan-launch-button" data-action="planner-open">${icon('today')}<span><b>给我方案</b><small>按时间与状态安排</small></span>${icon('next')}</button>
-        </section>
+      <nav class="today-section-tabs" role="tablist" aria-label="今日内容">${todaySections.map(([value, label]) => `<button type="button" id="today-tab-${value}" role="tab" data-action="today-section" data-value="${value}" aria-controls="today-panel-${value}" aria-selected="${todaySection === value}" tabindex="${todaySection === value ? '0' : '-1'}" class="${todaySection === value ? 'active' : ''}">${label}</button>`).join('')}</nav>
+      <div class="today-section ${todaySection === 'tasks' ? 'active' : ''}" id="today-panel-tasks" role="tabpanel" aria-labelledby="today-tab-tasks" data-today-panel="tasks">
         <div class="today-lead-grid">
           <section class="surface priority-panel">
             ${sectionHead('今日重点', `${completedCount}/${todayTasks.length} 已完成`, `<button type="button" class="round-action" data-action="task-new" aria-label="添加重点任务">${icon('plus')}</button>`)}
@@ -532,13 +528,17 @@
             ${nextTask ? `<button type="button" class="primary-button" data-action="focus-from-task" data-id="${attr(nextTask.id)}">${icon('focus')}开始专注</button>` : `<button type="button" class="primary-button" data-action="planner-open">${icon('today')}生成今日方案</button>`}
           </section>
         </div>
+        <section class="smart-planning-bar" aria-label="快捷安排">
+          <form data-form="smart-task-inline">${icon('logo')}<input name="text" maxlength="160" autocomplete="off" aria-label="一句话添加任务" placeholder="一句话添加：明晚 CPA 审计 45 分钟" required><button type="submit" aria-label="加入任务">${icon('arrow')}</button></form>
+          <button type="button" class="plan-launch-button" data-action="planner-open">${icon('today')}<span><b>给我方案</b><small>按时间与状态安排</small></span>${icon('next')}</button>
+        </section>
         <section class="plain-section ordinary-tasks">
           ${sectionHead('普通任务', '按领域查看')}
-          <div class="segmented task-filters" role="group" aria-label="任务分类">${['全部', '学习', '工作', '生活', '自定义'].map((item) => `<button type="button" data-action="task-filter" data-value="${item}" class="${filter === item ? 'active' : ''}">${item}</button>`).join('')}</div>
+          <div class="segmented task-filters" role="group" aria-label="任务分类">${['全部', '学习', '工作', '生活', '自定义'].map((item) => `<button type="button" data-action="task-filter" data-value="${item}" class="${filter === item ? 'active' : ''}" aria-pressed="${filter === item}">${item}</button>`).join('')}</div>
           <div class="task-list bordered">${ordinary.length ? ordinary.map((task) => taskRow(task)).join('') : emptyState('这里还没有任务', filter === '全部' ? '用右下角的＋快速添加。' : `今天没有${filter}类任务。`)}</div>
         </section>
       </div>
-      <div class="today-section ${todaySection === 'growth' ? 'active' : ''}" data-today-panel="growth">
+      <div class="today-section ${todaySection === 'growth' ? 'active' : ''}" id="today-panel-growth" role="tabpanel" aria-labelledby="today-tab-growth" data-today-panel="growth">
         <div class="today-detail-grid">
           <section class="plain-section growth-panel">
             ${sectionHead('今日成长', '不比较，只记录', `<button type="button" class="text-button" data-action="growth-new">记录</button>`)}
@@ -547,7 +547,7 @@
           <section class="plain-section timeline-panel">${sectionHead('今日轨迹', `${state().activity.filter((entry) => entry.date === TODAY()).length} 条真实记录`)}${activityTimeline()}</section>
         </div>
       </div>
-      <div class="today-section ${todaySection === 'journal' ? 'active' : ''}" data-today-panel="journal">
+      <div class="today-section ${todaySection === 'journal' ? 'active' : ''}" id="today-panel-journal" role="tabpanel" aria-labelledby="today-tab-journal" data-today-panel="journal">
         <div class="today-note-grid">
           <section class="journal-panel">
             ${sectionHead('一句话日记', '自动保存')}
@@ -556,7 +556,7 @@
           </section>
           <section class="mood-panel">
             ${sectionHead('今日心情', '只做记录，不做诊断')}
-            <div class="mood-options">${moods.map((mood) => `<button type="button" data-action="mood-set" data-value="${mood}" class="${state().mood[TODAY()] === mood ? 'active' : ''}">${faceIcon(mood)}<span>${mood}</span></button>`).join('')}</div>
+            <div class="mood-options">${moods.map((mood) => `<button type="button" data-action="mood-set" data-value="${mood}" class="${state().mood[TODAY()] === mood ? 'active' : ''}" aria-pressed="${state().mood[TODAY()] === mood}">${faceIcon(mood)}<span>${mood}</span></button>`).join('')}</div>
           </section>
         </div>
         <section class="weekly-stickers">${sectionHead('本周新收藏', '贴纸使用固定槽位', `<button type="button" class="text-button" data-action="collection-tab" data-tab="stickers">打开贴纸册</button>`)}${stickerSlots(5)}</section>
@@ -627,7 +627,7 @@
       const taskCount = tasksForDate(date).filter((task) => task.status !== 'cancelled').length;
       const hasFocus = state().focusSessions.some((session) => session.date === date);
       const hasMilestone = state().projects.some((project) => (project.milestones || []).some((milestone) => milestone.date === date));
-      cells.push(`<button type="button" class="calendar-day ${date === TODAY() ? 'is-today' : ''} ${date === selected ? 'selected' : ''}" data-action="calendar-select" data-date="${date}"><b>${day}</b><span>${taskCount ? `${taskCount} 项` : ''}</span><i>${hasFocus ? '<em class="focus-dot"></em>' : ''}${hasMilestone ? '<em class="milestone-dot"></em>' : ''}</i></button>`);
+      cells.push(`<button type="button" class="calendar-day ${date === TODAY() ? 'is-today' : ''} ${date === selected ? 'selected' : ''}" data-action="calendar-select" data-date="${date}" aria-pressed="${date === selected}"><b>${day}</b><span>${taskCount ? `${taskCount} 项` : ''}</span><i>${hasFocus ? '<em class="focus-dot"></em>' : ''}${hasMilestone ? '<em class="milestone-dot"></em>' : ''}</i></button>`);
     }
     const dayTasks = tasksForDate(selected).filter((task) => task.status !== 'cancelled');
     const dayActivity = state().activity.filter((entry) => entry.date === selected).sort((a, b) => b.at - a.at);
@@ -683,7 +683,7 @@
     return `<div class="page inner-page habits-page">
       ${pageHeader('GENTLE RHYTHM', '习惯', '只记录发生过的事，不因断签惩罚自己。', `<button type="button" class="secondary-button" data-action="habit-new">${icon('plus')}新习惯</button>`)}
       <section class="habit-sheet"><div class="habit-calendar-head"><span>最近 7 天</span>${dates.map((date) => { const value = Core.parseDateKey(date); return `<time><b>${['日', '一', '二', '三', '四', '五', '六'][value.getDay()]}</b><small>${value.getDate()}</small></time>`; }).join('')}</div>
-        <div class="habit-rows">${state().habits.map((habit) => `<div class="habit-row"><span>${esc(habit.name)}</span>${dates.map((date) => `<button type="button" data-action="habit-toggle" data-id="${attr(habit.id)}" data-date="${date}" class="${habit.days?.[date] ? 'done' : ''}" aria-label="${attr(habit.name)} ${date}">${habit.days?.[date] ? icon('check') : ''}</button>`).join('')}<button type="button" class="habit-remove" data-action="habit-delete" data-id="${attr(habit.id)}" aria-label="删除 ${attr(habit.name)}">${icon('trash')}</button></div>`).join('')}</div>
+        <div class="habit-rows">${state().habits.map((habit) => `<div class="habit-row"><span>${esc(habit.name)}</span>${dates.map((date) => `<button type="button" data-action="habit-toggle" data-id="${attr(habit.id)}" data-date="${date}" class="${habit.days?.[date] ? 'done' : ''}" aria-label="${attr(habit.name)} ${date}" aria-pressed="${Boolean(habit.days?.[date])}">${habit.days?.[date] ? icon('check') : ''}</button>`).join('')}<button type="button" class="habit-remove" data-action="habit-delete" data-id="${attr(habit.id)}" aria-label="删除 ${attr(habit.name)}">${icon('trash')}</button></div>`).join('')}</div>
       </section>
       <p class="gentle-note">空白不是失败，只是那一天没有记录。</p>
     </div>`;
@@ -745,6 +745,19 @@
     const summary = rangeSummary(start, end);
     const suggestions = reviewSuggestions(summary);
     const review = state().weeklyReviews[start] || {};
+    const hasWeeklyData = summary.tasks.length > 0
+      || summary.focusMinutes > 0
+      || summary.studyMinutes > 0
+      || summary.exerciseCount > 0
+      || summary.writingWords > 0
+      || summary.podcastMinutes > 0;
+    if (!hasWeeklyData) {
+      return `<div class="page inner-page review-page">
+        ${pageHeader('WEEKLY LETTER', '本周复盘', `${dateLabel(start)} — ${dateLabel(end)}`)}
+        <section class="review-empty">${icon('review')}<div><h2>这一周还没有记录</h2><p>先安排一件真正想推进的事，完成后这里会自动长出本周总结。</p></div><button type="button" class="primary-button" data-action="planner-open">${icon('today')}安排本周第一步</button></section>
+        <section class="review-writing review-writing-alone">${sectionHead('一句话复盘', '自动保存')}<textarea id="week-review" rows="4" maxlength="360" placeholder="即使没有完成，也可以写下这一周的感受。">${esc(review.note || '')}</textarea><span class="autosave-note" id="review-status">输入后自动保存</span></section>
+      </div>`;
+    }
     const stats = [
       ['完成任务', summary.completed.length, '件'],
       ['专注时间', formatMinutes(summary.focusMinutes), ''],
@@ -773,7 +786,7 @@
     const notes = [...state().notes].sort((a, b) => b.updatedAt - a.updatedAt);
     return `<div class="page inner-page notes-page">
       ${pageHeader('NOTES', '笔记', '学习笔记、灵感与长期记录都留在这里。', `<button type="button" class="primary-button" data-action="note-new">${icon('plus')}新笔记</button>`)}
-      <section class="notes-list">${notes.length ? notes.map((note) => { const project = projectById(note.projectId); return `<article class="note-row" data-action="note-edit" data-id="${attr(note.id)}"><div><span>${new Date(note.updatedAt).toLocaleDateString('zh-CN')}${project ? ` · ${esc(project.name)}` : ''}</span><h2>${esc(note.title)}</h2><p>${esc(note.body || '空白笔记')}</p></div><button type="button" data-action="note-delete" data-id="${attr(note.id)}" aria-label="删除笔记">${icon('trash')}</button></article>`; }).join('') : emptyState('还没有笔记', '写下一段值得以后再读的内容。')}</section>
+      <section class="notes-list">${notes.length ? notes.map((note) => { const project = projectById(note.projectId); return `<article class="note-row" data-action="note-edit" data-id="${attr(note.id)}" role="button" tabindex="0" aria-label="编辑笔记 ${attr(note.title)}"><div><span>${new Date(note.updatedAt).toLocaleDateString('zh-CN')}${project ? ` · ${esc(project.name)}` : ''}</span><h2>${esc(note.title)}</h2><p>${esc(note.body || '空白笔记')}</p></div><button type="button" data-action="note-delete" data-id="${attr(note.id)}" aria-label="删除笔记">${icon('trash')}</button></article>`; }).join('') : emptyState('还没有笔记', '写下一段值得以后再读的内容。')}</section>
     </div>`;
   }
 
@@ -781,10 +794,11 @@
     const owned = state().collection.outfits.includes(outfit.id);
     const favorite = state().collection.favorites.includes(outfit.id);
     const featured = state().collection.featuredOutfitId === outfit.id;
+    const imageAction = owned ? 'outfit-feature' : 'outfit-open';
+    const imageLabel = featured ? `正在展示 ${outfit.name}` : owned ? `展示 ${outfit.name}` : `查看并解锁 ${outfit.name}`;
     return `<article class="outfit-card ${owned ? 'owned' : 'locked'} ${featured ? 'featured' : ''}">
-      <button type="button" class="outfit-image" data-action="outfit-open" data-id="${outfit.id}">${img(outfit.image, `${outfit.name}限定卡面`, 853, 1844)}<span class="outfit-state">${featured ? `${icon('check')}当前展示` : owned ? '已收藏' : `${icon('lock')}待解锁`}</span></button>
-      <div class="outfit-card-copy"><h3>${esc(outfit.name)}</h3><span>${esc(outfit.series)}</span><p>${esc(outfit.palette)}</p><div>${owned ? `<b>已拥有</b>` : `<b>${icon('coin')}${outfit.price}</b>`}<button type="button" data-action="outfit-favorite" data-id="${outfit.id}" class="${favorite ? 'active' : ''}" aria-label="${favorite ? '取消收藏' : '收藏'}">${icon('heart')}</button></div></div>
-      ${owned ? `<button type="button" class="outfit-feature-action ${featured ? 'active' : ''}" data-action="outfit-feature" data-id="${outfit.id}" ${featured ? 'disabled' : ''}>${featured ? `${icon('check')}正在展示` : '设为展示卡面'}</button>` : ''}
+      <button type="button" class="outfit-image" data-action="${imageAction}" data-id="${outfit.id}" aria-label="${attr(imageLabel)}" aria-pressed="${owned ? featured : 'false'}" ${featured ? 'disabled' : ''}>${img(outfit.image, `${outfit.name}限定卡面`, 853, 1844)}<span class="outfit-state">${featured ? `${icon('check')}当前展示` : owned ? `${icon('next')}点按展示` : `${icon('lock')}待解锁`}</span></button>
+      <div class="outfit-card-copy"><span>${esc(outfit.series)}</span><h3>${esc(outfit.name)}</h3><p>${esc(outfit.palette)}</p><div>${owned ? `<b>已拥有</b>` : `<b>${icon('coin')}${outfit.price}</b>`}<span class="outfit-card-actions"><button type="button" class="outfit-details-button" data-action="outfit-open" data-id="${outfit.id}" aria-label="查看 ${attr(outfit.name)} 详情">详情</button><button type="button" data-action="outfit-favorite" data-id="${outfit.id}" class="${favorite ? 'active' : ''}" aria-label="${favorite ? '从喜欢中移除' : '加入喜欢'}" aria-pressed="${favorite}">${icon('heart')}</button></span></div></div>
     </article>`;
   }
 
@@ -793,13 +807,14 @@
     const featuredOutfit = Core.OUTFITS.find((outfit) => outfit.id === state().collection.featuredOutfitId) || Core.OUTFITS[0];
     const filtered = Core.OUTFITS.filter((outfit) => {
       if (filter === 'owned') return state().collection.outfits.includes(outfit.id);
+      if (filter === 'favorite') return state().collection.favorites.includes(outfit.id);
       if (filter === 'all') return true;
       return outfit.release === filter;
     });
     return `<div class="wardrobe-tab">
       <section class="character-intro"><button type="button" class="character-featured" data-action="outfit-open" data-id="${featuredOutfit.id}" aria-label="查看当前展示卡面 ${attr(featuredOutfit.name)}">${img(featuredOutfit.image, `${featuredOutfit.name}当前展示卡面`, 853, 1844)}<span>${icon('check')}当前展示</span></button><div><span class="character-kicker">我的角色卡面</span><h2>${esc(featuredOutfit.name)}</h2><p>${esc(featuredOutfit.series)} · ${esc(featuredOutfit.hair)}<br>卡面会随主题改变服装、发型、配饰、动作与背景；解锁后可切换当前展示。</p><dl><div><dt>已收藏</dt><dd>${state().collection.outfits.length}/10</dd></div><div><dt>可用金币</dt><dd>${state().rewards.coins}</dd></div></dl><button type="button" class="text-button character-view-button" data-action="outfit-open" data-id="${featuredOutfit.id}">查看完整卡面${icon('next')}</button></div></section>
       <section class="outfit-shop">${sectionHead('限定卡面衣橱', '十套独立高清收藏')}
-        <div class="segmented wardrobe-filters">${[['all', '全部'], ['new', '新品'], ['basic', '基础'], ['limited', '限定'], ['owned', '已拥有']].map(([value, label]) => `<button type="button" data-action="wardrobe-filter" data-value="${value}" class="${filter === value ? 'active' : ''}">${label}</button>`).join('')}</div>
+        <div class="segmented wardrobe-filters">${[['all', '全部'], ['new', '新品'], ['basic', '基础'], ['limited', '限定'], ['owned', '已拥有'], ['favorite', '喜欢']].map(([value, label]) => `<button type="button" data-action="wardrobe-filter" data-value="${value}" class="${filter === value ? 'active' : ''}" aria-pressed="${filter === value}">${label}</button>`).join('')}</div>
         <div class="outfit-grid">${filtered.length ? filtered.map(outfitCard).join('') : emptyState('这个分类还没有卡面')}</div>
       </section>
     </div>`;
@@ -847,7 +862,7 @@
       return `<article class="${outfit ? 'with-art' : ''}">${outfit ? `<div class="history-memory-art">${img(outfit.image, `${key} ${outfit.name}纪念卡面`, 853, 1844)}${badge ? `<span title="${attr(badge.name)}">${img(badge.image, badge.name, 180, 180)}</span>` : ''}</div>` : ''}<div class="history-memory-copy"><span>${key.replace('-', ' / ')}</span><h3>${esc(memory.keyword || '未命名月份')}</h3><p>${esc(memory.summary || '这一页暂时没有总结。')}</p><small>完成 ${memory.stats?.completedTasks ?? monthStats(key).completedTasks} 件 · 专注 ${formatMinutes(memory.stats?.focusMinutes ?? monthStats(key).focusMinutes)}${outfit ? ` · ${esc(outfit.name)}` : ''}</small></div></article>`;
     }).join('');
     return `<div class="memories-tab">
-      <section class="monthly-editor"><div class="monthly-paper"><span class="month-ribbon">月度纪念</span><h2>${currentMonth.replace('-', ' · ')}</h2><div class="monthly-paper-grid"><div><div class="monthly-facts"><p><b>${stats.completedTasks}</b>完成任务</p><p><b>${formatMinutes(stats.focusMinutes)}</b>专注时间</p><p><b>${esc(stats.growthArea)}</b>成长领域</p></div><div class="paper-stickers">${stickerSlots(3, memoryStickers)}</div></div><figure class="monthly-character-card" data-monthly-outfit-preview>${img(selectedOutfit.image, `${selectedOutfit.name}本月角色卡面`, 853, 1844)}${selectedBadge ? `<span class="monthly-character-badge" title="${attr(selectedBadge.name)}">${img(selectedBadge.image, selectedBadge.name, 180, 180)}</span>` : ''}<figcaption>${esc(selectedOutfit.name)}</figcaption></figure></div></div>
+      <section class="monthly-editor"><div class="monthly-paper"><span class="month-ribbon">月度纪念</span><h2>${currentMonth.replace('-', ' · ')}</h2><div class="monthly-paper-grid"><div><div class="monthly-facts"><p><span>完成任务</span><b>${stats.completedTasks}</b></p><p><span>专注时间</span><b>${formatMinutes(stats.focusMinutes)}</b></p><p><span>成长领域</span><b>${esc(stats.growthArea)}</b></p></div><div class="paper-stickers">${stickerSlots(3, memoryStickers)}</div></div><figure class="monthly-character-card" data-monthly-outfit-preview>${img(selectedOutfit.image, `${selectedOutfit.name}本月角色卡面`, 853, 1844)}${selectedBadge ? `<span class="monthly-character-badge" title="${attr(selectedBadge.name)}">${img(selectedBadge.image, selectedBadge.name, 180, 180)}</span>` : ''}<figcaption>${esc(selectedOutfit.name)}</figcaption></figure></div></div>
         <form data-form="monthly"><div class="monthly-collection-fields"><label>本月角色卡面<select name="outfitId" aria-describedby="monthly-outfit-hint">${ownedOutfits.map((outfit) => `<option value="${attr(outfit.id)}" ${outfit.id === selectedOutfit.id ? 'selected' : ''}>${esc(outfit.name)}</option>`).join('')}</select><small id="monthly-outfit-hint">选择后，上方卡面会即时预览</small></label><label>本月徽章<select name="badgeId"><option value="">暂不放置</option>${ownedBadges.map((badge) => `<option value="${attr(badge.id)}" ${badge.id === selectedBadge?.id ? 'selected' : ''}>${esc(badge.name)}</option>`).join('')}</select></label></div><label>本月关键词<input name="keyword" maxlength="24" value="${attr(saved.keyword || '')}" placeholder="例如：稳定"></label><label>本月总结<textarea name="summary" rows="5" maxlength="480" placeholder="这个月，我想记住……">${esc(saved.summary || '')}</textarea></label><button type="submit" class="primary-button">保存本月纪念页</button></form>
       </section>
       <section class="scene-collection">${sectionHead('场景收藏', `${state().collection.scenes.length}/${Core.SCENES.length} 已拥有`)}<div>${Core.SCENES.map((scene) => { const owned = state().collection.scenes.includes(scene.id); return `<article class="scene-card ${owned ? '' : 'locked'}">${img(scene.image, scene.name, scene.id === 'today-desk' ? 1672 : 1586, scene.id === 'today-desk' ? 941 : 992)}<span>${owned ? esc(scene.name) : `${icon('lock')}待解锁`}</span></article>`; }).join('')}</div></section>
@@ -858,7 +873,7 @@
   function collectionPage() {
     const tab = state().ui.collectionTab;
     const content = { wardrobe: wardrobeTab, stickers: stickersTab, badges: badgesTab, memories: memoriesTab }[tab]?.() || wardrobeTab();
-    return `<div class="page inner-page collection-page">${pageHeader('ARCHIVE', '收藏', '衣橱、贴纸、徽章与每个月留下的纪念。')}<div class="collection-tabs" role="tablist">${[['wardrobe', '衣橱'], ['stickers', '贴纸'], ['badges', '徽章'], ['memories', '纪念']].map(([value, label]) => `<button type="button" role="tab" data-action="collection-tab" data-tab="${value}" aria-selected="${tab === value}" class="${tab === value ? 'active' : ''}">${label}</button>`).join('')}</div>${content}</div>`;
+    return `<div class="page inner-page collection-page">${pageHeader('ARCHIVE', '收藏', '衣橱、贴纸、徽章与每个月留下的纪念。')}<div class="collection-tabs" role="tablist">${[['wardrobe', '衣橱'], ['stickers', '贴纸'], ['badges', '徽章'], ['memories', '纪念']].map(([value, label]) => `<button type="button" id="collection-tab-${value}" role="tab" data-action="collection-tab" data-tab="${value}" aria-controls="collection-panel-${value}" aria-selected="${tab === value}" tabindex="${tab === value ? '0' : '-1'}" class="${tab === value ? 'active' : ''}">${label}</button>`).join('')}</div><div id="collection-panel-${tab}" role="tabpanel" aria-labelledby="collection-tab-${tab}">${content}</div></div>`;
   }
 
   const areaOptions = (selected = '学习') => Object.keys(Core.AREA_META).map((area) => `<option value="${area}" ${area === selected ? 'selected' : ''}>${area}</option>`).join('');
@@ -968,9 +983,21 @@
     const scroll = options.preserveScroll ? window.scrollY : 0;
     app.innerHTML = shell();
     document.body.classList.toggle('modal-open', Boolean(modal));
+    document.body.classList.toggle('drawer-open-body', drawerOpen);
+    const mobileLayout = window.matchMedia('(max-width: 900px)').matches;
+    const renderedSidebar = document.querySelector('#app-sidebar');
+    const renderedMain = document.querySelector('.main-shell');
+    const renderedFab = document.querySelector('.global-fab');
+    if (mobileLayout && renderedSidebar) {
+      renderedSidebar.inert = !drawerOpen;
+      renderedSidebar.setAttribute('aria-hidden', String(!drawerOpen));
+      if (renderedMain) renderedMain.inert = drawerOpen;
+      if (renderedFab) renderedFab.inert = drawerOpen;
+    }
     document.querySelectorAll('[data-safe-image]').forEach((image) => image.addEventListener('error', () => image.parentElement?.classList.add('image-error'), { once: true }));
     if (options.preserveScroll) window.scrollTo(0, scroll);
-    if (modal) requestAnimationFrame(() => document.querySelector('.modal-card [autofocus]')?.focus());
+    if (modal) requestAnimationFrame(() => (document.querySelector('.modal-card [autofocus]') || document.querySelector('.modal-card > header button'))?.focus());
+    else if (options.focusSelector) requestAnimationFrame(() => document.querySelector(options.focusSelector)?.focus());
     if (toastMessage) {
       clearTimeout(toastTimer);
       toastTimer = setTimeout(() => {
@@ -1172,13 +1199,13 @@
     const id = target.dataset.id;
     if (action === 'navigate') return navigate(target.dataset.page);
     if (action === 'sidebar-collapse') {
-      if (window.matchMedia('(max-width: 900px)').matches) { drawerOpen = false; return render({ preserveScroll: true }); }
+      if (window.matchMedia('(max-width: 900px)').matches) { drawerOpen = false; return render({ preserveScroll: true, focusSelector: '.mobile-projects-button' }); }
       state().ui.sidebarCollapsed = !state().ui.sidebarCollapsed;
       return saveAndRender('sidebar');
     }
     if (action === 'projects-collapse') { state().ui.projectsCollapsed = !state().ui.projectsCollapsed; return saveAndRender('projects-collapse'); }
-    if (action === 'drawer-open') { drawerOpen = true; state().ui.sidebarCollapsed = false; return render({ preserveScroll: true }); }
-    if (action === 'drawer-close') { drawerOpen = false; return render({ preserveScroll: true }); }
+    if (action === 'drawer-open') { drawerOpen = true; state().ui.sidebarCollapsed = false; return render({ preserveScroll: true, focusSelector: '.sidebar .collapse-button' }); }
+    if (action === 'drawer-close') { drawerOpen = false; return render({ preserveScroll: true, focusSelector: '.mobile-projects-button' }); }
     if (action === 'quick-open') return openModal({ type: 'quick' });
     if (action === 'modal-close' || action === 'modal-backdrop' && target === event.target) return closeModal();
     if (action === 'planner-open') return openModal({ type: 'planner', step: 'setup' });
@@ -1306,7 +1333,7 @@
       const favorites = state().collection.favorites;
       const index = favorites.indexOf(id);
       if (index >= 0) favorites.splice(index, 1); else favorites.push(id);
-      return saveAndRender('favorite', index >= 0 ? '已取消珍藏' : '已加入珍藏');
+      return saveAndRender('favorite', index >= 0 ? '已从喜欢中移除' : '已加入喜欢');
     }
     if (action === 'outfit-feature') {
       if (!state().collection.outfits.includes(id)) return;
@@ -1534,10 +1561,40 @@
     }
   });
 
+  const focusableElements = (container) => container
+    ? [...container.querySelectorAll('button:not(:disabled), input:not(:disabled), textarea:not(:disabled), select:not(:disabled), summary, [href], [tabindex]:not([tabindex="-1"])')].filter((element) => !element.closest('[inert]'))
+    : [];
+  const trapFocus = (container, event) => {
+    const elements = focusableElements(container);
+    if (!elements.length) return;
+    const first = elements[0];
+    const last = elements[elements.length - 1];
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+  };
+
   document.addEventListener('keydown', (event) => {
+    const tab = event.target.closest?.('[role="tab"]');
+    if (tab && ['ArrowLeft', 'ArrowRight'].includes(event.key)) {
+      const tabs = [...tab.closest('[role="tablist"]').querySelectorAll('[role="tab"]')];
+      const offset = event.key === 'ArrowRight' ? 1 : -1;
+      const next = tabs[(tabs.indexOf(tab) + offset + tabs.length) % tabs.length];
+      event.preventDefault();
+      next.focus();
+      next.click();
+      return;
+    }
+    const note = event.target.closest?.('.note-row[role="button"]');
+    if (note && event.target === note && ['Enter', ' '].includes(event.key)) {
+      event.preventDefault();
+      note.click();
+      return;
+    }
+    if (event.key === 'Tab' && modal) { trapFocus(document.querySelector('.modal-card'), event); return; }
+    if (event.key === 'Tab' && drawerOpen && window.matchMedia('(max-width: 900px)').matches) { trapFocus(document.querySelector('.sidebar'), event); return; }
     if (event.key !== 'Escape') return;
     if (modal) closeModal();
-    else if (drawerOpen) { drawerOpen = false; render({ preserveScroll: true }); }
+    else if (drawerOpen) { drawerOpen = false; render({ preserveScroll: true, focusSelector: '.mobile-projects-button' }); }
     else if (searchQuery) { searchQuery = ''; render({ preserveScroll: true }); }
   });
   document.addEventListener('visibilitychange', () => { if (!document.hidden) syncTimerView(); });

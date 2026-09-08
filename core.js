@@ -260,7 +260,11 @@
     const state = source && typeof source === 'object' && !Array.isArray(source) ? source : base;
     const objectOrEmpty = (value) => value && typeof value === 'object' && !Array.isArray(value) ? value : {};
     const text = (value, fallback = '') => String(value ?? fallback).trim();
-    const validDate = (value, fallback = localDateKey()) => /^\d{4}-\d{2}-\d{2}$/.test(String(value || '')) ? String(value) : fallback;
+    const validDate = (value, fallback = localDateKey()) => {
+      const key = String(value || '');
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(key)) return fallback;
+      return localDateKey(parseDateKey(key)) === key ? key : fallback;
+    };
     const uniqueCatalogIds = (values, catalog) => [...new Set(Array.isArray(values) ? values.map(String) : [])].filter((id) => catalog.some((item) => item.id === id));
 
     state.version = 1;
@@ -270,7 +274,7 @@
     const rawUi = objectOrEmpty(state.ui);
     const pages = new Set(['today', 'inbox', 'project', 'calendar', 'focus', 'habits', 'review', 'notes', 'collection']);
     const collectionTabs = new Set(['wardrobe', 'stickers', 'badges', 'memories']);
-    const wardrobeFilters = new Set(['all', 'new', 'basic', 'limited', 'owned']);
+    const wardrobeFilters = new Set(['all', 'new', 'basic', 'limited', 'owned', 'favorite']);
     state.ui = {
       ...base.ui,
       ...rawUi,
