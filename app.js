@@ -515,21 +515,24 @@
   function outfitCard(outfit) {
     const owned = state().collection.outfits.includes(outfit.id);
     const favorite = state().collection.favorites.includes(outfit.id);
-    return `<article class="outfit-card ${owned ? 'owned' : 'locked'}">
-      <button type="button" class="outfit-image" data-action="outfit-open" data-id="${outfit.id}">${img(outfit.image, `${outfit.name}限定卡面`, 853, 1844)}<span class="outfit-state">${owned ? '已收藏' : `${icon('lock')}待解锁`}</span></button>
+    const featured = state().collection.featuredOutfitId === outfit.id;
+    return `<article class="outfit-card ${owned ? 'owned' : 'locked'} ${featured ? 'featured' : ''}">
+      <button type="button" class="outfit-image" data-action="outfit-open" data-id="${outfit.id}">${img(outfit.image, `${outfit.name}限定卡面`, 853, 1844)}<span class="outfit-state">${featured ? `${icon('check')}当前展示` : owned ? '已收藏' : `${icon('lock')}待解锁`}</span></button>
       <div class="outfit-card-copy"><h3>${esc(outfit.name)}</h3><span>${esc(outfit.series)}</span><p>${esc(outfit.palette)}</p><div>${owned ? `<b>已拥有</b>` : `<b>${icon('coin')}${outfit.price}</b>`}<button type="button" data-action="outfit-favorite" data-id="${outfit.id}" class="${favorite ? 'active' : ''}" aria-label="${favorite ? '取消收藏' : '收藏'}">${icon('heart')}</button></div></div>
+      ${owned ? `<button type="button" class="outfit-feature-action ${featured ? 'active' : ''}" data-action="outfit-feature" data-id="${outfit.id}" ${featured ? 'disabled' : ''}>${featured ? `${icon('check')}正在展示` : '设为展示卡面'}</button>` : ''}
     </article>`;
   }
 
   function wardrobeTab() {
     const filter = state().ui.wardrobeFilter;
+    const featuredOutfit = Core.OUTFITS.find((outfit) => outfit.id === state().collection.featuredOutfitId) || Core.OUTFITS[0];
     const filtered = Core.OUTFITS.filter((outfit) => {
       if (filter === 'owned') return state().collection.outfits.includes(outfit.id);
       if (filter === 'all') return true;
       return outfit.release === filter;
     });
     return `<div class="wardrobe-tab">
-      <section class="character-intro">${img('assets/character/identity.webp', '银灰发男性角色基础形象', 1122, 1402)}<div><h2>同一个人，不同章节</h2><p>卡面会随服装主题改变发型、配饰、动作与背景；解锁后进入收藏，不做分层换装。</p><dl><div><dt>已收藏</dt><dd>${state().collection.outfits.length}/10</dd></div><div><dt>可用金币</dt><dd>${state().rewards.coins}</dd></div></dl></div></section>
+      <section class="character-intro"><button type="button" class="character-featured" data-action="outfit-open" data-id="${featuredOutfit.id}" aria-label="查看当前展示卡面 ${attr(featuredOutfit.name)}">${img(featuredOutfit.image, `${featuredOutfit.name}当前展示卡面`, 853, 1844)}<span>${icon('check')}当前展示</span></button><div><span class="character-kicker">我的角色卡面</span><h2>${esc(featuredOutfit.name)}</h2><p>${esc(featuredOutfit.series)} · ${esc(featuredOutfit.hair)}<br>卡面会随主题改变服装、发型、配饰、动作与背景；解锁后可切换当前展示。</p><dl><div><dt>已收藏</dt><dd>${state().collection.outfits.length}/10</dd></div><div><dt>可用金币</dt><dd>${state().rewards.coins}</dd></div></dl><button type="button" class="text-button character-view-button" data-action="outfit-open" data-id="${featuredOutfit.id}">查看完整卡面${icon('next')}</button></div></section>
       <section class="outfit-shop">${sectionHead('限定卡面衣橱', '十套独立高清收藏')}
         <div class="segmented wardrobe-filters">${[['all', '全部'], ['new', '新品'], ['basic', '基础'], ['limited', '限定'], ['owned', '已拥有']].map(([value, label]) => `<button type="button" data-action="wardrobe-filter" data-value="${value}" class="${filter === value ? 'active' : ''}">${label}</button>`).join('')}</div>
         <div class="outfit-grid">${filtered.length ? filtered.map(outfitCard).join('') : emptyState('这个分类还没有卡面')}</div>
@@ -569,7 +572,7 @@
     const months = Object.keys(state().monthlyMemories).sort().reverse();
     const ownedOutfits = Core.OUTFITS.filter((outfit) => state().collection.outfits.includes(outfit.id));
     const ownedBadges = Core.BADGES.filter((badge) => state().collection.badges.includes(badge.id));
-    const selectedOutfit = ownedOutfits.find((outfit) => outfit.id === saved.outfitId) || ownedOutfits[ownedOutfits.length - 1] || Core.OUTFITS[0];
+    const selectedOutfit = ownedOutfits.find((outfit) => outfit.id === saved.outfitId) || ownedOutfits.find((outfit) => outfit.id === state().collection.featuredOutfitId) || ownedOutfits[0] || Core.OUTFITS[0];
     const selectedBadge = ownedBadges.find((badge) => badge.id === saved.badgeId) || ownedBadges[ownedBadges.length - 1] || null;
     const memoryStickers = saved.stickers?.length ? saved.stickers : state().collection.stickers.slice(-3);
     const historyCards = months.map((key) => {
@@ -579,8 +582,8 @@
       return `<article class="${outfit ? 'with-art' : ''}">${outfit ? `<div class="history-memory-art">${img(outfit.image, `${key} ${outfit.name}纪念卡面`, 853, 1844)}${badge ? `<span title="${attr(badge.name)}">${img(badge.image, badge.name, 180, 180)}</span>` : ''}</div>` : ''}<div class="history-memory-copy"><span>${key.replace('-', ' / ')}</span><h3>${esc(memory.keyword || '未命名月份')}</h3><p>${esc(memory.summary || '这一页暂时没有总结。')}</p><small>完成 ${memory.stats?.completedTasks ?? monthStats(key).completedTasks} 件 · 专注 ${formatMinutes(memory.stats?.focusMinutes ?? monthStats(key).focusMinutes)}${outfit ? ` · ${esc(outfit.name)}` : ''}</small></div></article>`;
     }).join('');
     return `<div class="memories-tab">
-      <section class="monthly-editor"><div class="monthly-paper"><span class="month-ribbon">月度纪念</span><h2>${currentMonth.replace('-', ' · ')}</h2><div class="monthly-paper-grid"><div><div class="monthly-facts"><p><b>${stats.completedTasks}</b>完成任务</p><p><b>${formatMinutes(stats.focusMinutes)}</b>专注时间</p><p><b>${esc(stats.growthArea)}</b>成长领域</p></div><div class="paper-stickers">${stickerSlots(3, memoryStickers)}</div></div><figure class="monthly-character-card">${img(selectedOutfit.image, `${selectedOutfit.name}本月角色卡面`, 853, 1844)}${selectedBadge ? `<span class="monthly-character-badge" title="${attr(selectedBadge.name)}">${img(selectedBadge.image, selectedBadge.name, 180, 180)}</span>` : ''}<figcaption>${esc(selectedOutfit.name)}</figcaption></figure></div></div>
-        <form data-form="monthly"><div class="monthly-collection-fields"><label>本月角色卡面<select name="outfitId">${ownedOutfits.map((outfit) => `<option value="${attr(outfit.id)}" ${outfit.id === selectedOutfit.id ? 'selected' : ''}>${esc(outfit.name)}</option>`).join('')}</select></label><label>本月徽章<select name="badgeId"><option value="">暂不放置</option>${ownedBadges.map((badge) => `<option value="${attr(badge.id)}" ${badge.id === selectedBadge?.id ? 'selected' : ''}>${esc(badge.name)}</option>`).join('')}</select></label></div><label>本月关键词<input name="keyword" maxlength="24" value="${attr(saved.keyword || '')}" placeholder="例如：稳定"></label><label>本月总结<textarea name="summary" rows="5" maxlength="480" placeholder="这个月，我想记住……">${esc(saved.summary || '')}</textarea></label><button type="submit" class="primary-button">保存本月纪念页</button></form>
+      <section class="monthly-editor"><div class="monthly-paper"><span class="month-ribbon">月度纪念</span><h2>${currentMonth.replace('-', ' · ')}</h2><div class="monthly-paper-grid"><div><div class="monthly-facts"><p><b>${stats.completedTasks}</b>完成任务</p><p><b>${formatMinutes(stats.focusMinutes)}</b>专注时间</p><p><b>${esc(stats.growthArea)}</b>成长领域</p></div><div class="paper-stickers">${stickerSlots(3, memoryStickers)}</div></div><figure class="monthly-character-card" data-monthly-outfit-preview>${img(selectedOutfit.image, `${selectedOutfit.name}本月角色卡面`, 853, 1844)}${selectedBadge ? `<span class="monthly-character-badge" title="${attr(selectedBadge.name)}">${img(selectedBadge.image, selectedBadge.name, 180, 180)}</span>` : ''}<figcaption>${esc(selectedOutfit.name)}</figcaption></figure></div></div>
+        <form data-form="monthly"><div class="monthly-collection-fields"><label>本月角色卡面<select name="outfitId" aria-describedby="monthly-outfit-hint">${ownedOutfits.map((outfit) => `<option value="${attr(outfit.id)}" ${outfit.id === selectedOutfit.id ? 'selected' : ''}>${esc(outfit.name)}</option>`).join('')}</select><small id="monthly-outfit-hint">选择后，上方卡面会即时预览</small></label><label>本月徽章<select name="badgeId"><option value="">暂不放置</option>${ownedBadges.map((badge) => `<option value="${attr(badge.id)}" ${badge.id === selectedBadge?.id ? 'selected' : ''}>${esc(badge.name)}</option>`).join('')}</select></label></div><label>本月关键词<input name="keyword" maxlength="24" value="${attr(saved.keyword || '')}" placeholder="例如：稳定"></label><label>本月总结<textarea name="summary" rows="5" maxlength="480" placeholder="这个月，我想记住……">${esc(saved.summary || '')}</textarea></label><button type="submit" class="primary-button">保存本月纪念页</button></form>
       </section>
       <section class="scene-collection">${sectionHead('场景收藏', `${state().collection.scenes.length}/${Core.SCENES.length} 已拥有`)}<div>${Core.SCENES.map((scene) => { const owned = state().collection.scenes.includes(scene.id); return `<article class="scene-card ${owned ? '' : 'locked'}">${img(scene.image, scene.name, scene.id === 'today-desk' ? 1672 : 1586, scene.id === 'today-desk' ? 941 : 992)}<span>${owned ? esc(scene.name) : `${icon('lock')}待解锁`}</span></article>`; }).join('')}</div></section>
       <section class="history-months">${sectionHead('历史月份', `${months.length} 页永久保存`)}${months.length ? `<div>${historyCards}</div>` : emptyState('还没有月度纪念页', '保存这个月，第一本成长册就会出现。')}</section>
@@ -649,7 +652,8 @@
     const outfit = Core.OUTFITS.find((item) => item.id === id);
     if (!outfit) return '';
     const owned = state().collection.outfits.includes(id);
-    return modalFrame(outfit.name, `<div class="outfit-detail"><div class="outfit-detail-art">${img(outfit.image, `${outfit.name}完整限定卡面`, 853, 1844, { className: 'detail-image' })}</div><div class="outfit-detail-copy"><h3>${esc(outfit.name)}</h3><span class="series-label">${esc(outfit.series)}</span><dl><div><dt>发型</dt><dd>${esc(outfit.hair)}</dd></div><div><dt>配饰</dt><dd>${esc(outfit.accessories)}</dd></div><div><dt>色彩</dt><dd>${esc(outfit.palette)}</dd></div></dl><p>独立动作、发型、配饰与场景构成完整卡面。解锁后永久进入收藏册。</p>${owned ? `<div class="owned-mark">${icon('check')}已永久收藏</div>` : `<button type="button" class="primary-button purchase-button" data-action="outfit-buy" data-id="${outfit.id}">${icon('coin')}${outfit.price} 金币解锁</button>`}</div></div>`, 'outfit-modal');
+    const featured = state().collection.featuredOutfitId === id;
+    return modalFrame(outfit.name, `<div class="outfit-detail"><div class="outfit-detail-art">${img(outfit.image, `${outfit.name}完整限定卡面`, 853, 1844, { className: 'detail-image' })}</div><div class="outfit-detail-copy"><span class="series-label">${esc(outfit.series)}</span><h3>${esc(outfit.name)}</h3>${owned ? `<button type="button" class="secondary-button detail-feature-button ${featured ? 'active' : ''}" data-action="outfit-feature" data-id="${outfit.id}" ${featured ? 'disabled' : ''}>${icon('check')}${featured ? '当前正在展示' : '设为当前展示卡面'}</button>` : ''}<dl><div><dt>发型</dt><dd>${esc(outfit.hair)}</dd></div><div><dt>配饰</dt><dd>${esc(outfit.accessories)}</dd></div><div><dt>色彩</dt><dd>${esc(outfit.palette)}</dd></div></dl><p>独立动作、发型、配饰与场景构成完整卡面。解锁后永久进入收藏册，也可以随时更换当前展示。</p>${owned ? `<div class="owned-mark">${icon('check')}已永久收藏</div>` : `<button type="button" class="primary-button purchase-button" data-action="outfit-buy" data-id="${outfit.id}">${icon('coin')}${outfit.price} 金币解锁</button>`}</div></div>`, 'outfit-modal');
   }
 
   function renderModal() {
@@ -976,14 +980,22 @@
       if (index >= 0) favorites.splice(index, 1); else favorites.push(id);
       return saveAndRender('favorite', index >= 0 ? '已取消珍藏' : '已加入珍藏');
     }
+    if (action === 'outfit-feature') {
+      if (!state().collection.outfits.includes(id)) return;
+      if (state().collection.featuredOutfitId === id) { announce('这张卡面已经在展示'); return render({ preserveScroll: true }); }
+      const outfit = Core.OUTFITS.find((item) => item.id === id);
+      state().collection.featuredOutfitId = id;
+      return saveAndRender('outfit-feature', `已展示「${outfit?.name || '这张卡面'}」`);
+    }
     if (action === 'outfit-buy') {
       const outfit = Core.OUTFITS.find((item) => item.id === id);
       if (!outfit || state().collection.outfits.includes(id)) return;
       if (state().rewards.coins < outfit.price) { announce(`还差 ${outfit.price - state().rewards.coins} 枚金币`); return render({ preserveScroll: true }); }
       state().rewards.coins -= outfit.price;
       state().collection.outfits.push(id);
+      state().collection.featuredOutfitId = id;
       addActivity('collection', `解锁卡面 · ${outfit.name}`, { outfitId: id });
-      return saveAndRender('outfit-buy', `已解锁「${outfit.name}」`);
+      return saveAndRender('outfit-buy', `已解锁并展示「${outfit.name}」`);
     }
     if (action === 'search-open') {
       const kind = target.dataset.kind;
@@ -1147,6 +1159,19 @@
       const task = taskById(focusDraftTaskId);
       const label = document.querySelector('#focus-label');
       if (task && label && !label.value.trim()) label.value = task.title;
+      return;
+    }
+    if (event.target.matches('[data-form="monthly"] select[name="outfitId"]')) {
+      const outfit = Core.OUTFITS.find((item) => item.id === event.target.value);
+      const preview = document.querySelector('[data-monthly-outfit-preview]');
+      const image = preview?.querySelector('img');
+      const caption = preview?.querySelector('figcaption');
+      if (!outfit || !image || !caption) return;
+      image.src = outfit.image;
+      image.alt = `${outfit.name}本月角色卡面`;
+      image.parentElement?.classList.remove('image-error');
+      image.addEventListener('error', () => image.parentElement?.classList.add('image-error'), { once: true });
+      caption.textContent = outfit.name;
     }
   });
 

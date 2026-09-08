@@ -129,7 +129,7 @@
     notes: [],
     weeklyReviews: {},
     rewards: { stars: 0, coins: 0 },
-    collection: { outfits: ['daily-daylight'], stickers: [], badges: [], scenes: ['today-desk', 'focus-night'], favorites: [] },
+    collection: { outfits: ['daily-daylight'], featuredOutfitId: 'daily-daylight', stickers: [], badges: [], scenes: ['today-desk', 'focus-night'], favorites: [] },
     monthlyMemories: {}
   });
 
@@ -238,6 +238,8 @@
     const legacyOutfitIds = Array.isArray(legacy.collection?.outfits) ? legacy.collection.outfits : [];
     const outfitFromIndex = Number.isInteger(legacy.selectedOutfit) ? OUTFITS[clamp(legacy.selectedOutfit, 0, OUTFITS.length - 1)]?.id : null;
     next.collection.outfits = [...new Set(['daily-daylight', ...legacyOutfitIds, ...(outfitFromIndex ? [outfitFromIndex] : [])])].filter((id) => OUTFITS.some((outfit) => outfit.id === id));
+    const legacyFeaturedOutfitId = String(legacy.collection?.featuredOutfitId || legacy.collection?.currentOutfitId || outfitFromIndex || 'daily-daylight');
+    next.collection.featuredOutfitId = next.collection.outfits.includes(legacyFeaturedOutfitId) ? legacyFeaturedOutfitId : 'daily-daylight';
     next.collection.stickers = Array.isArray(legacy.collection?.stickers) ? legacy.collection.stickers.filter((id) => STICKERS.some((item) => item.id === id)) : [];
     next.collection.badges = Array.isArray(legacy.collection?.badges) ? legacy.collection.badges.filter((id) => BADGES.some((item) => item.id === id)) : [];
     next.collection.scenes = Array.isArray(legacy.collection?.scenes) ? legacy.collection.scenes : ['today-desk', 'focus-night'];
@@ -381,14 +383,17 @@
     }).filter(Boolean);
     state.weeklyReviews = Object.fromEntries(Object.entries(objectOrEmpty(state.weeklyReviews)).filter(([date, review]) => /^\d{4}-\d{2}-\d{2}$/.test(date) && review && typeof review === 'object').map(([date, review]) => [date, { note: String(review.note ?? '').slice(0, 360), updatedAt: Number(review.updatedAt) || Date.now() }]));
     state.rewards = { stars: clamp(state.rewards?.stars, 0, Number.MAX_SAFE_INTEGER), coins: clamp(state.rewards?.coins, 0, Number.MAX_SAFE_INTEGER) };
+    const rawCollection = objectOrEmpty(state.collection);
     state.collection = {
-      outfits: uniqueCatalogIds(state.collection?.outfits, OUTFITS),
-      stickers: uniqueCatalogIds(state.collection?.stickers, STICKERS),
-      badges: uniqueCatalogIds(state.collection?.badges, BADGES),
-      scenes: uniqueCatalogIds(state.collection?.scenes, SCENES),
-      favorites: uniqueCatalogIds(state.collection?.favorites, OUTFITS)
+      outfits: uniqueCatalogIds(rawCollection.outfits, OUTFITS),
+      featuredOutfitId: String(rawCollection.featuredOutfitId || rawCollection.currentOutfitId || ''),
+      stickers: uniqueCatalogIds(rawCollection.stickers, STICKERS),
+      badges: uniqueCatalogIds(rawCollection.badges, BADGES),
+      scenes: uniqueCatalogIds(rawCollection.scenes, SCENES),
+      favorites: uniqueCatalogIds(rawCollection.favorites, OUTFITS)
     };
     if (!state.collection.outfits.includes('daily-daylight')) state.collection.outfits.unshift('daily-daylight');
+    if (!state.collection.outfits.includes(state.collection.featuredOutfitId)) state.collection.featuredOutfitId = state.collection.outfits[0];
     if (!state.collection.scenes.length) state.collection.scenes = ['today-desk', 'focus-night'];
     state.monthlyMemories = Object.fromEntries(Object.entries(objectOrEmpty(state.monthlyMemories)).filter(([month, memory]) => /^\d{4}-\d{2}$/.test(month) && memory && typeof memory === 'object').map(([month, memory]) => [month, {
       month,

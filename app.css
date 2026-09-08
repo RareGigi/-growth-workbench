@@ -27,7 +27,9 @@
   --sidebar-mini: 72px;
   --topbar-height: 72px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
-  font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
+  font-family: var(--font-ui);
   color: var(--ink);
   background: var(--canvas);
   font-synthesis: none;
@@ -50,6 +52,31 @@ body {
   margin: 0;
   background: transparent;
   color: var(--ink);
+  caret-color: var(--blue-deep);
+  font-family: var(--font-ui);
+  line-height: 1.5;
+}
+
+::selection {
+  background: rgba(121, 116, 186, 0.2);
+  color: var(--ink);
+}
+
+* {
+  scrollbar-color: rgba(108, 136, 200, 0.54) transparent;
+  scrollbar-width: thin;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: rgba(108, 136, 200, 0.54);
+  background-clip: padding-box;
 }
 
 body.modal-open {
@@ -249,7 +276,7 @@ textarea::placeholder {
 }
 
 .brand b {
-  font-family: "Songti SC", "STSong", serif;
+  font-family: var(--font-display);
   font-size: 16px;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -440,7 +467,7 @@ textarea::placeholder {
 .sidebar-note {
   margin: auto 24px 24px;
   color: var(--muted);
-  font-family: "Songti SC", "STSong", serif;
+  font-family: var(--font-ui);
   font-size: 12px;
   line-height: 1.8;
   white-space: nowrap;
@@ -694,10 +721,12 @@ textarea::placeholder {
   margin: 0;
   padding: 0 0.04em;
   background: url("assets/journal/highlight.svg") center bottom / 100% 0.34em no-repeat;
-  font-family: "Songti SC", "STSong", serif;
-  font-size: clamp(30px, 4vw, 44px);
+  font-family: var(--font-display);
+  font-size: clamp(30px, 3.2vw, 38px);
   font-weight: 700;
-  letter-spacing: 0.02em;
+  letter-spacing: -0.015em;
+  line-height: 1.16;
+  text-wrap: balance;
 }
 
 .page-header p,
@@ -743,9 +772,11 @@ textarea::placeholder {
   margin: 0;
   padding: 0 0.04em;
   background: url("assets/journal/highlight.svg") center bottom / 100% 0.3em no-repeat;
-  font-family: "Songti SC", "STSong", serif;
-  font-size: 20px;
+  font-family: var(--font-display);
+  font-size: 19px;
   font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
 }
 
 .note-tab,
@@ -836,7 +867,7 @@ textarea::placeholder {
 
 .empty-state strong {
   color: var(--ink-soft);
-  font-family: "Songti SC", "STSong", serif;
+  font-family: var(--font-display);
   font-size: 16px;
 }
 
@@ -891,9 +922,10 @@ textarea::placeholder {
 
 .hero-date span {
   display: block;
-  font-family: "Songti SC", "STSong", serif;
-  font-size: clamp(30px, 4vw, 44px);
+  font-family: var(--font-display);
+  font-size: clamp(30px, 4vw, 40px);
   font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .hero-date b {
@@ -967,7 +999,7 @@ textarea::placeholder {
 
 .next-panel h2 {
   margin: 0;
-  font-family: "Songti SC", "STSong", serif;
+  font-family: var(--font-display);
   font-size: 24px;
   line-height: 1.35;
 }
@@ -1536,7 +1568,7 @@ textarea::placeholder {
 .next-chapter h2 {
   max-width: 520px;
   margin: 18px 0 0;
-  font-family: "Songti SC", "STSong", serif;
+  font-family: var(--font-display);
   font-size: 26px;
   line-height: 1.4;
 }
@@ -1596,7 +1628,7 @@ textarea::placeholder {
 
 .project-totals b {
   margin-top: 7px;
-  font-family: "Songti SC", "STSong", serif;
+  font-family: var(--font-display);
   font-size: 21px;
 }
 
@@ -1685,7 +1717,7 @@ textarea::placeholder {
 
 .calendar-sheet > header h2 {
   margin: 0;
-  font-family: "Songti SC", "STSong", serif;
+  font-family: var(--font-display);
   font-size: 23px;
 }
 
@@ -2086,7 +2118,7 @@ textarea::placeholder {
 .gentle-note {
   margin: 14px 4px 0;
   color: var(--muted);
-  font-family: "Songti SC", "STSong", serif;
+  font-family: var(--font-ui);
   font-size: 12px;
 }
 
@@ -2102,8 +2134,8 @@ textarea::placeholder {
 
 .review-summary,
 .review-insights {
-  min-height: 420px;
-  padding: 34px;
+  min-height: 360px;
+  padding: 30px;
 }
 
 .review-summary {
@@ -2111,11 +2143,13 @@ textarea::placeholder {
 }
 
 .review-summary h2 {
-  margin: 0 0 26px;
+  margin: 0 0 18px;
   padding-bottom: 6px;
   background: url("assets/journal/highlight.svg") left bottom / min(230px, 100%) 8px no-repeat;
-  font-family: "Songti SC", "STSong", serif;
-  font-size: 28px;
+  font-family: var(--font-display);
+  font-size: 24px;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
 }
 
 .review-stat-list {
@@ -2125,7 +2159,7 @@ textarea::placeholder {
 
 .review-stat-list > div {
   display: flex;
-  min-height: 48px;
+  min-height: 44px;
   align-items: baseline;
   justify-content: space-between;
   border-bottom: 1px solid rgba(87, 88, 132, 0.14);
@@ -2154,7 +2188,7 @@ textarea::placeholder {
 
 .review-insights dl > div {
   display: grid;
-  min-height: 69px;
+  min-height: 58px;
   grid-template-columns: 120px 1fr;
   align-items: center;
   border-bottom: 1px solid var(--line);
@@ -2181,7 +2215,7 @@ textarea::placeholder {
 
 .next-week,
 .review-writing {
-  min-height: 260px;
+  min-height: 220px;
   padding: 24px;
   border-radius: var(--radius-lg);
 }
@@ -2237,7 +2271,7 @@ textarea::placeholder {
 
 .note-row h2 {
   margin: 6px 0;
-  font-family: "Songti SC", "STSong", serif;
+  font-family: var(--font-display);
   font-size: 20px;
 }
 
@@ -2293,48 +2327,93 @@ textarea::placeholder {
 
 .character-intro {
   display: grid;
-  min-height: 360px;
-  grid-template-columns: minmax(220px, 0.7fr) minmax(300px, 1.3fr);
+  min-height: 330px;
+  grid-template-columns: minmax(230px, 0.68fr) minmax(300px, 1.32fr);
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: var(--radius-xl);
   background: var(--paper) url("assets/journal/paper-texture.svg") repeat;
 }
 
-.character-intro > .image-shell {
-  aspect-ratio: 1122 / 1402;
+.character-featured {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-height: 330px;
+  overflow: hidden;
+  padding: 0;
   background: var(--blue-soft);
+  text-align: left;
 }
 
-.character-intro > .image-shell img {
-  object-position: center 20%;
+.character-featured .image-shell {
+  width: 100%;
+  height: 100%;
+}
+
+.character-featured img {
+  object-position: center 34%;
+  transition: transform 220ms ease;
+}
+
+.character-featured:hover img {
+  transform: scale(1.012);
+}
+
+.character-featured > span:not(.image-shell) {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  gap: 5px;
+  border-radius: 999px;
+  padding: 0 10px;
+  background: rgba(255, 253, 249, 0.92);
+  color: var(--blue-deep);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.character-featured > span .icon {
+  width: 14px;
 }
 
 .character-intro > div {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: clamp(26px, 5vw, 64px);
+  padding: clamp(26px, 4vw, 52px);
 }
 
 .character-intro h2 {
-  margin: 6px 0 12px;
-  font-family: "Songti SC", "STSong", serif;
-  font-size: clamp(28px, 4vw, 42px);
+  margin: 6px 0 10px;
+  font-family: var(--font-display);
+  font-size: clamp(26px, 3vw, 32px);
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+}
+
+.character-kicker {
+  color: var(--blue-deep);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
 }
 
 .character-intro p {
-  max-width: 550px;
+  max-width: 52ch;
   margin: 0;
   color: var(--muted);
   font-size: 13px;
-  line-height: 1.8;
+  line-height: 1.72;
 }
 
 .character-intro dl {
   display: flex;
   gap: 36px;
-  margin: 28px 0 0;
+  margin: 20px 0 0;
 }
 
 .character-intro dl > div {
@@ -2351,6 +2430,17 @@ textarea::placeholder {
   margin: 5px 0 0;
   font-size: 18px;
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.character-view-button {
+  align-self: flex-start;
+  margin-top: 12px;
+  padding-inline: 0;
+}
+
+.character-view-button .icon {
+  width: 16px;
 }
 
 .outfit-shop {
@@ -2373,6 +2463,10 @@ textarea::placeholder {
   border: 1px solid var(--line);
   border-radius: 18px;
   background: var(--paper);
+}
+
+.outfit-card.featured {
+  border-color: rgba(83, 108, 170, 0.48);
 }
 
 .outfit-image {
@@ -2437,8 +2531,9 @@ textarea::placeholder {
 
 .outfit-card-copy h3 {
   margin: 0 0 4px;
-  font-family: "Songti SC", "STSong", serif;
-  font-size: 19px;
+  font-family: var(--font-display);
+  font-size: 18px;
+  line-height: 1.25;
 }
 
 .outfit-card-copy p {
@@ -2483,6 +2578,38 @@ textarea::placeholder {
   color: var(--rose);
 }
 
+.outfit-feature-action {
+  display: flex;
+  width: calc(100% - 24px);
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: -2px 12px 12px;
+  border-radius: 11px;
+  background: var(--paper-blue);
+  color: var(--blue-deep);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.outfit-feature-action:hover {
+  background: var(--blue-soft);
+}
+
+.outfit-feature-action.active,
+.outfit-feature-action.active:disabled {
+  border: 1px solid rgba(83, 108, 170, 0.22);
+  background: var(--blue-soft);
+  color: var(--blue-deep);
+  cursor: default;
+  opacity: 1;
+}
+
+.outfit-feature-action .icon {
+  width: 15px;
+}
+
 .collection-sheet {
   position: relative;
   padding: 30px 28px 30px 36px;
@@ -2508,7 +2635,7 @@ textarea::placeholder {
   max-width: 520px;
   margin: -4px 0 22px;
   color: var(--muted);
-  font-family: "Songti SC", "STSong", serif;
+  font-family: var(--font-ui);
   font-size: 12px;
   line-height: 1.7;
 }
@@ -2709,9 +2836,11 @@ textarea::placeholder {
 }
 
 .monthly-paper h2 {
-  margin: 0 0 38px;
-  font-family: "Songti SC", "STSong", serif;
-  font-size: 42px;
+  margin: 0 0 30px;
+  font-family: var(--font-display);
+  font-size: 34px;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
 }
 
 .monthly-paper-grid {
@@ -2740,6 +2869,7 @@ textarea::placeholder {
 .monthly-facts b {
   color: var(--ink);
   font-size: 18px;
+  font-variant-numeric: tabular-nums;
 }
 
 .paper-stickers {
@@ -2818,6 +2948,14 @@ textarea::placeholder {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
+}
+
+.monthly-collection-fields label > small {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 400;
 }
 
 .monthly-editor > form .primary-button {
@@ -2940,7 +3078,7 @@ textarea::placeholder {
 
 .history-months h3 {
   margin: 12px 0 9px;
-  font-family: "Songti SC", "STSong", serif;
+  font-family: var(--font-display);
   font-size: 20px;
 }
 
@@ -3025,7 +3163,7 @@ textarea::placeholder {
   margin: 0;
   padding-bottom: 4px;
   background: url("assets/journal/highlight.svg") left bottom / 100% 6px no-repeat;
-  font-family: "Songti SC", "STSong", serif;
+  font-family: var(--font-display);
   font-size: 22px;
 }
 
@@ -3183,9 +3321,24 @@ textarea::placeholder {
 }
 
 .outfit-detail-copy h3 {
-  margin: 4px 0 24px;
-  font-family: "Songti SC", "STSong", serif;
-  font-size: 38px;
+  margin: 8px 0 16px;
+  font-family: var(--font-display);
+  font-size: 32px;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+}
+
+.detail-feature-button {
+  align-self: flex-start;
+  margin-bottom: 12px;
+}
+
+.detail-feature-button.active:disabled {
+  border-color: rgba(83, 108, 170, 0.24);
+  background: var(--blue-soft);
+  color: var(--blue-deep);
+  cursor: default;
+  opacity: 1;
 }
 
 .outfit-detail-copy dl {
@@ -3447,15 +3600,15 @@ textarea::placeholder {
   }
 
   .global-fab {
-    right: 18px;
-    bottom: calc(18px + var(--safe-bottom));
-    width: 52px;
-    height: 52px;
+    right: 14px;
+    bottom: calc(14px + var(--safe-bottom));
+    width: 48px;
+    height: 48px;
   }
 
   .toast {
     right: 16px;
-    bottom: calc(82px + var(--safe-bottom));
+    bottom: calc(72px + var(--safe-bottom));
   }
 
   .collection-tabs {
@@ -3527,7 +3680,6 @@ textarea::placeholder {
   .agenda-columns,
   .review-spread,
   .review-lower,
-  .character-intro,
   .monthly-editor,
   .outfit-detail {
     grid-template-columns: 1fr;
@@ -3575,7 +3727,35 @@ textarea::placeholder {
   .review-summary,
   .review-insights {
     min-height: 0;
-    padding: 26px;
+    padding: 22px;
+  }
+
+  .review-spread {
+    margin-top: 18px;
+  }
+
+  .review-summary h2 {
+    margin-bottom: 14px;
+    font-size: 21px;
+  }
+
+  .review-stat-list > div {
+    min-height: 42px;
+  }
+
+  .review-insights dl > div {
+    min-height: 52px;
+  }
+
+  .review-lower {
+    gap: 12px;
+    margin-top: 12px;
+  }
+
+  .next-week,
+  .review-writing {
+    min-height: 0;
+    padding: 20px;
   }
 
   .review-stickers .mini-sticker-slots,
@@ -3583,17 +3763,35 @@ textarea::placeholder {
     grid-template-columns: repeat(3, minmax(68px, 88px));
   }
 
-  .character-intro > .image-shell {
-    max-height: 360px;
+  .character-intro {
+    min-height: 278px;
+    grid-template-columns: 136px minmax(0, 1fr);
+  }
+
+  .character-featured {
+    min-height: 278px;
   }
 
   .character-intro > div {
-    padding: 30px 24px;
+    padding: 22px 20px;
+  }
+
+  .character-intro h2 {
+    font-size: 23px;
+  }
+
+  .character-intro dl {
+    gap: 22px;
+    margin-top: 15px;
+  }
+
+  .character-view-button {
+    margin-top: 8px;
   }
 
   .monthly-paper {
-    min-height: 410px;
-    padding: 32px;
+    min-height: 370px;
+    padding: 28px;
   }
 
   .monthly-paper-grid {
@@ -3611,7 +3809,7 @@ textarea::placeholder {
   }
 
   .outfit-detail-art {
-    min-height: 56vh;
+    min-height: min(48vh, 460px);
   }
 
   .outfit-detail-copy {
@@ -3669,7 +3867,7 @@ textarea::placeholder {
   }
 
   #view {
-    padding: 12px 14px calc(82px + var(--safe-bottom));
+    padding: 10px 14px calc(76px + var(--safe-bottom));
   }
 
   .inner-page {
@@ -3677,21 +3875,22 @@ textarea::placeholder {
   }
 
   .page-header {
-    min-height: 102px;
+    min-height: 88px;
     align-items: flex-start;
     flex-direction: column;
     justify-content: flex-end;
-    gap: 13px;
-    padding-bottom: 18px;
+    gap: 9px;
+    padding-bottom: 14px;
   }
 
   .page-header h1 {
-    font-size: 30px;
+    font-size: 27px;
   }
 
   .page-header p {
     margin-top: 5px;
-    font-size: 12px;
+    font-size: 13px;
+    line-height: 1.55;
   }
 
   .section-head {
@@ -3892,7 +4091,17 @@ textarea::placeholder {
   }
 
   .review-insights dl > div {
-    grid-template-columns: 100px 1fr;
+    grid-template-columns: 88px minmax(0, 1fr);
+  }
+
+  .review-insights dd {
+    overflow-wrap: anywhere;
+    font-size: 13px;
+  }
+
+  .review-stickers {
+    margin-top: 12px;
+    padding: 18px 16px;
   }
 
   .review-stickers .mini-sticker-slots,
@@ -3901,7 +4110,7 @@ textarea::placeholder {
   }
 
   .collection-tabs {
-    margin: 14px auto;
+    margin: 10px auto 14px;
   }
 
   .outfit-grid {
@@ -3918,6 +4127,12 @@ textarea::placeholder {
 
   .outfit-card-copy h3 {
     font-size: 16px;
+  }
+
+  .outfit-feature-action {
+    width: calc(100% - 20px);
+    margin: -2px 10px 10px;
+    padding-inline: 8px;
   }
 
   .outfit-card-copy p {
@@ -3971,13 +4186,13 @@ textarea::placeholder {
 
   .monthly-paper h2 {
     max-width: calc(100% - 94px);
-    margin-bottom: 22px;
-    font-size: 31px;
+    margin-bottom: 18px;
+    font-size: 26px;
   }
 
   .monthly-paper {
-    min-height: 390px;
-    padding: 26px 20px 30px;
+    min-height: 350px;
+    padding: 24px 18px 26px;
   }
 
   .monthly-paper::after {
@@ -3991,7 +4206,7 @@ textarea::placeholder {
 
   .monthly-paper-grid {
     grid-template-columns: minmax(0, 1fr) 102px;
-    gap: 10px;
+    gap: 12px;
   }
 
   .monthly-character-card {
@@ -4064,11 +4279,15 @@ textarea::placeholder {
   }
 
   .outfit-detail-art {
-    min-height: 48vh;
+    min-height: 42vh;
   }
 
   .outfit-detail-copy {
     padding-top: 24px;
+  }
+
+  .outfit-detail-copy h3 {
+    font-size: 27px;
   }
 }
 
@@ -4083,6 +4302,18 @@ textarea::placeholder {
 
   .mobile-projects-button span {
     display: none;
+  }
+
+  .character-intro {
+    grid-template-columns: 116px minmax(0, 1fr);
+  }
+
+  .character-intro > div {
+    padding-inline: 14px;
+  }
+
+  .character-intro p {
+    font-size: 12px;
   }
 
   .mobile-projects-button {
