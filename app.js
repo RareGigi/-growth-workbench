@@ -16,6 +16,16 @@
   let toastTimer = null;
   let toastMessage = '';
   let todaySection = 'tasks';
+  let rainAnimationFrame = null;
+  let rainSceneCleanup = null;
+  let focusAudioContext = null;
+  let focusAudioGraph = null;
+  let focusAudioPlaying = false;
+  let focusAudioEpoch = 0;
+  let focusRainBuffer = null;
+  let focusMusicTimer = null;
+  let focusMusicStep = 0;
+  let focusWakeLock = null;
 
   const NAV = [
     ['today', '今日', 'today'],
@@ -89,6 +99,10 @@
     pause: '<path d="M9 7v10M15 7v10"/>',
     play: '<path d="m9 6 9 6-9 6z"/>',
     stop: '<rect x="7" y="7" width="10" height="10" rx="1"/>',
+    rain: '<path d="M7.2 15.2c-2.1 0-3.7-1.5-3.7-3.5 0-1.8 1.3-3.2 3-3.5A5.7 5.7 0 0 1 17.2 7a4 4 0 0 1 .3 8.1H7.2zM8 18.2l-1 2M13 18.2l-1 2M18 18.2l-1 2"/>',
+    music: '<path d="M9 18V7l10-2v11M9 10l10-2M6.5 21A2.5 2.5 0 1 0 6.5 16a2.5 2.5 0 0 0 0 5zM16.5 19a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/>',
+    volume: '<path d="M4 10h4l5-4v12l-5-4H4zM16 9a4.2 4.2 0 0 1 0 6M18.5 6.5a7.8 7.8 0 0 1 0 11"/>',
+    muted: '<path d="M4 10h4l5-4v12l-5-4H4zM17 10l4 4M21 10l-4 4"/>',
     check: '<path d="m6 12 4 4 8-9"/>',
     heart: '<path d="M20 8.5c0 5-8 10-8 10s-8-5-8-10A4.5 4.5 0 0 1 12 5.7a4.5 4.5 0 0 1 8 2.8z"/>',
     lock: '<rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
@@ -652,6 +666,275 @@
     return Math.max(0, (Number(timer.remainingSeconds) || 0) - elapsed);
   }
 
+  const FOCUS_CHORDS = [
+    [130.81, 196, 246.94, 329.63],
+    [110, 164.81, 220, 261.63],
+    [87.31, 130.81, 174.61, 261.63],
+    [98, 146.83, 196, 293.66]
+  ];
+
+  function stopRainScene() {
+    if (rainAnimationFrame) cancelAnimationFrame(rainAnimationFrame);
+    rainAnimationFrame = null;
+    if (rainSceneCleanup) rainSceneCleanup();
+    rainSceneCleanup = null;
+  }
+
+  function setupRainScene() {
+    stopRainScene();
+    const canvas = document.querySelector('[data-rain-canvas]');
+    if (!canvas || /jsdom/i.test(navigator.userAgent)) return;
+    let context;
+    try { context = canvas.getContext('2d'); } catch (error) { return; }
+    if (!context) return;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let width = 0;
+    let height = 0;
+    let drops = [];
+    const resetDrop = (drop, initial = false) => {
+      drop.x = Math.random() * (width + 100) + 30;
+      drop.y = initial ? Math.random() * height : -Math.random() * 120 - 20;
+      drop.length = 8 + Math.random() * 24;
+      drop.speed = 2.4 + Math.random() * 4.8;
+      drop.alpha = 0.12 + Math.random() * 0.28;
+      drop.lineWidth = Math.random() > 0.86 ? 1.35 : 0.7;
+      return drop;
+    };
+    const resize = () => {
+      const bounds = canvas.getBoundingClientRect();
+      width = Math.max(1, Math.round(bounds.width));
+      height = Math.max(1, Math.round(bounds.height));
+      const ratio = Math.min(window.devicePixelRatio || 1, 1.5);
+      canvas.width = Math.round(width * ratio);
+      canvas.height = Math.round(height * ratio);
+      context.setTransform(ratio, 0, 0, ratio, 0, 0);
+      const active = state().timer?.status === 'running';
+      const density = width < 560 ? (active ? 62 : 38) : (active ? 108 : 68);
+      drops = Array.from({ length: density }, () => resetDrop({}, true));
+    };
+    const paint = () => {
+      context.clearRect(0, 0, width, height);
+      drops.forEach((drop) => {
+        context.beginPath();
+        context.moveTo(drop.x, drop.y);
+        context.lineTo(drop.x - drop.length * 0.16, drop.y + drop.length);
+        context.lineWidth = drop.lineWidth;
+        context.lineCap = 'round';
+        context.strokeStyle = `rgba(214, 229, 255, ${drop.alpha})`;
+        context.stroke();
+        if (!reduceMotion) {
+          drop.y += drop.speed;
+          drop.x -= drop.speed * 0.16;
+          if (drop.y > height + drop.length || drop.x < -40) resetDrop(drop);
+        }
+      });
+      if (!reduceMotion) rainAnimationFrame = requestAnimationFrame(paint);
+    };
+    resize();
+    paint();
+    window.addEventListener('resize', resize, { passive: true });
+    rainSceneCleanup = () => window.removeEventListener('resize', resize);
+  }
+
+  function makeRainNoise(context) {
+    if (focusRainBuffer && focusRainBuffer.sampleRate === context.sampleRate) return focusRainBuffer;
+    const seconds = 7;
+    const buffer = context.createBuffer(2, context.sampleRate * seconds, context.sampleRate);
+    for (let channel = 0; channel < buffer.numberOfChannels; channel += 1) {
+      const data = buffer.getChannelData(channel);
+      let brown = 0;
+      for (let index = 0; index < data.length; index += 1) {
+        const white = Math.random() * 2 - 1;
+        brown = (brown + 0.018 * white) / 1.018;
+        data[index] = Math.max(-1, Math.min(1, brown * 3.2 + white * 0.07));
+      }
+    }
+    focusRainBuffer = buffer;
+    return buffer;
+  }
+
+  function scheduleFocusMusic(graph, immediate = false) {
+    if (!focusAudioPlaying || focusAudioGraph !== graph || !state().focusSettings.musicEnabled) return;
+    const context = graph.context;
+    const chord = FOCUS_CHORDS[focusMusicStep % FOCUS_CHORDS.length];
+    focusMusicStep += 1;
+    const now = context.currentTime + (immediate ? 0.04 : 0.12);
+    chord.forEach((frequency, index) => {
+      const oscillator = context.createOscillator();
+      const envelope = context.createGain();
+      oscillator.type = index % 2 ? 'sine' : 'triangle';
+      oscillator.frequency.setValueAtTime(frequency, now);
+      oscillator.detune.setValueAtTime((index - 1.5) * 2.5, now);
+      envelope.gain.setValueAtTime(0.0001, now);
+      envelope.gain.exponentialRampToValueAtTime(0.055, now + 1.8);
+      envelope.gain.exponentialRampToValueAtTime(0.0001, now + 8.4);
+      oscillator.connect(envelope).connect(graph.musicFilter);
+      oscillator.start(now);
+      oscillator.stop(now + 8.6);
+      graph.musicNodes.add(oscillator);
+      oscillator.addEventListener('ended', () => graph.musicNodes.delete(oscillator), { once: true });
+    });
+    const bell = context.createOscillator();
+    const bellEnvelope = context.createGain();
+    bell.type = 'sine';
+    bell.frequency.setValueAtTime(chord[3] * 2, now + 2.2);
+    bellEnvelope.gain.setValueAtTime(0.0001, now + 2.2);
+    bellEnvelope.gain.exponentialRampToValueAtTime(0.022, now + 2.25);
+    bellEnvelope.gain.exponentialRampToValueAtTime(0.0001, now + 4.7);
+    bell.connect(bellEnvelope).connect(graph.musicFilter);
+    bell.start(now + 2.2);
+    bell.stop(now + 4.8);
+    graph.musicNodes.add(bell);
+    bell.addEventListener('ended', () => graph.musicNodes.delete(bell), { once: true });
+    clearTimeout(focusMusicTimer);
+    focusMusicTimer = setTimeout(() => scheduleFocusMusic(graph), 7200);
+  }
+
+  function applyFocusAudioLevels(smooth = true) {
+    const graph = focusAudioGraph;
+    if (!graph) return;
+    const settings = state().focusSettings;
+    const now = graph.context.currentTime;
+    const setLevel = (gain, value) => {
+      gain.gain.cancelScheduledValues(now);
+      if (smooth) gain.gain.setTargetAtTime(Math.max(0.0001, value), now, 0.12);
+      else gain.gain.setValueAtTime(Math.max(0.0001, value), now);
+    };
+    setLevel(graph.rainGain, settings.rainEnabled ? settings.rainVolume : 0);
+    setLevel(graph.musicGain, settings.musicEnabled ? settings.musicVolume : 0);
+    if (!settings.musicEnabled) {
+      clearTimeout(focusMusicTimer);
+      focusMusicTimer = null;
+    } else if (focusAudioPlaying && !focusMusicTimer) scheduleFocusMusic(graph, true);
+  }
+
+  async function startFocusAudio() {
+    const settings = state().focusSettings;
+    if (!settings.rainEnabled && !settings.musicEnabled) return false;
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return false;
+    const requestEpoch = ++focusAudioEpoch;
+    try {
+      if (!focusAudioContext || focusAudioContext.state === 'closed') focusAudioContext = new AudioContextClass();
+      if (focusAudioContext.state === 'suspended') await focusAudioContext.resume();
+      if (requestEpoch !== focusAudioEpoch) return false;
+      if (focusAudioGraph) stopFocusAudio(true);
+      const context = focusAudioContext;
+      const master = context.createGain();
+      const compressor = context.createDynamicsCompressor();
+      const rainSource = context.createBufferSource();
+      const rainFilter = context.createBiquadFilter();
+      const rainHighPass = context.createBiquadFilter();
+      const rainGain = context.createGain();
+      const musicFilter = context.createBiquadFilter();
+      const musicGain = context.createGain();
+      master.gain.setValueAtTime(0.0001, context.currentTime);
+      master.gain.exponentialRampToValueAtTime(0.82, context.currentTime + 0.65);
+      compressor.threshold.value = -24;
+      compressor.knee.value = 16;
+      compressor.ratio.value = 4;
+      rainSource.buffer = makeRainNoise(context);
+      rainSource.loop = true;
+      rainFilter.type = 'lowpass';
+      rainFilter.frequency.value = 6200;
+      rainFilter.Q.value = 0.4;
+      rainHighPass.type = 'highpass';
+      rainHighPass.frequency.value = 320;
+      musicFilter.type = 'lowpass';
+      musicFilter.frequency.value = 2100;
+      musicFilter.Q.value = 0.55;
+      rainSource.connect(rainHighPass).connect(rainFilter).connect(rainGain).connect(master);
+      musicFilter.connect(musicGain).connect(master);
+      master.connect(compressor).connect(context.destination);
+      const graph = { context, master, compressor, rainSource, rainGain, musicFilter, musicGain, musicNodes: new Set(), epoch: ++focusAudioEpoch };
+      focusAudioGraph = graph;
+      focusAudioPlaying = true;
+      applyFocusAudioLevels(false);
+      rainSource.start();
+      return true;
+    } catch (error) {
+      console.warn('小小生长册：当前浏览器未能开启专注声音。', error);
+      focusAudioGraph = null;
+      focusAudioPlaying = false;
+      return false;
+    }
+  }
+
+  function stopFocusAudio(immediate = false) {
+    focusAudioPlaying = false;
+    focusAudioEpoch += 1;
+    clearTimeout(focusMusicTimer);
+    focusMusicTimer = null;
+    const graph = focusAudioGraph;
+    focusAudioGraph = null;
+    if (!graph) return;
+    const now = graph.context.currentTime;
+    const fadeSeconds = immediate ? 0.02 : 0.48;
+    try {
+      graph.master.gain.cancelScheduledValues(now);
+      graph.master.gain.setValueAtTime(Math.max(0.0001, graph.master.gain.value), now);
+      graph.master.gain.exponentialRampToValueAtTime(0.0001, now + fadeSeconds);
+    } catch (error) { /* Audio graph may already be closing. */ }
+    setTimeout(() => {
+      try { graph.rainSource.stop(); } catch (error) { /* Already stopped. */ }
+      graph.musicNodes.forEach((node) => { try { node.stop(); } catch (error) { /* Already stopped. */ } });
+      try { graph.master.disconnect(); } catch (error) { /* Already disconnected. */ }
+    }, Math.ceil(fadeSeconds * 1000) + 40);
+  }
+
+  function toggleFocusAudio() {
+    if (focusAudioPlaying) {
+      stopFocusAudio();
+      announce('专注氛围已关闭');
+      render({ preserveScroll: true });
+      return;
+    }
+    const soundAttempt = startFocusAudio();
+    announce('正在开启雨夜氛围');
+    render({ preserveScroll: true });
+    soundAttempt.then((started) => {
+      if (state().ui.page !== 'focus') return;
+      announce(started ? '雨夜氛围已开启' : '请先选择一种声音，或检查浏览器声音权限');
+      render({ preserveScroll: true });
+    });
+  }
+
+  function toggleFocusSound(channel) {
+    if (!['rain', 'music'].includes(channel)) return;
+    const settings = state().focusSettings;
+    const key = `${channel}Enabled`;
+    settings[key] = !settings[key];
+    Core.save('focus-sound-toggle');
+    const anyEnabled = settings.rainEnabled || settings.musicEnabled;
+    let soundAttempt = null;
+    if (!anyEnabled) {
+      stopFocusAudio();
+    } else if (focusAudioPlaying) {
+      applyFocusAudioLevels();
+    } else if (settings[key]) {
+      soundAttempt = startFocusAudio();
+    }
+    announce(`${channel === 'rain' ? '窗雨' : '星雨琴音'}已${settings[key] ? '开启' : '关闭'}`);
+    render({ preserveScroll: true });
+    soundAttempt?.then((started) => {
+      if (started && state().ui.page === 'focus' && focusAudioPlaying) render({ preserveScroll: true });
+    });
+  }
+
+  async function requestFocusWakeLock() {
+    if (!('wakeLock' in navigator) || document.hidden || focusWakeLock) return;
+    try {
+      focusWakeLock = await navigator.wakeLock.request('screen');
+      focusWakeLock.addEventListener('release', () => { focusWakeLock = null; }, { once: true });
+    } catch (error) { /* Wake lock is an enhancement and may be unavailable in Low Power Mode. */ }
+  }
+
+  function releaseFocusWakeLock() {
+    if (!focusWakeLock) return;
+    focusWakeLock.release().catch(() => {});
+    focusWakeLock = null;
+  }
+
   function focusPage() {
     const timer = state().timer;
     const remaining = remainingSeconds(timer);
@@ -661,16 +944,28 @@
     const todaySeconds = todaySessions.reduce((sum, session) => sum + sessionSeconds(session), 0);
     const tasks = activeTasks().filter((task) => task.status === 'todo');
     const currentLabel = timer?.label || taskById(timer?.taskId)?.title || '';
-    return `<div class="page inner-page focus-page">
-      ${pageHeader('FOCUS ROOM', '专注室', '这一页只留下一件事。')}
-      <section class="focus-room">
-        <div class="focus-scene">${img('assets/scenes/focus-night.webp', '银灰发青年在蓝紫夜色书桌前专注阅读', 1586, 992, { className: 'focus-scene-image' })}<span>静夜书房</span></div>
+    const settings = state().focusSettings;
+    const audioSupported = Boolean(window.AudioContext || window.webkitAudioContext);
+    const sessionState = timer?.status === 'running' ? '正在专注' : timer?.status === 'paused' ? '暂时停笔' : '准备开始';
+    const soundState = focusAudioPlaying ? '氛围播放中' : timer?.status === 'running' ? '点按开启声音' : '开始时自动播放';
+    return `<div class="page inner-page focus-page ${timer ? 'has-session' : ''} ${timer?.status === 'running' ? 'is-running' : ''}">
+      ${pageHeader('FOCUS ROOM', '雨夜自习室', '把雨留在窗外，把这一刻留给自己。')}
+      <section class="focus-room" aria-label="雨夜专注自习室">
+        <div class="focus-scene">${img('assets/scenes/focus-night.webp', '银灰发青年在雨夜书桌前安静学习', 1586, 992, { className: 'focus-scene-image', eager: true })}<canvas class="rain-canvas" width="1586" height="992" data-rain-canvas aria-hidden="true"></canvas><div class="focus-scene-shade" aria-hidden="true"></div><div class="focus-weather">${icon('rain')}<span><b>窗外有雨</b><small>${timer?.status === 'running' ? '雨幕会陪你到这一轮结束' : '轻触开始，进入自习室'}</small></span><em>动态场景</em></div><div class="focus-scene-caption"><span>RAINY STUDY ROOM</span><p>暖灯、夜雨与安静的书桌。</p></div></div>
         <div class="timer-panel">
-          <label>当前任务<select id="focus-task" ${timer ? 'disabled' : ''}><option value="">自定义专注</option>${tasks.map((task) => `<option value="${attr(task.id)}" ${(timer?.taskId || focusDraftTaskId) === task.id ? 'selected' : ''}>${esc(task.title)}</option>`).join('')}</select></label>
-          <label>专注内容<input id="focus-label" maxlength="80" value="${attr(currentLabel)}" placeholder="现在只做这一件事" ${timer ? 'disabled' : ''}></label>
-          <div class="timer-ring" style="--progress:${progress}"><svg viewBox="0 0 160 160" aria-hidden="true"><circle cx="80" cy="80" r="70"/><circle class="timer-progress" cx="80" cy="80" r="70" data-timer-ring/></svg><strong data-timer-clock>${formatClock(remaining)}</strong></div>
-          <div class="duration-switch ${timer ? 'disabled' : ''}">${[25, 45, 60].map((minutes) => `<button type="button" data-action="focus-duration" data-value="${minutes}" class="${!timer && focusDuration === minutes || timer?.durationSeconds === minutes * 60 ? 'active' : ''}" ${timer ? 'disabled' : ''}>${minutes}</button>`).join('')}</div>
+          <div class="focus-mode-status"><span><i></i>${sessionState}</span><small>${currentLabel || '先选好这一轮要完成的事'}</small></div>
+          <div class="focus-fields"><label>当前任务<select id="focus-task" ${timer ? 'disabled' : ''}><option value="">自定义专注</option>${tasks.map((task) => `<option value="${attr(task.id)}" ${(timer?.taskId || focusDraftTaskId) === task.id ? 'selected' : ''}>${esc(task.title)}</option>`).join('')}</select></label><label>这一轮只做<input id="focus-label" maxlength="80" value="${attr(currentLabel)}" placeholder="例如：CPA 审计专题六" ${timer ? 'disabled' : ''}></label></div>
+          <div class="timer-ring" style="--progress:${progress}" role="timer" aria-label="剩余时间 ${formatClock(remaining)}"><svg viewBox="0 0 160 160" aria-hidden="true"><circle cx="80" cy="80" r="70"/><circle class="timer-progress" cx="80" cy="80" r="70" data-timer-ring/></svg><strong data-timer-clock>${formatClock(remaining)}</strong><span>${timer?.status === 'paused' ? '已暂停' : '保持此刻'}</span></div>
+          <div class="duration-switch ${timer ? 'disabled' : ''}" aria-label="专注时长">${[25, 45, 60].map((minutes) => `<button type="button" data-action="focus-duration" data-value="${minutes}" class="${!timer && focusDuration === minutes || timer?.durationSeconds === minutes * 60 ? 'active' : ''}" aria-pressed="${!timer && focusDuration === minutes || timer?.durationSeconds === minutes * 60}" ${timer ? 'disabled' : ''}>${minutes}<small>分钟</small></button>`).join('')}</div>
           <div class="timer-actions">${!timer ? `<button type="button" class="primary-button" data-action="focus-start">${icon('play')}开始</button>` : timer.status === 'paused' ? `<button type="button" class="primary-button" data-action="focus-resume">${icon('play')}继续</button>` : `<button type="button" class="primary-button" data-action="focus-pause">${icon('pause')}暂停</button>`}<button type="button" class="secondary-button" data-action="focus-end" ${timer ? '' : 'disabled'}>${icon('stop')}结束</button></div>
+          <section class="focus-soundscape" aria-label="专注氛围声音">
+            <header><div><span>自习室声音</span><b>${soundState}</b></div><button type="button" class="sound-master ${focusAudioPlaying ? 'active' : ''}" data-action="focus-audio-master" aria-pressed="${focusAudioPlaying}" ${audioSupported ? '' : 'disabled'}>${icon(focusAudioPlaying ? 'muted' : 'volume')}<span>${focusAudioPlaying ? '关闭' : timer ? '开启' : '试听'}</span></button></header>
+            <div class="sound-channels">
+              <div class="sound-channel ${settings.rainEnabled ? 'enabled' : ''}"><button type="button" data-action="focus-sound-toggle" data-channel="rain" aria-pressed="${settings.rainEnabled}">${icon('rain')}<span><b>窗雨</b><small>柔和白噪音</small></span></button><label><span>雨声</span><input type="range" min="0" max="100" step="1" value="${Math.round(settings.rainVolume * 100)}" data-focus-volume="rain" aria-label="窗雨音量"><output data-focus-output="rain">${Math.round(settings.rainVolume * 100)}%</output></label></div>
+              <div class="sound-channel ${settings.musicEnabled ? 'enabled' : ''}"><button type="button" data-action="focus-sound-toggle" data-channel="music" aria-pressed="${settings.musicEnabled}">${icon('music')}<span><b>星雨琴音</b><small>原创生成轻音乐</small></span></button><label><span>音乐</span><input type="range" min="0" max="100" step="1" value="${Math.round(settings.musicVolume * 100)}" data-focus-volume="music" aria-label="星雨琴音音量"><output data-focus-output="music">${Math.round(settings.musicVolume * 100)}%</output></label></div>
+            </div>
+            <p>声音仅在你点击后播放；暂停与结束时会自动淡出。</p>
+          </section>
           <div class="focus-totals"><span><small>今日累计</small><b>${formatMinutes(todaySeconds / 60)}</b></span><span><small>今日番茄</small><b>${todaySessions.length}</b></span></div>
         </div>
       </section>
@@ -980,10 +1275,15 @@
   }
 
   function render(options = {}) {
+    if (state().ui.page !== 'focus') {
+      stopFocusAudio();
+      releaseFocusWakeLock();
+    }
     const scroll = options.preserveScroll ? window.scrollY : 0;
     app.innerHTML = shell();
     document.body.classList.toggle('modal-open', Boolean(modal));
     document.body.classList.toggle('drawer-open-body', drawerOpen);
+    document.body.classList.toggle('focus-session-active', state().ui.page === 'focus' && state().timer?.status === 'running');
     const mobileLayout = window.matchMedia('(max-width: 900px)').matches;
     const renderedSidebar = document.querySelector('#app-sidebar');
     const renderedMain = document.querySelector('.main-shell');
@@ -1005,6 +1305,8 @@
         document.querySelector('.toast')?.classList.remove('show');
       }, 2600);
     }
+    if (state().ui.page === 'focus') setupRainScene();
+    else stopRainScene();
     syncTimerView();
   }
 
@@ -1019,6 +1321,10 @@
   }
 
   function navigate(page) {
+    if (state().ui.page === 'focus' && page !== 'focus') {
+      stopFocusAudio();
+      releaseFocusWakeLock();
+    }
     state().ui.page = page;
     drawerOpen = false;
     searchQuery = '';
@@ -1096,7 +1402,12 @@
       lastStartedAt: now
     };
     focusDraftTaskId = taskId || '';
-    saveAndRender('focus-start', '专注开始');
+    const soundAttempt = startFocusAudio();
+    void requestFocusWakeLock();
+    saveAndRender('focus-start', '专注开始 · 雨夜自习室已进入');
+    soundAttempt.then((started) => {
+      if (started && state().ui.page === 'focus' && state().timer?.status === 'running') render({ preserveScroll: true });
+    });
   }
 
   function pauseFocus() {
@@ -1105,6 +1416,8 @@
     timer.remainingSeconds = remainingSeconds(timer);
     timer.status = 'paused';
     timer.lastStartedAt = null;
+    stopFocusAudio();
+    releaseFocusWakeLock();
     saveAndRender('focus-pause', '已暂停');
   }
 
@@ -1113,7 +1426,12 @@
     if (!timer || timer.status !== 'paused') return;
     timer.status = 'running';
     timer.lastStartedAt = Date.now();
+    const soundAttempt = startFocusAudio();
+    void requestFocusWakeLock();
     saveAndRender('focus-resume', '继续专注');
+    soundAttempt.then((started) => {
+      if (started && state().ui.page === 'focus' && state().timer?.status === 'running') render({ preserveScroll: true });
+    });
   }
 
   function finishFocus(completedByTimer = false) {
@@ -1121,6 +1439,8 @@
     const timer = state().timer;
     if (!timer) return;
     timerFinishing = true;
+    stopFocusAudio();
+    releaseFocusWakeLock();
     const remaining = completedByTimer ? 0 : remainingSeconds(timer);
     const actualSeconds = Math.max(1, Math.round((Number(timer.durationSeconds) || 0) - remaining));
     const actualMinutes = actualSeconds / 60;
@@ -1299,6 +1619,8 @@
     if (action === 'focus-pause') return pauseFocus();
     if (action === 'focus-resume') return resumeFocus();
     if (action === 'focus-end') return finishFocus(false);
+    if (action === 'focus-audio-master') return toggleFocusAudio();
+    if (action === 'focus-sound-toggle') return toggleFocusSound(target.dataset.channel);
     if (action === 'habit-new') return openModal({ type: 'habit' });
     if (action === 'habit-toggle') {
       const habit = state().habits.find((item) => item.id === id);
@@ -1512,6 +1834,17 @@
   });
 
   app.addEventListener('input', (event) => {
+    if (event.target.matches('[data-focus-volume]')) {
+      const channel = event.target.dataset.focusVolume;
+      if (!['rain', 'music'].includes(channel)) return;
+      const volume = Core.clamp(Number(event.target.value) / 100, 0, 1);
+      state().focusSettings[`${channel}Volume`] = volume;
+      const output = document.querySelector(`[data-focus-output="${channel}"]`);
+      if (output) output.textContent = `${Math.round(volume * 100)}%`;
+      applyFocusAudioLevels();
+      Core.save('focus-volume');
+      return;
+    }
     if (event.target.id === 'smart-task-input') {
       updateSmartTaskPreview(event.target.value);
       return;
@@ -1597,7 +1930,11 @@
     else if (drawerOpen) { drawerOpen = false; render({ preserveScroll: true, focusSelector: '.mobile-projects-button' }); }
     else if (searchQuery) { searchQuery = ''; render({ preserveScroll: true }); }
   });
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) syncTimerView(); });
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) return;
+    syncTimerView();
+    if (state().ui.page === 'focus' && state().timer?.status === 'running') void requestFocusWakeLock();
+  });
 
   render();
   timerLoop = setInterval(syncTimerView, 250);

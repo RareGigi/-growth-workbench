@@ -18,8 +18,8 @@
   --sage: #6ea086;
   --danger: #b46872;
   --paper-rule: rgba(137, 153, 193, 0.2);
-  --shadow: 0 14px 34px rgba(56, 66, 101, 0.08);
-  --shadow-small: 0 7px 18px rgba(56, 66, 101, 0.06);
+  --shadow: 0 14px 34px rgba(32, 33, 40, 0.08);
+  --shadow-small: 0 7px 18px rgba(32, 33, 40, 0.06);
   --radius-xl: 20px;
   --radius-lg: 16px;
   --radius-md: 12px;
@@ -909,7 +909,7 @@ textarea::placeholder {
   padding: 22px 24px;
   border-left: 3px solid rgba(255, 255, 255, 0.82);
   color: #fff;
-  text-shadow: 0 1px 12px rgba(25, 34, 59, 0.28);
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.28);
 }
 
 .hero-date span {
@@ -1287,7 +1287,7 @@ textarea::placeholder {
 .segmented button.active {
   background: #fff;
   color: var(--ink);
-  box-shadow: 0 2px 8px rgba(60, 70, 110, 0.09);
+  box-shadow: 0 2px 8px rgba(32, 33, 40, 0.09);
   font-weight: 700;
 }
 
@@ -1955,50 +1955,215 @@ textarea::placeholder {
 }
 
 .focus-room {
+  position: relative;
+  isolation: isolate;
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.75fr);
-  min-height: 590px;
+  grid-template-columns: minmax(0, 1fr) minmax(350px, 410px);
+  min-height: 660px;
   overflow: hidden;
   margin-top: 26px;
-  border: 1px solid var(--line);
+  border: 1px solid rgba(69, 80, 113, 0.36);
   border-radius: var(--radius-xl);
-  background: var(--paper);
+  background: #192030;
+  box-shadow: 0 20px 46px rgba(0, 0, 0, 0.14);
 }
 
 .focus-scene {
   position: relative;
-  min-height: 590px;
+  z-index: 0;
+  grid-column: 1 / -1;
+  grid-row: 1;
+  min-height: 660px;
 }
 
 .focus-scene .image-shell {
+  position: absolute;
+  inset: 0;
+  display: block;
   width: 100%;
   height: 100%;
+  background: #20283a;
 }
 
 .focus-scene-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   object-position: center;
 }
 
-.focus-scene > span {
+.rain-canvas,
+.focus-scene-shade {
   position: absolute;
-  right: 18px;
-  bottom: 16px;
-  padding: 7px 10px;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.rain-canvas {
+  z-index: 1;
+  opacity: 0.76;
+}
+
+.focus-scene-shade {
+  z-index: 2;
+  background:
+    linear-gradient(90deg, rgba(17, 23, 36, 0.04) 0%, rgba(17, 23, 36, 0.08) 46%, rgba(17, 23, 36, 0.72) 100%),
+    linear-gradient(0deg, rgba(15, 21, 34, 0.54) 0%, transparent 44%);
+}
+
+.focus-weather,
+.focus-scene-caption {
+  position: absolute;
+  z-index: 3;
+  color: #f8f8fb;
+}
+
+.focus-weather {
+  top: 18px;
+  left: 18px;
+  display: flex;
+  min-height: 54px;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 15px;
+  background: rgba(26, 34, 53, 0.62);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(9px);
+  -webkit-backdrop-filter: blur(9px);
+}
+
+.focus-weather .icon {
+  width: 23px;
+  height: 23px;
+  color: #d8e5ff;
+}
+
+.focus-weather > span {
+  display: grid;
+  line-height: 1.25;
+}
+
+.focus-weather b {
+  font-size: 13px;
+}
+
+.focus-weather small {
+  margin-top: 3px;
+  color: rgba(247, 249, 255, 0.72);
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.focus-weather em {
+  margin-left: 4px;
+  padding: 4px 7px;
   border-radius: 999px;
-  background: rgba(255, 253, 249, 0.9);
-  color: var(--ink-soft);
-  font-size: 12px;
+  background: rgba(218, 229, 255, 0.16);
+  color: #e8efff;
+  font-size: 9px;
+  font-style: normal;
+  letter-spacing: 0.08em;
+}
+
+.focus-scene-caption {
+  bottom: 24px;
+  left: 24px;
+  max-width: min(40%, 360px);
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.48);
+}
+
+.focus-scene-caption span {
+  color: rgba(238, 243, 255, 0.72);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+}
+
+.focus-scene-caption p {
+  margin: 7px 0 0;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 .timer-panel {
+  position: relative;
+  z-index: 4;
   display: flex;
+  grid-column: 2;
+  grid-row: 1;
   flex-direction: column;
   align-items: stretch;
   justify-content: center;
-  padding: 34px clamp(24px, 4vw, 52px);
+  align-self: center;
+  max-height: calc(100% - 32px);
+  overflow-y: auto;
+  margin: 16px;
+  padding: 23px 24px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.66);
+  border-radius: 20px;
+  background: rgba(255, 254, 250, 0.94) url("assets/journal/paper-texture.svg") repeat;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.22);
+  scrollbar-width: thin;
 }
 
-.timer-panel > label,
+.focus-mode-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.focus-mode-status > span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--blue-deep);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.focus-mode-status i {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--blue);
+  box-shadow: 0 0 0 4px rgba(37, 44, 66, 0.06);
+}
+
+.is-running .focus-mode-status i {
+  animation: focus-pulse 2.2s ease-in-out infinite;
+}
+
+.focus-mode-status small {
+  max-width: 58%;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@keyframes focus-pulse {
+  50% { opacity: 0.56; }
+}
+
+.focus-fields {
+  display: grid;
+  grid-template-columns: 0.82fr 1.18fr;
+  gap: 9px;
+}
+
+.focus-fields label,
 .modal-card form > label,
 .form-grid > label,
 .monthly-editor form label {
@@ -2010,11 +2175,26 @@ textarea::placeholder {
   font-weight: 600;
 }
 
+.focus-fields label {
+  margin-bottom: 0;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.focus-fields input,
+.focus-fields select {
+  min-height: 42px;
+  padding-inline: 11px;
+  border-color: rgba(199, 207, 227, 0.9);
+  border-radius: 11px;
+  font-size: 12px;
+}
+
 .timer-ring {
   position: relative;
-  width: 220px;
-  height: 220px;
-  margin: 22px auto;
+  width: 196px;
+  height: 196px;
+  margin: 14px auto 12px;
 }
 
 .timer-ring svg {
@@ -2025,7 +2205,7 @@ textarea::placeholder {
 
 .timer-ring circle {
   fill: none;
-  stroke: #e8eaf1;
+  stroke: #e4e8f1;
   stroke-width: 5;
 }
 
@@ -2042,9 +2222,22 @@ textarea::placeholder {
   display: grid;
   place-items: center;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: clamp(36px, 5vw, 52px);
+  font-size: clamp(34px, 4vw, 46px);
   font-weight: 500;
   letter-spacing: -0.06em;
+  transform: translateY(-7px);
+}
+
+.timer-ring > span {
+  position: absolute;
+  top: calc(50% + 26px);
+  right: 0;
+  left: 0;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-align: center;
 }
 
 .duration-switch {
@@ -2057,9 +2250,18 @@ textarea::placeholder {
 }
 
 .duration-switch button {
-  min-height: 44px;
+  display: grid;
+  min-height: 48px;
+  place-content: center;
+  gap: 0;
   border-radius: 11px;
   color: var(--muted);
+  font-size: 14px;
+}
+
+.duration-switch button small {
+  font-size: 9px;
+  font-weight: 500;
 }
 
 .duration-switch button.active {
@@ -2076,16 +2278,159 @@ textarea::placeholder {
   margin-top: 14px;
 }
 
+.timer-actions button {
+  min-height: 46px;
+}
+
+.focus-soundscape {
+  margin-top: 16px;
+  padding-top: 15px;
+  border-top: 1px solid var(--line);
+}
+
+.focus-soundscape > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.focus-soundscape > header > div {
+  display: grid;
+  line-height: 1.3;
+}
+
+.focus-soundscape > header span,
+.sound-channel label > span {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.focus-soundscape > header b {
+  margin-top: 2px;
+  font-size: 12px;
+}
+
+.sound-master {
+  display: flex;
+  min-width: 74px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  color: var(--ink-soft);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.sound-master.active {
+  border-color: rgba(83, 108, 170, 0.34);
+  background: var(--blue-soft);
+  color: var(--blue-deep);
+}
+
+.sound-master .icon {
+  width: 17px;
+  height: 17px;
+}
+
+.sound-channels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 11px;
+}
+
+.sound-channel {
+  min-width: 0;
+  padding: 9px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: rgba(248, 249, 253, 0.72);
+  opacity: 0.68;
+  transition: border-color 160ms ease, background-color 160ms ease, opacity 160ms ease;
+}
+
+.sound-channel.enabled {
+  border-color: rgba(108, 136, 200, 0.3);
+  background: rgba(232, 238, 251, 0.72);
+  opacity: 1;
+}
+
+.sound-channel > button {
+  display: flex;
+  width: 100%;
+  min-height: 44px;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+}
+
+.sound-channel > button .icon {
+  width: 19px;
+  height: 19px;
+  color: var(--blue-deep);
+}
+
+.sound-channel > button span {
+  display: grid;
+  line-height: 1.25;
+}
+
+.sound-channel > button b {
+  font-size: 11px;
+}
+
+.sound-channel > button small {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.sound-channel label {
+  display: grid;
+  min-height: 44px;
+  grid-template-columns: auto minmax(44px, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.sound-channel output {
+  min-width: 27px;
+  color: var(--muted);
+  font-size: 9px;
+  text-align: right;
+}
+
+.sound-channel input[type="range"] {
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  accent-color: var(--blue-deep);
+}
+
+.focus-soundscape > p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.45;
+}
+
 .focus-totals {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  margin-top: 18px;
+  margin-top: 12px;
   border-top: 1px solid var(--line);
 }
 
 .focus-totals > span {
   display: flex;
-  min-height: 70px;
+  min-height: 54px;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -2102,8 +2447,8 @@ textarea::placeholder {
 }
 
 .focus-totals b {
-  margin-top: 5px;
-  font-size: 16px;
+  margin-top: 3px;
+  font-size: 14px;
 }
 
 .focus-history {
@@ -3013,7 +3358,7 @@ textarea::placeholder {
   border: 1px solid rgba(94, 92, 145, 0.2);
   border-radius: 16px;
   background: var(--blue-soft);
-  box-shadow: 0 8px 20px rgba(63, 73, 115, 0.09);
+  box-shadow: 0 8px 20px rgba(32, 33, 40, 0.09);
 }
 
 .monthly-character-card > .image-shell {
@@ -3230,7 +3575,7 @@ textarea::placeholder {
   border-radius: 50%;
   background: var(--blue-deep);
   color: #fff;
-  box-shadow: 0 12px 24px rgba(67, 87, 145, 0.26);
+  box-shadow: 0 12px 24px rgba(28, 30, 38, 0.2);
 }
 
 .global-fab:hover {
@@ -3267,7 +3612,7 @@ textarea::placeholder {
   border: 0;
   border-radius: 22px;
   background: var(--paper) url("assets/journal/paper-texture.svg") repeat;
-  box-shadow: 0 24px 70px rgba(34, 40, 66, 0.22);
+  box-shadow: 0 24px 70px rgba(24, 25, 31, 0.2);
 }
 
 .modal-card > header {
@@ -3956,7 +4301,7 @@ textarea::placeholder {
     padding-top: env(safe-area-inset-top, 0px);
     padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
     border-right: 0;
-    box-shadow: 18px 0 38px rgba(45, 53, 82, 0.14);
+    box-shadow: 18px 0 38px rgba(28, 29, 35, 0.14);
     overscroll-behavior: contain;
     transform: translateX(-105%);
     -webkit-overflow-scrolling: touch;
@@ -4110,7 +4455,7 @@ textarea::placeholder {
   .today-section-tabs button.active {
     background: var(--paper);
     color: var(--blue-deep);
-    box-shadow: 0 2px 8px rgba(56, 66, 104, 0.07);
+    box-shadow: 0 2px 8px rgba(32, 33, 40, 0.07);
   }
 
   .today-section {
@@ -4138,7 +4483,8 @@ textarea::placeholder {
   }
 
   .focus-room {
-    grid-template-columns: 1fr;
+    display: block;
+    min-height: 0;
   }
 
   .habit-calendar-head,
@@ -4149,11 +4495,37 @@ textarea::placeholder {
   }
 
   .focus-scene {
-    min-height: 330px;
+    height: 360px;
+    min-height: 360px;
   }
 
   .timer-panel {
-    padding-block: 34px;
+    max-height: none;
+    overflow: visible;
+    margin: -48px 16px 16px;
+    padding: 22px 24px 18px;
+  }
+
+  .focus-scene-shade {
+    background: linear-gradient(0deg, rgba(15, 21, 34, 0.78) 0%, rgba(15, 21, 34, 0.08) 68%);
+  }
+
+  .focus-scene-caption {
+    bottom: 72px;
+    max-width: 62%;
+  }
+
+  .focus-session-active .focus-page .page-header {
+    display: none;
+  }
+
+  .focus-session-active .focus-room {
+    margin-top: 0;
+  }
+
+  .focus-session-active .global-fab {
+    opacity: 0;
+    pointer-events: none;
   }
 
   .sticker-book {
@@ -4625,17 +4997,98 @@ textarea::placeholder {
     gap: 10px;
   }
 
+  .focus-room {
+    margin-top: 14px;
+    border-radius: 18px;
+  }
+
   .focus-scene {
-    min-height: 225px;
+    height: 238px;
+    min-height: 238px;
+  }
+
+  .focus-scene-image {
+    object-position: 45% center;
+  }
+
+  .focus-weather {
+    top: 12px;
+    left: 12px;
+    min-height: 46px;
+    padding: 6px 9px;
+    border-radius: 13px;
+  }
+
+  .focus-weather small,
+  .focus-weather em {
+    display: none;
+  }
+
+  .focus-scene-caption {
+    bottom: 44px;
+    left: 17px;
+    max-width: 72%;
+  }
+
+  .focus-scene-caption p {
+    margin-top: 4px;
+    font-size: 14px;
   }
 
   .timer-panel {
-    padding: 28px 20px;
+    margin: -28px 8px 8px;
+    padding: 17px 14px 14px;
+    border-radius: 17px;
+  }
+
+  .focus-mode-status {
+    margin-bottom: 11px;
+    padding-bottom: 10px;
+  }
+
+  .focus-fields {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .focus-fields input,
+  .focus-fields select {
+    min-height: 44px;
+    font-size: 16px;
   }
 
   .timer-ring {
-    width: 190px;
-    height: 190px;
+    width: 176px;
+    height: 176px;
+    margin-block: 11px 9px;
+  }
+
+  .timer-ring strong {
+    font-size: 36px;
+  }
+
+  .duration-switch button {
+    min-height: 46px;
+  }
+
+  .sound-channels {
+    gap: 6px;
+  }
+
+  .sound-channel {
+    padding: 7px;
+  }
+
+  .sound-channel label {
+    grid-template-columns: minmax(42px, 1fr) auto;
+  }
+
+  .sound-channel label > span {
+    display: none;
+  }
+
+  .focus-totals > span {
+    min-height: 50px;
   }
 
   .habit-sheet {

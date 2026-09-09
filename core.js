@@ -121,6 +121,7 @@
     inbox: [],
     focusSessions: [],
     timer: null,
+    focusSettings: { rainEnabled: true, musicEnabled: true, rainVolume: 0.52, musicVolume: 0.2 },
     habits: starterHabits(),
     mood: {},
     journal: {},
@@ -383,6 +384,15 @@
         lastStartedAt: status === 'running' ? (Number(rawTimer.lastStartedAt) || Date.now()) : null
       };
     } else state.timer = null;
+
+    const rawFocusSettings = objectOrEmpty(state.focusSettings);
+    const focusVolume = (value, fallback) => Number.isFinite(Number(value)) ? clamp(Number(value), 0, 1) : fallback;
+    state.focusSettings = {
+      rainEnabled: typeof rawFocusSettings.rainEnabled === 'boolean' ? rawFocusSettings.rainEnabled : base.focusSettings.rainEnabled,
+      musicEnabled: typeof rawFocusSettings.musicEnabled === 'boolean' ? rawFocusSettings.musicEnabled : base.focusSettings.musicEnabled,
+      rainVolume: focusVolume(rawFocusSettings.rainVolume, base.focusSettings.rainVolume),
+      musicVolume: focusVolume(rawFocusSettings.musicVolume, base.focusSettings.musicVolume)
+    };
 
     const rawHabits = Array.isArray(state.habits) && state.habits.length ? state.habits : starterHabits();
     state.habits = rawHabits.map((habit) => {
