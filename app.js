@@ -25,6 +25,7 @@
   let focusAudioFadeFrame = null;
   let focusAudioIssue = '';
   let focusWakeLock = null;
+  let pendingBackupImport = null;
 
   const NAV = [
     ['today', '今日', 'today'],
@@ -105,6 +106,9 @@
     check: '<path d="m6 12 4 4 8-9"/>',
     heart: '<path d="M20 8.5c0 5-8 10-8 10s-8-5-8-10A4.5 4.5 0 0 1 12 5.7a4.5 4.5 0 0 1 8 2.8z"/>',
     lock: '<rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
+    download: '<path d="M12 4v10M8 10l4 4 4-4"/><path d="M5 18v2h14v-2"/>',
+    upload: '<path d="M12 15V5M8 9l4-4 4 4"/><path d="M5 18v2h14v-2"/>',
+    shield: '<path d="M12 3.5 19 6v5.7c0 4.2-2.7 7.2-7 8.8-4.3-1.6-7-4.6-7-8.8V6z"/><path d="m9 12 2 2 4-4"/>',
     back: '<path d="m14.5 5-7 7 7 7"/>',
     next: '<path d="m9.5 5 7 7-7 7"/>',
     menu: '<path d="M4 7h16M4 12h16M4 17h16"/>'
@@ -134,6 +138,20 @@
     return `${includeYear ? `${date.getFullYear()}年` : ''}${date.getMonth() + 1}月${date.getDate()}日 ${weekday}`;
   };
   const timeLabel = (timestamp) => new Date(timestamp).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false });
+  const backupTimeLabel = (timestamp) => {
+    if (!timestamp) return '时间未知';
+    const date = new Date(timestamp);
+    if (Number.isNaN(date.getTime())) return '时间未知';
+    return date.toLocaleString('zh-CN', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
+  };
+  const backupStats = (value) => ({
+    tasks: Array.isArray(value?.tasks) ? value.tasks.length : 0,
+    projects: Array.isArray(value?.projects) ? value.projects.length : 0,
+    focus: Array.isArray(value?.focusSessions) ? value.focusSessions.length : 0,
+    notes: Array.isArray(value?.notes) ? value.notes.length : 0,
+    journalDays: value?.journal && typeof value.journal === 'object' && !Array.isArray(value.journal) ? Object.keys(value.journal).length : 0,
+    memories: value?.monthlyMemories && typeof value.monthlyMemories === 'object' && !Array.isArray(value.monthlyMemories) ? Object.keys(value.monthlyMemories).length : 0
+  });
   const inRange = (date, start, end) => date >= start && date <= end;
   const taskById = (id) => state().tasks.find((task) => task.id === id);
   const projectById = (id) => state().projects.find((project) => project.id === id);
@@ -400,6 +418,111 @@
     const storageMessage = unlocked.persisted === false ? '浏览器未允许本地保存' : '';
     announce([message, unlockMessage, storageMessage].filter(Boolean).join(' · '));
     render({ preserveScroll });
+  }
+
+  async function exportBackup() {
+    try {
+      const exportedAt = new Date().toISOString();
+      const filename = `小小生长册-${Core.localDateKey()}-备份.json`;
+      const payload = {
+        app: 'little-growth-book',
+        schemaVersion: 1,
+        exportedAt,
+        storageKey: Core.STORAGE_KEY,
+        state: state()
+      };
+      const content = JSON.stringify(payload, null, 2);
+      const blob = typeof File === 'function'
+        ? new File([content], filename, { type: 'application/json' })
+        : new Blob([content], { type: 'application/json' });
+
+      if (typeof File === 'function' && typeof navigator.share === 'function' && navigator.canShare?.({ files: [blob] })) {
+        try {
+          await navigator.share({ title: '小小生长册备份', text: '保存这份备份，以后可以在收藏 → 纪念中恢复。', files: [blob] });
+          announce('备份文件已交给系统保存');
+          render({ preserveScroll: true });
+          return;
+        } catch (error) {
+          if (error?.name === 'AbortError') return;
+        }
+      }
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      announce('备份文件已生成，请保存到自己的私密位置');
+      render({ preserveScroll: true });
+    } catch (error) {
+      if (error?.name === 'AbortError') return;
+      announce('备份生成失败，请稍后再试');
+      render({ preserveScroll: true });
+    }
+  }
+
+  async function prepareBackupImport(file) {
+    if (!file) return;
+    if (file.size > 8 * 1024 * 1024) {
+      announce('备份文件过大，请选择小于 8 MB 的 JSON 文件');
+      render({ preserveScroll: true });
+      return;
+    }
+    try {
+      const raw = typeof file.text === 'function'
+        ? await file.text()
+        : await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result || ''));
+          reader.onerror = () => reject(reader.error);
+          reader.readAsText(file);
+        });
+      const parsed = JSON.parse(raw);
+      const candidate = parsed?.state && typeof parsed.state === 'object' ? parsed.state : parsed;
+      const recognised = candidate && typeof candidate === 'object' && !Array.isArray(candidate) && (
+        Array.isArray(candidate.projects)
+        || Array.isArray(candidate.tasks)
+        || Array.isArray(candidate.focusSessions)
+        || Array.isArray(candidate.notes)
+        || (candidate.journal && typeof candidate.journal === 'object')
+        || (candidate.monthlyMemories && typeof candidate.monthlyMemories === 'object')
+      );
+      if (!recognised) throw new Error('unrecognised-backup');
+      pendingBackupImport = {
+        state: candidate,
+        filename: String(file.name || '备份文件'),
+        exportedAt: parsed?.exportedAt || candidate.updatedAt || candidate.createdAt || null,
+        stats: backupStats(candidate)
+      };
+      openModal({ type: 'backup-import' });
+    } catch (error) {
+      pendingBackupImport = null;
+      announce('没有识别出有效的小小生长册备份');
+      render({ preserveScroll: true });
+    }
+  }
+
+  function restorePendingBackup() {
+    if (!pendingBackupImport?.state) return closeModal();
+    const candidate = {
+      ...pendingBackupImport.state,
+      ui: {
+        ...(pendingBackupImport.state.ui || {}),
+        page: 'collection',
+        collectionTab: 'memories'
+      }
+    };
+    const restored = pendingBackupImport.stats;
+    const result = Core.replace(candidate, 'backup-import');
+    pendingBackupImport = null;
+    modal = null;
+    announce(result.persisted === false
+      ? '备份已读取，但浏览器没有允许本地保存'
+      : `备份已恢复 · ${restored.tasks} 个任务 · ${restored.notes} 篇笔记`);
+    render({ preserveScroll: false });
   }
 
   function sidebar() {
@@ -1115,6 +1238,7 @@
     const currentMonth = Core.monthKey();
     const saved = state().monthlyMemories[currentMonth] || {};
     const stats = monthStats(currentMonth);
+    const archiveStats = backupStats(state());
     const months = Object.keys(state().monthlyMemories).sort().reverse();
     const ownedOutfits = Core.OUTFITS.filter((outfit) => state().collection.outfits.includes(outfit.id));
     const ownedBadges = Core.BADGES.filter((badge) => state().collection.badges.includes(badge.id));
@@ -1133,6 +1257,10 @@
       </section>
       <section class="scene-collection">${sectionHead('场景收藏', `${state().collection.scenes.length}/${Core.SCENES.length} 已拥有`)}<div>${Core.SCENES.map((scene) => { const owned = state().collection.scenes.includes(scene.id); return `<article class="scene-card ${owned ? '' : 'locked'}">${img(scene.image, scene.name, scene.id === 'today-desk' ? 1672 : 1586, scene.id === 'today-desk' ? 941 : 992)}<span>${owned ? esc(scene.name) : `${icon('lock')}待解锁`}</span></article>`; }).join('')}</div></section>
       <section class="history-months">${sectionHead('历史月份', `${months.length} 页永久保存`)}${months.length ? `<div>${historyCards}</div>` : emptyState('还没有月度纪念页', '保存这个月，第一本成长册就会出现。')}</section>
+      <section class="data-vault">${sectionHead('数据保管', '为很多年后的自己留一份副本')}
+        <div class="data-vault-row"><span class="data-vault-mark">${icon('shield')}</span><div class="data-vault-copy"><h3>这本成长册保存在当前设备</h3><p>最近保存 ${backupTimeLabel(state().updatedAt)} · ${archiveStats.tasks} 个任务 · ${archiveStats.notes} 篇笔记 · ${archiveStats.memories} 页月度纪念</p></div><div class="backup-actions"><button type="button" class="secondary-button" data-action="backup-export">${icon('download')}导出备份</button><button type="button" class="primary-button" data-action="backup-import-select">${icon('upload')}恢复备份</button><input id="backup-file-input" class="backup-file-input" type="file" accept=".json,application/json" data-backup-file aria-label="选择小小生长册备份文件"></div></div>
+        <p class="backup-privacy">备份包含任务、日记与笔记，请只存放在自己的私密位置。恢复前会先展示文件内容摘要，不会直接覆盖。</p>
+      </section>
     </div>`;
   }
 
@@ -1212,6 +1340,12 @@
     return modalFrame('新习惯', `<form data-form="habit"><label>习惯名称<input name="name" maxlength="20" placeholder="例如：拉伸" required autofocus></label><footer><button type="button" class="secondary-button" data-action="modal-close">取消</button><button type="submit" class="primary-button">添加习惯</button></footer></form>`);
   }
 
+  function backupImportModal() {
+    if (!pendingBackupImport) return '';
+    const details = pendingBackupImport.stats;
+    return modalFrame('恢复前确认', `<div class="backup-preview"><div class="backup-preview-lead"><span>${icon('upload')}</span><div><small>${esc(pendingBackupImport.filename)}</small><h3>找到一份小小生长册</h3><p>${backupTimeLabel(pendingBackupImport.exportedAt)}</p></div></div><dl><div><dt>任务</dt><dd>${details.tasks}</dd></div><div><dt>项目</dt><dd>${details.projects}</dd></div><div><dt>专注记录</dt><dd>${details.focus}</dd></div><div><dt>笔记</dt><dd>${details.notes}</dd></div><div><dt>日记天数</dt><dd>${details.journalDays}</dd></div><div><dt>月度纪念</dt><dd>${details.memories}</dd></div></dl><p class="backup-warning">恢复会用这份备份替换当前设备里的成长册。若当前也有重要内容，请先导出一份。</p><footer class="backup-preview-actions"><button type="button" class="secondary-button" data-action="backup-export">${icon('download')}先备份当前内容</button><button type="button" class="secondary-button" data-action="modal-close">取消</button><button type="button" class="primary-button restore-button" data-action="backup-import-confirm">确认恢复</button></footer></div>`, 'backup-modal');
+  }
+
   function outfitModal(id) {
     const outfit = Core.OUTFITS.find((item) => item.id === id);
     if (!outfit) return '';
@@ -1234,6 +1368,7 @@
       'inbox-move': () => inboxMoveModal(modal.kind, modal.id),
       note: () => noteModal(modal.id ? state().notes.find((note) => note.id === modal.id) : null),
       habit: () => habitModal(),
+      'backup-import': () => backupImportModal(),
       outfit: () => outfitModal(modal.id)
     };
     return renderers[modal.type]?.() || '';
@@ -1287,6 +1422,7 @@
   }
 
   function closeModal() {
+    if (modal?.type === 'backup-import') pendingBackupImport = null;
     modal = null;
     render({ preserveScroll: true });
   }
@@ -1624,6 +1760,9 @@
     if (action === 'note-edit') return openModal({ type: 'note', id });
     if (action === 'note-delete') { state().notes = state().notes.filter((note) => note.id !== id); return saveAndRender('note-delete', '笔记已删除'); }
     if (action === 'collection-tab') { state().ui.collectionTab = target.dataset.tab; state().ui.page = 'collection'; return saveAndRender('collection-tab', '', false); }
+    if (action === 'backup-export') { void exportBackup(); return; }
+    if (action === 'backup-import-select') { document.querySelector('#backup-file-input')?.click(); return; }
+    if (action === 'backup-import-confirm') return restorePendingBackup();
     if (action === 'wardrobe-filter') { state().ui.wardrobeFilter = target.dataset.value; return saveAndRender('wardrobe-filter'); }
     if (action === 'outfit-open') return openModal({ type: 'outfit', id });
     if (action === 'outfit-favorite') {
@@ -1847,7 +1986,12 @@
     }
   });
 
-  app.addEventListener('change', (event) => {
+  app.addEventListener('change', async (event) => {
+    if (event.target.matches('[data-backup-file]')) {
+      const [file] = event.target.files || [];
+      await prepareBackupImport(file);
+      return;
+    }
     if (event.target.id === 'focus-task') {
       focusDraftTaskId = event.target.value;
       const task = taskById(focusDraftTaskId);
