@@ -2414,11 +2414,20 @@ textarea::placeholder {
   accent-color: var(--blue-deep);
 }
 
-.focus-soundscape > p {
+.focus-soundscape > .sound-help {
   margin: 8px 0 0;
   color: var(--muted);
   font-size: 9px;
   line-height: 1.45;
+}
+
+.focus-soundscape > .sound-help.has-issue {
+  padding: 8px 10px;
+  border: 1px solid rgba(181, 125, 97, 0.2);
+  border-radius: 10px;
+  background: rgba(249, 238, 230, 0.78);
+  color: #795a4b;
+  font-weight: 650;
 }
 
 .focus-totals {

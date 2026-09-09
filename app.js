@@ -18,13 +18,12 @@
   let todaySection = 'tasks';
   let rainAnimationFrame = null;
   let rainSceneCleanup = null;
-  let focusAudioContext = null;
-  let focusAudioGraph = null;
+  let focusAudioMedia = null;
   let focusAudioPlaying = false;
+  let focusAudioStarting = false;
   let focusAudioEpoch = 0;
-  let focusRainBuffer = null;
-  let focusMusicTimer = null;
-  let focusMusicStep = 0;
+  let focusAudioFadeFrame = null;
+  let focusAudioIssue = '';
   let focusWakeLock = null;
 
   const NAV = [
@@ -666,12 +665,11 @@
     return Math.max(0, (Number(timer.remainingSeconds) || 0) - elapsed);
   }
 
-  const FOCUS_CHORDS = [
-    [130.81, 196, 246.94, 329.63],
-    [110, 164.81, 220, 261.63],
-    [87.31, 130.81, 174.61, 261.63],
-    [98, 146.83, 196, 293.66]
-  ];
+  const FOCUS_AUDIO_VERSION = '2026.09-audio-fix';
+  const FOCUS_AUDIO_TRACKS = Object.freeze({
+    rain: { src: `assets/scenes/rain-window.mp3?v=${FOCUS_AUDIO_VERSION}`, label: '窗雨' },
+    music: { src: `assets/scenes/star-rain.mp3?v=${FOCUS_AUDIO_VERSION}`, label: '星雨琴音' }
+  });
 
   function stopRainScene() {
     if (rainAnimationFrame) cancelAnimationFrame(rainAnimationFrame);
@@ -736,154 +734,123 @@
     rainSceneCleanup = () => window.removeEventListener('resize', resize);
   }
 
-  function makeRainNoise(context) {
-    if (focusRainBuffer && focusRainBuffer.sampleRate === context.sampleRate) return focusRainBuffer;
-    const seconds = 7;
-    const buffer = context.createBuffer(2, context.sampleRate * seconds, context.sampleRate);
-    for (let channel = 0; channel < buffer.numberOfChannels; channel += 1) {
-      const data = buffer.getChannelData(channel);
-      let brown = 0;
-      for (let index = 0; index < data.length; index += 1) {
-        const white = Math.random() * 2 - 1;
-        brown = (brown + 0.018 * white) / 1.018;
-        data[index] = Math.max(-1, Math.min(1, brown * 3.2 + white * 0.07));
-      }
-    }
-    focusRainBuffer = buffer;
-    return buffer;
+  function ensureFocusAudioMedia() {
+    if (focusAudioMedia || typeof Audio !== 'function') return focusAudioMedia;
+    focusAudioMedia = Object.fromEntries(Object.entries(FOCUS_AUDIO_TRACKS).map(([channel, track]) => {
+      const element = new Audio(new URL(track.src, document.baseURI).href);
+      element.loop = true;
+      element.preload = 'auto';
+      element.setAttribute('playsinline', '');
+      element.setAttribute('webkit-playsinline', '');
+      element.setAttribute('aria-hidden', 'true');
+      element.dataset.focusAudio = channel;
+      element.hidden = true;
+      document.body.append(element);
+      return [channel, element];
+    }));
+    return focusAudioMedia;
   }
 
-  function scheduleFocusMusic(graph, immediate = false) {
-    if (!focusAudioPlaying || focusAudioGraph !== graph || !state().focusSettings.musicEnabled) return;
-    const context = graph.context;
-    const chord = FOCUS_CHORDS[focusMusicStep % FOCUS_CHORDS.length];
-    focusMusicStep += 1;
-    const now = context.currentTime + (immediate ? 0.04 : 0.12);
-    chord.forEach((frequency, index) => {
-      const oscillator = context.createOscillator();
-      const envelope = context.createGain();
-      oscillator.type = index % 2 ? 'sine' : 'triangle';
-      oscillator.frequency.setValueAtTime(frequency, now);
-      oscillator.detune.setValueAtTime((index - 1.5) * 2.5, now);
-      envelope.gain.setValueAtTime(0.0001, now);
-      envelope.gain.exponentialRampToValueAtTime(0.055, now + 1.8);
-      envelope.gain.exponentialRampToValueAtTime(0.0001, now + 8.4);
-      oscillator.connect(envelope).connect(graph.musicFilter);
-      oscillator.start(now);
-      oscillator.stop(now + 8.6);
-      graph.musicNodes.add(oscillator);
-      oscillator.addEventListener('ended', () => graph.musicNodes.delete(oscillator), { once: true });
+  function focusMediaVolume(channel) {
+    const value = Core.clamp(Number(state().focusSettings[`${channel}Volume`]) || 0, 0, 1);
+    return value ? Math.pow(value, 0.65) : 0;
+  }
+
+  function applyFocusAudioLevels() {
+    const media = ensureFocusAudioMedia();
+    if (!media) return;
+    ['rain', 'music'].forEach((channel) => {
+      const enabled = state().focusSettings[`${channel}Enabled`];
+      media[channel].muted = false;
+      media[channel].volume = enabled ? focusMediaVolume(channel) : 0;
+      if (!enabled && !media[channel].paused) media[channel].pause();
     });
-    const bell = context.createOscillator();
-    const bellEnvelope = context.createGain();
-    bell.type = 'sine';
-    bell.frequency.setValueAtTime(chord[3] * 2, now + 2.2);
-    bellEnvelope.gain.setValueAtTime(0.0001, now + 2.2);
-    bellEnvelope.gain.exponentialRampToValueAtTime(0.022, now + 2.25);
-    bellEnvelope.gain.exponentialRampToValueAtTime(0.0001, now + 4.7);
-    bell.connect(bellEnvelope).connect(graph.musicFilter);
-    bell.start(now + 2.2);
-    bell.stop(now + 4.8);
-    graph.musicNodes.add(bell);
-    bell.addEventListener('ended', () => graph.musicNodes.delete(bell), { once: true });
-    clearTimeout(focusMusicTimer);
-    focusMusicTimer = setTimeout(() => scheduleFocusMusic(graph), 7200);
   }
 
-  function applyFocusAudioLevels(smooth = true) {
-    const graph = focusAudioGraph;
-    if (!graph) return;
-    const settings = state().focusSettings;
-    const now = graph.context.currentTime;
-    const setLevel = (gain, value) => {
-      gain.gain.cancelScheduledValues(now);
-      if (smooth) gain.gain.setTargetAtTime(Math.max(0.0001, value), now, 0.12);
-      else gain.gain.setValueAtTime(Math.max(0.0001, value), now);
-    };
-    setLevel(graph.rainGain, settings.rainEnabled ? settings.rainVolume : 0);
-    setLevel(graph.musicGain, settings.musicEnabled ? settings.musicVolume : 0);
-    if (!settings.musicEnabled) {
-      clearTimeout(focusMusicTimer);
-      focusMusicTimer = null;
-    } else if (focusAudioPlaying && !focusMusicTimer) scheduleFocusMusic(graph, true);
-  }
-
-  async function startFocusAudio() {
-    const settings = state().focusSettings;
-    if (!settings.rainEnabled && !settings.musicEnabled) return false;
-    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-    if (!AudioContextClass) return false;
-    const requestEpoch = ++focusAudioEpoch;
-    try {
-      if (!focusAudioContext || focusAudioContext.state === 'closed') focusAudioContext = new AudioContextClass();
-      if (focusAudioContext.state === 'suspended') await focusAudioContext.resume();
-      if (requestEpoch !== focusAudioEpoch) return false;
-      if (focusAudioGraph) stopFocusAudio(true);
-      const context = focusAudioContext;
-      const master = context.createGain();
-      const compressor = context.createDynamicsCompressor();
-      const rainSource = context.createBufferSource();
-      const rainFilter = context.createBiquadFilter();
-      const rainHighPass = context.createBiquadFilter();
-      const rainGain = context.createGain();
-      const musicFilter = context.createBiquadFilter();
-      const musicGain = context.createGain();
-      master.gain.setValueAtTime(0.0001, context.currentTime);
-      master.gain.exponentialRampToValueAtTime(0.82, context.currentTime + 0.65);
-      compressor.threshold.value = -24;
-      compressor.knee.value = 16;
-      compressor.ratio.value = 4;
-      rainSource.buffer = makeRainNoise(context);
-      rainSource.loop = true;
-      rainFilter.type = 'lowpass';
-      rainFilter.frequency.value = 6200;
-      rainFilter.Q.value = 0.4;
-      rainHighPass.type = 'highpass';
-      rainHighPass.frequency.value = 320;
-      musicFilter.type = 'lowpass';
-      musicFilter.frequency.value = 2100;
-      musicFilter.Q.value = 0.55;
-      rainSource.connect(rainHighPass).connect(rainFilter).connect(rainGain).connect(master);
-      musicFilter.connect(musicGain).connect(master);
-      master.connect(compressor).connect(context.destination);
-      const graph = { context, master, compressor, rainSource, rainGain, musicFilter, musicGain, musicNodes: new Set(), epoch: ++focusAudioEpoch };
-      focusAudioGraph = graph;
-      focusAudioPlaying = true;
-      applyFocusAudioLevels(false);
-      rainSource.start();
-      return true;
-    } catch (error) {
-      console.warn('小小生长册：当前浏览器未能开启专注声音。', error);
-      focusAudioGraph = null;
-      focusAudioPlaying = false;
-      return false;
+  function startFocusAudio() {
+    const media = ensureFocusAudioMedia();
+    if (!media) {
+      focusAudioIssue = '当前浏览器不支持网页声音。';
+      return Promise.resolve(false);
     }
+    const channels = ['rain', 'music'].filter((channel) => state().focusSettings[`${channel}Enabled`] && focusMediaVolume(channel) > 0);
+    if (!channels.length) {
+      focusAudioIssue = state().focusSettings.rainEnabled || state().focusSettings.musicEnabled
+        ? '声音音量为 0，请先把滑块调高。'
+        : '请先开启窗雨或星雨琴音。';
+      return Promise.resolve(false);
+    }
+    const requestEpoch = ++focusAudioEpoch;
+    if (focusAudioFadeFrame) cancelAnimationFrame(focusAudioFadeFrame);
+    focusAudioFadeFrame = null;
+    focusAudioStarting = true;
+    focusAudioIssue = '';
+    applyFocusAudioLevels();
+    const requested = channels.map((channel) => {
+      try {
+        const playback = media[channel].play();
+        return playback && typeof playback.then === 'function' ? playback : Promise.resolve();
+      } catch (error) {
+        return Promise.reject(error);
+      }
+    });
+    ['rain', 'music'].filter((channel) => !channels.includes(channel)).forEach((channel) => media[channel].pause());
+    const timeout = new Promise((resolve) => setTimeout(() => resolve(null), 3500));
+    return Promise.race([Promise.allSettled(requested), timeout]).then((results) => {
+      if (requestEpoch !== focusAudioEpoch) return false;
+      focusAudioStarting = false;
+      const started = channels.some((channel) => !media[channel].paused);
+      focusAudioPlaying = started;
+      if (!started) {
+        focusAudioIssue = '声音没有启动。请调高 iPhone 媒体音量，再点一次「开启」。';
+        (results || []).filter((result) => result.status === 'rejected').forEach((result) => console.warn('小小生长册：专注音频播放被浏览器阻止。', result.reason));
+      }
+      return started;
+    }).catch((error) => {
+      if (requestEpoch === focusAudioEpoch) {
+        focusAudioStarting = false;
+        focusAudioPlaying = false;
+        focusAudioIssue = '声音没有启动。请调高 iPhone 媒体音量，再点一次「开启」。';
+      }
+      console.warn('小小生长册：当前浏览器未能开启专注声音。', error);
+      return false;
+    });
   }
 
   function stopFocusAudio(immediate = false) {
     focusAudioPlaying = false;
-    focusAudioEpoch += 1;
-    clearTimeout(focusMusicTimer);
-    focusMusicTimer = null;
-    const graph = focusAudioGraph;
-    focusAudioGraph = null;
-    if (!graph) return;
-    const now = graph.context.currentTime;
-    const fadeSeconds = immediate ? 0.02 : 0.48;
-    try {
-      graph.master.gain.cancelScheduledValues(now);
-      graph.master.gain.setValueAtTime(Math.max(0.0001, graph.master.gain.value), now);
-      graph.master.gain.exponentialRampToValueAtTime(0.0001, now + fadeSeconds);
-    } catch (error) { /* Audio graph may already be closing. */ }
-    setTimeout(() => {
-      try { graph.rainSource.stop(); } catch (error) { /* Already stopped. */ }
-      graph.musicNodes.forEach((node) => { try { node.stop(); } catch (error) { /* Already stopped. */ } });
-      try { graph.master.disconnect(); } catch (error) { /* Already disconnected. */ }
-    }, Math.ceil(fadeSeconds * 1000) + 40);
+    focusAudioStarting = false;
+    focusAudioIssue = '';
+    const stopEpoch = ++focusAudioEpoch;
+    if (focusAudioFadeFrame) cancelAnimationFrame(focusAudioFadeFrame);
+    focusAudioFadeFrame = null;
+    const media = focusAudioMedia;
+    if (!media) return;
+    const channels = ['rain', 'music'].filter((channel) => !media[channel].paused);
+    if (immediate || !channels.length) {
+      channels.forEach((channel) => media[channel].pause());
+      applyFocusAudioLevels();
+      return;
+    }
+    const startedAt = performance.now();
+    const startVolumes = Object.fromEntries(channels.map((channel) => [channel, media[channel].volume]));
+    const fade = (now) => {
+      if (stopEpoch !== focusAudioEpoch) return;
+      const progress = Math.min(1, (now - startedAt) / 420);
+      channels.forEach((channel) => { media[channel].volume = startVolumes[channel] * (1 - progress); });
+      if (progress < 1) {
+        focusAudioFadeFrame = requestAnimationFrame(fade);
+        return;
+      }
+      focusAudioFadeFrame = null;
+      channels.forEach((channel) => media[channel].pause());
+      applyFocusAudioLevels();
+    };
+    focusAudioFadeFrame = requestAnimationFrame(fade);
   }
 
   function toggleFocusAudio() {
-    if (focusAudioPlaying) {
+    if (focusAudioPlaying || focusAudioStarting) {
       stopFocusAudio();
       announce('专注氛围已关闭');
       render({ preserveScroll: true });
@@ -894,7 +861,7 @@
     render({ preserveScroll: true });
     soundAttempt.then((started) => {
       if (state().ui.page !== 'focus') return;
-      announce(started ? '雨夜氛围已开启' : '请先选择一种声音，或检查浏览器声音权限');
+      announce(started ? '雨夜氛围已开启' : focusAudioIssue);
       render({ preserveScroll: true });
     });
   }
@@ -909,15 +876,17 @@
     let soundAttempt = null;
     if (!anyEnabled) {
       stopFocusAudio();
-    } else if (focusAudioPlaying) {
-      applyFocusAudioLevels();
+    } else if (focusAudioPlaying || focusAudioStarting) {
+      soundAttempt = startFocusAudio();
     } else if (settings[key]) {
       soundAttempt = startFocusAudio();
     }
     announce(`${channel === 'rain' ? '窗雨' : '星雨琴音'}已${settings[key] ? '开启' : '关闭'}`);
     render({ preserveScroll: true });
     soundAttempt?.then((started) => {
-      if (started && state().ui.page === 'focus' && focusAudioPlaying) render({ preserveScroll: true });
+      if (state().ui.page !== 'focus') return;
+      if (!started) announce(focusAudioIssue);
+      render({ preserveScroll: true });
     });
   }
 
@@ -945,9 +914,11 @@
     const tasks = activeTasks().filter((task) => task.status === 'todo');
     const currentLabel = timer?.label || taskById(timer?.taskId)?.title || '';
     const settings = state().focusSettings;
-    const audioSupported = Boolean(window.AudioContext || window.webkitAudioContext);
+    const audioSupported = typeof Audio === 'function';
+    if (audioSupported) ensureFocusAudioMedia();
     const sessionState = timer?.status === 'running' ? '正在专注' : timer?.status === 'paused' ? '暂时停笔' : '准备开始';
-    const soundState = focusAudioPlaying ? '氛围播放中' : timer?.status === 'running' ? '点按开启声音' : '开始时自动播放';
+    const soundState = focusAudioPlaying ? '氛围播放中' : focusAudioStarting ? '正在连接声音' : focusAudioIssue ? '声音没有启动' : timer?.status === 'running' ? '点按开启声音' : '轻触试听后开始';
+    const soundHelp = focusAudioIssue || 'iPhone 首次使用请轻触「试听」；开始、继续也会同步开启声音。';
     return `<div class="page inner-page focus-page ${timer ? 'has-session' : ''} ${timer?.status === 'running' ? 'is-running' : ''}">
       ${pageHeader('FOCUS ROOM', '雨夜自习室', '把雨留在窗外，把这一刻留给自己。')}
       <section class="focus-room" aria-label="雨夜专注自习室">
@@ -959,12 +930,12 @@
           <div class="duration-switch ${timer ? 'disabled' : ''}" aria-label="专注时长">${[25, 45, 60].map((minutes) => `<button type="button" data-action="focus-duration" data-value="${minutes}" class="${!timer && focusDuration === minutes || timer?.durationSeconds === minutes * 60 ? 'active' : ''}" aria-pressed="${!timer && focusDuration === minutes || timer?.durationSeconds === minutes * 60}" ${timer ? 'disabled' : ''}>${minutes}<small>分钟</small></button>`).join('')}</div>
           <div class="timer-actions">${!timer ? `<button type="button" class="primary-button" data-action="focus-start">${icon('play')}开始</button>` : timer.status === 'paused' ? `<button type="button" class="primary-button" data-action="focus-resume">${icon('play')}继续</button>` : `<button type="button" class="primary-button" data-action="focus-pause">${icon('pause')}暂停</button>`}<button type="button" class="secondary-button" data-action="focus-end" ${timer ? '' : 'disabled'}>${icon('stop')}结束</button></div>
           <section class="focus-soundscape" aria-label="专注氛围声音">
-            <header><div><span>自习室声音</span><b>${soundState}</b></div><button type="button" class="sound-master ${focusAudioPlaying ? 'active' : ''}" data-action="focus-audio-master" aria-pressed="${focusAudioPlaying}" ${audioSupported ? '' : 'disabled'}>${icon(focusAudioPlaying ? 'muted' : 'volume')}<span>${focusAudioPlaying ? '关闭' : timer ? '开启' : '试听'}</span></button></header>
+            <header><div><span>自习室声音</span><b>${soundState}</b></div><button type="button" class="sound-master ${focusAudioPlaying || focusAudioStarting ? 'active' : ''}" data-action="focus-audio-master" aria-pressed="${focusAudioPlaying || focusAudioStarting}" ${audioSupported ? '' : 'disabled'}>${icon(focusAudioPlaying ? 'muted' : 'volume')}<span>${focusAudioPlaying ? '关闭' : focusAudioStarting ? '连接中' : timer ? '开启' : '试听'}</span></button></header>
             <div class="sound-channels">
               <div class="sound-channel ${settings.rainEnabled ? 'enabled' : ''}"><button type="button" data-action="focus-sound-toggle" data-channel="rain" aria-pressed="${settings.rainEnabled}">${icon('rain')}<span><b>窗雨</b><small>柔和白噪音</small></span></button><label><span>雨声</span><input type="range" min="0" max="100" step="1" value="${Math.round(settings.rainVolume * 100)}" data-focus-volume="rain" aria-label="窗雨音量"><output data-focus-output="rain">${Math.round(settings.rainVolume * 100)}%</output></label></div>
               <div class="sound-channel ${settings.musicEnabled ? 'enabled' : ''}"><button type="button" data-action="focus-sound-toggle" data-channel="music" aria-pressed="${settings.musicEnabled}">${icon('music')}<span><b>星雨琴音</b><small>原创生成轻音乐</small></span></button><label><span>音乐</span><input type="range" min="0" max="100" step="1" value="${Math.round(settings.musicVolume * 100)}" data-focus-volume="music" aria-label="星雨琴音音量"><output data-focus-output="music">${Math.round(settings.musicVolume * 100)}%</output></label></div>
             </div>
-            <p>声音仅在你点击后播放；暂停与结束时会自动淡出。</p>
+            <p class="sound-help ${focusAudioIssue ? 'has-issue' : ''}" role="${focusAudioIssue ? 'alert' : 'note'}">${esc(soundHelp)}</p>
           </section>
           <div class="focus-totals"><span><small>今日累计</small><b>${formatMinutes(todaySeconds / 60)}</b></span><span><small>今日番茄</small><b>${todaySessions.length}</b></span></div>
         </div>
@@ -1406,7 +1377,9 @@
     void requestFocusWakeLock();
     saveAndRender('focus-start', '专注开始 · 雨夜自习室已进入');
     soundAttempt.then((started) => {
-      if (started && state().ui.page === 'focus' && state().timer?.status === 'running') render({ preserveScroll: true });
+      if (state().ui.page !== 'focus' || state().timer?.status !== 'running') return;
+      announce(started ? '雨夜声音已开启' : focusAudioIssue);
+      render({ preserveScroll: true });
     });
   }
 
@@ -1430,7 +1403,9 @@
     void requestFocusWakeLock();
     saveAndRender('focus-resume', '继续专注');
     soundAttempt.then((started) => {
-      if (started && state().ui.page === 'focus' && state().timer?.status === 'running') render({ preserveScroll: true });
+      if (state().ui.page !== 'focus' || state().timer?.status !== 'running') return;
+      announce(started ? '雨夜声音已恢复' : focusAudioIssue);
+      render({ preserveScroll: true });
     });
   }
 
@@ -1933,7 +1908,17 @@
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) return;
     syncTimerView();
-    if (state().ui.page === 'focus' && state().timer?.status === 'running') void requestFocusWakeLock();
+    if (state().ui.page === 'focus' && state().timer?.status === 'running') {
+      void requestFocusWakeLock();
+      const enabledChannels = ['rain', 'music'].filter((channel) => state().focusSettings[`${channel}Enabled`]);
+      const interrupted = focusAudioPlaying && focusAudioMedia && enabledChannels.every((channel) => focusAudioMedia[channel].paused);
+      if (interrupted) {
+        focusAudioPlaying = false;
+        focusAudioIssue = '声音已被 iPhone 暂停，请点「开启」恢复。';
+        announce(focusAudioIssue);
+        render({ preserveScroll: true });
+      }
+    }
   });
 
   render();

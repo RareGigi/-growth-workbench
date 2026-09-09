@@ -43,9 +43,9 @@ assets/
 
 ## 雨夜自习室
 
-专注页使用现有高清夜间书桌场景叠加轻量 Canvas 雨幕；雨声与「星雨琴音」由浏览器 Web Audio 实时生成，不下载、打包或复制第三方音乐文件。两条声音可以独立开关与调节音量，开始 / 继续时尝试播放，暂停 / 结束 / 离开页面时平滑淡出。浏览器会遵守 iPhone 的用户手势音频限制，因此刷新运行中的计时器后需要再轻触一次声音按钮。
+专注页使用现有高清夜间书桌场景叠加轻量 Canvas 雨幕；「窗雨」与「星雨琴音」使用仓库内两条原创生成 MP3，通过原生 `HTMLAudioElement` 播放，避免 iPhone Safari 的 Web Audio 解锁失效。两条声音可以独立开关与调节音量，开始 / 继续会在同一次用户点击中直接请求播放，暂停 / 结束 / 离开页面时平滑淡出。刷新运行中的计时器或从后台返回后，仍需再轻触一次声音按钮，这是浏览器的用户手势限制。
 
-交互调研参考了 [Moodist](https://github.com/remvze/moodist) 的分层环境声与专注联动，以及 [Howler.js](https://github.com/goldfire/howler.js) 和 [Tone.js](https://github.com/Tonejs/Tone.js) 的移动浏览器音频兼容原则。正式实现保持原生、离线、零运行时依赖，没有复制这些项目的代码或音频素材。
+交互调研参考了 [Moodist](https://github.com/remvze/moodist) 的分层环境声与专注联动，以及 [Howler.js](https://github.com/goldfire/howler.js) 和 [Tone.js](https://github.com/Tonejs/Tone.js) 的移动浏览器音频兼容原则。正式实现保持原生、同源资源、零运行时依赖，没有复制这些项目的代码或音频素材。
 
 ## 质量检查
 
