@@ -1959,7 +1959,7 @@ textarea::placeholder {
   isolation: isolate;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(350px, 410px);
-  min-height: 660px;
+  min-height: 760px;
   overflow: hidden;
   margin-top: 26px;
   border: 1px solid rgba(69, 80, 113, 0.36);
@@ -1973,7 +1973,7 @@ textarea::placeholder {
   z-index: 0;
   grid-column: 1 / -1;
   grid-row: 1;
-  min-height: 660px;
+  min-height: 760px;
 }
 
 .focus-scene .image-shell {
@@ -1992,6 +1992,7 @@ textarea::placeholder {
   object-position: center;
 }
 
+.focus-writing-video,
 .rain-canvas,
 .focus-scene-shade {
   position: absolute;
@@ -2001,22 +2002,44 @@ textarea::placeholder {
   pointer-events: none;
 }
 
-.rain-canvas {
+.focus-writing-video {
   z-index: 1;
-  opacity: 0.76;
+  top: auto;
+  right: auto;
+  bottom: -1%;
+  left: 2%;
+  width: 74%;
+  height: 52%;
+  object-fit: cover;
+  object-position: center 64%;
+  opacity: 0.84;
+  filter: saturate(0.78) contrast(1.02) brightness(0.92);
+  -webkit-mask-image: radial-gradient(ellipse 92% 108% at 48% 100%, #000 0%, #000 48%, transparent 100%);
+  mask-image: radial-gradient(ellipse 92% 108% at 48% 100%, #000 0%, #000 48%, transparent 100%);
+}
+
+.focus-writing-video[hidden] {
+  display: none;
+}
+
+.rain-canvas {
+  z-index: 2;
+  opacity: 0.66;
 }
 
 .focus-scene-shade {
-  z-index: 2;
+  z-index: 3;
   background:
-    linear-gradient(90deg, rgba(17, 23, 36, 0.04) 0%, rgba(17, 23, 36, 0.08) 46%, rgba(17, 23, 36, 0.72) 100%),
-    linear-gradient(0deg, rgba(15, 21, 34, 0.54) 0%, transparent 44%);
+    linear-gradient(90deg, rgba(17, 23, 36, 0.08) 0%, rgba(17, 23, 36, 0.05) 46%, rgba(17, 23, 36, 0.74) 100%),
+    linear-gradient(0deg, rgba(15, 21, 34, 0.5) 0%, transparent 48%);
 }
 
 .focus-weather,
-.focus-scene-caption {
+.focus-scene-caption,
+.focus-stage-time,
+.focus-motion-toggle {
   position: absolute;
-  z-index: 3;
+  z-index: 4;
   color: #f8f8fb;
 }
 
@@ -2069,11 +2092,128 @@ textarea::placeholder {
   letter-spacing: 0.08em;
 }
 
+.focus-motion-toggle {
+  top: 18px;
+  right: 18px;
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 7px;
+  padding: 0 11px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 14px;
+  background: rgba(26, 34, 53, 0.62);
+  color: rgba(247, 249, 255, 0.82);
+  font-size: 10px;
+  font-weight: 700;
+  backdrop-filter: blur(9px);
+  -webkit-backdrop-filter: blur(9px);
+}
+
+.focus-motion-toggle.active {
+  background: rgba(71, 88, 129, 0.72);
+  color: #fff;
+}
+
+.focus-motion-toggle .icon {
+  width: 17px;
+  height: 17px;
+}
+
+.focus-stage-time {
+  display: none;
+}
+
 .focus-scene-caption {
-  bottom: 24px;
+  bottom: 110px;
   left: 24px;
   max-width: min(40%, 360px);
   text-shadow: 0 2px 16px rgba(0, 0, 0, 0.48);
+}
+
+.focus-room-picker {
+  position: relative;
+  z-index: 5;
+  display: grid;
+  grid-column: 1;
+  grid-row: 1;
+  grid-auto-columns: minmax(86px, 1fr);
+  grid-auto-flow: column;
+  align-self: end;
+  gap: 8px;
+  min-width: 0;
+  margin: 0 18px 18px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scroll-snap-type: x proximity;
+}
+
+.focus-room-picker button {
+  position: relative;
+  min-width: 86px;
+  min-height: 68px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 13px;
+  background: #252d40;
+  color: #fff;
+  scroll-snap-align: start;
+  box-shadow: 0 5px 16px rgba(0, 0, 0, 0.12);
+}
+
+.focus-room-picker button::after {
+  position: absolute;
+  inset: 30% 0 0;
+  content: '';
+  background: linear-gradient(transparent, rgba(11, 15, 24, 0.84));
+}
+
+.focus-room-picker .focus-room-thumb {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  background-color: #252d40;
+}
+
+.focus-room-picker .focus-room-thumb.image-error {
+  background-size: 28px 28px;
+}
+
+.focus-room-picker .focus-room-thumb.image-error::after {
+  content: '';
+}
+
+.focus-room-picker img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 180ms ease;
+}
+
+.focus-room-picker .focus-room-label {
+  position: absolute;
+  z-index: 1;
+  right: 5px;
+  bottom: 6px;
+  left: 5px;
+  overflow: hidden;
+  font-size: 9px;
+  font-weight: 700;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.focus-room-picker button.active {
+  border-color: rgba(255, 255, 255, 0.92);
+  outline: 2px solid rgba(173, 194, 240, 0.58);
+  outline-offset: -3px;
+}
+
+.focus-room-picker button.active img {
+  transform: scale(1.045);
 }
 
 .focus-scene-caption span {
@@ -2093,7 +2233,7 @@ textarea::placeholder {
 
 .timer-panel {
   position: relative;
-  z-index: 4;
+  z-index: 6;
   display: flex;
   grid-column: 2;
   grid-row: 1;
@@ -2388,6 +2528,28 @@ textarea::placeholder {
   margin-top: 2px;
   color: var(--muted);
   font-size: 9px;
+}
+
+.sound-channel .sound-track-choice {
+  display: grid;
+  min-height: 42px;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.sound-track-choice select {
+  width: 100%;
+  min-width: 0;
+  min-height: 38px;
+  padding: 0 27px 0 9px;
+  border-color: rgba(190, 200, 222, 0.86);
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.8);
+  color: var(--ink-soft);
+  font-size: 10px;
+  font-weight: 650;
 }
 
 .sound-channel label {
@@ -4666,8 +4828,9 @@ textarea::placeholder {
   }
 
   .focus-room {
-    display: block;
+    display: flex;
     min-height: 0;
+    flex-direction: column;
   }
 
   .habit-calendar-head,
@@ -4680,12 +4843,31 @@ textarea::placeholder {
   .focus-scene {
     height: 360px;
     min-height: 360px;
+    flex: 0 0 auto;
+  }
+
+  .focus-room-picker {
+    position: relative;
+    order: 2;
+    grid-auto-columns: 104px;
+    align-self: stretch;
+    margin: 0;
+    padding: 10px 12px 12px;
+    background: #192030;
+    scroll-padding-inline: 12px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .focus-room-picker::-webkit-scrollbar {
+    display: none;
   }
 
   .timer-panel {
+    order: 3;
     max-height: none;
     overflow: visible;
-    margin: -48px 16px 16px;
+    margin: 0 16px 16px;
     padding: 22px 24px 18px;
   }
 
@@ -4694,7 +4876,7 @@ textarea::placeholder {
   }
 
   .focus-scene-caption {
-    bottom: 72px;
+    bottom: 24px;
     max-width: 62%;
   }
 
@@ -5186,8 +5368,8 @@ textarea::placeholder {
   }
 
   .focus-scene {
-    height: 238px;
-    min-height: 238px;
+    height: 258px;
+    min-height: 258px;
   }
 
   .focus-scene-image {
@@ -5202,24 +5384,86 @@ textarea::placeholder {
     border-radius: 13px;
   }
 
+  .focus-motion-toggle {
+    top: 12px;
+    right: 12px;
+    width: 44px;
+    min-width: 44px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .focus-motion-toggle span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .focus-writing-video {
+    left: -2%;
+    width: 96%;
+    height: 62%;
+    object-position: center 62%;
+    opacity: 0.88;
+  }
+
   .focus-weather small,
   .focus-weather em {
     display: none;
   }
 
   .focus-scene-caption {
-    bottom: 44px;
-    left: 17px;
-    max-width: 72%;
+    display: none;
   }
 
-  .focus-scene-caption p {
-    margin-top: 4px;
-    font-size: 14px;
+  .focus-stage-time {
+    top: 76px;
+    left: 17px;
+    display: grid;
+    max-width: calc(100% - 34px);
+    text-shadow: 0 2px 18px rgba(0, 0, 0, 0.48);
+  }
+
+  .focus-stage-time small {
+    max-width: min(72vw, 270px);
+    overflow: hidden;
+    color: rgba(246, 248, 253, 0.8);
+    font-size: 10px;
+    font-weight: 650;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .focus-stage-time strong {
+    margin-top: 2px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: clamp(44px, 14vw, 58px);
+    font-weight: 650;
+    letter-spacing: -0.07em;
+    line-height: 1.04;
+  }
+
+  .focus-stage-time span {
+    margin-top: 3px;
+    color: rgba(246, 248, 253, 0.8);
+    font-size: 10px;
+    font-weight: 650;
+  }
+
+  .focus-room-picker {
+    grid-auto-columns: 96px;
+    padding: 9px 8px 11px;
+  }
+
+  .focus-room-picker button {
+    min-height: 64px;
   }
 
   .timer-panel {
-    margin: -28px 8px 8px;
+    margin: 0 8px 8px;
     padding: 17px 14px 14px;
     border-radius: 17px;
   }
@@ -5241,13 +5485,7 @@ textarea::placeholder {
   }
 
   .timer-ring {
-    width: 176px;
-    height: 176px;
-    margin-block: 11px 9px;
-  }
-
-  .timer-ring strong {
-    font-size: 36px;
+    display: none;
   }
 
   .duration-switch button {
@@ -5255,7 +5493,8 @@ textarea::placeholder {
   }
 
   .sound-channels {
-    gap: 6px;
+    grid-template-columns: 1fr;
+    gap: 8px;
   }
 
   .sound-channel {
@@ -5268,6 +5507,11 @@ textarea::placeholder {
 
   .sound-channel label > span {
     display: none;
+  }
+
+  .sound-track-choice select {
+    min-height: 44px;
+    font-size: 16px;
   }
 
   .focus-totals > span {
@@ -5697,6 +5941,10 @@ textarea::placeholder {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .focus-writing-video {
+    display: none !important;
+  }
+
   *,
   *::before,
   *::after {

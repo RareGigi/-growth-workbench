@@ -25,10 +25,16 @@
   ]);
 
   const SCENES = Object.freeze([
-    { id: 'today-desk', name: '晨光书桌', image: 'assets/scenes/today-desk.webp' },
-    { id: 'focus-night', name: '静夜专注', image: 'assets/scenes/focus-night.webp' },
-    { id: 'cafe-afternoon', name: '午后咖啡馆', image: 'assets/scenes/cafe-afternoon.webp' },
-    { id: 'garden-morning', name: '晨雾花园', image: 'assets/scenes/garden-morning.webp' }
+    { id: 'today-desk', name: '晨光书桌', image: 'assets/scenes/today-desk.webp', width: 1672, height: 941 },
+    { id: 'focus-leaf-rain', name: '窗叶听雨', image: 'assets/scenes/focus-leaf-rain.webp', width: 1672, height: 941 },
+    { id: 'focus-library', name: '深夜图书馆', image: 'assets/scenes/focus-library.webp', width: 1672, height: 941 },
+    { id: 'focus-cafe', name: '雨晨咖啡厅', image: 'assets/scenes/focus-cafe.webp', width: 1672, height: 941 },
+    { id: 'focus-magic-bookshop', name: '月灯书屋', image: 'assets/scenes/focus-magic-bookshop.webp', width: 1672, height: 941 },
+    { id: 'focus-celestial', name: '云上天宫', image: 'assets/scenes/focus-celestial.webp', width: 1672, height: 941 },
+    { id: 'focus-temple', name: '山寺晨光', image: 'assets/scenes/focus-temple.webp', width: 1672, height: 941 },
+    { id: 'focus-night', name: '静夜专注', image: 'assets/scenes/focus-night.webp', width: 1586, height: 992 },
+    { id: 'cafe-afternoon', name: '午后咖啡馆', image: 'assets/scenes/cafe-afternoon.webp', width: 1586, height: 992 },
+    { id: 'garden-morning', name: '晨雾花园', image: 'assets/scenes/garden-morning.webp', width: 1586, height: 992 }
   ]);
 
   const STICKERS = Object.freeze([
@@ -121,7 +127,16 @@
     inbox: [],
     focusSessions: [],
     timer: null,
-    focusSettings: { rainEnabled: true, musicEnabled: true, rainVolume: 0.52, musicVolume: 0.2 },
+    focusSettings: {
+      roomId: 'leaf-rain',
+      ambienceId: 'leaf-rain',
+      ambienceEnabled: true,
+      ambienceVolume: 0.48,
+      musicId: 'graphite',
+      musicEnabled: false,
+      musicVolume: 0.16,
+      motionEnabled: true
+    },
     habits: starterHabits(),
     mood: {},
     journal: {},
@@ -131,7 +146,7 @@
     weeklyReviews: {},
     planning: { defaultMinutes: 60, defaultEnergy: 'steady', lastTracks: ['tax', 'english', 'podcast', 'cpa', 'writing'], lastProjectId: '', lastInput: '', adoptedPlans: [] },
     rewards: { stars: 0, coins: 0 },
-    collection: { outfits: ['daily-daylight'], featuredOutfitId: 'daily-daylight', stickers: [], badges: [], scenes: ['today-desk', 'focus-night'], favorites: [] },
+    collection: { outfits: ['daily-daylight'], featuredOutfitId: 'daily-daylight', stickers: [], badges: [], scenes: ['today-desk', 'focus-leaf-rain', 'focus-library', 'focus-cafe', 'focus-magic-bookshop', 'focus-celestial', 'focus-temple'], favorites: [] },
     monthlyMemories: {}
   });
 
@@ -229,6 +244,9 @@
         createdAt: Number(legacy.timer.createdAt || legacy.timer.started || Date.now()),
         lastStartedAt: null
       };
+    }
+    if (legacy.focusSettings && typeof legacy.focusSettings === 'object' && !Array.isArray(legacy.focusSettings)) {
+      next.focusSettings = { ...legacy.focusSettings };
     }
     next.habits = (Array.isArray(legacy.habits) && legacy.habits.length ? legacy.habits : starterHabits()).map((habit) => ({ id: String(habit.id || uid('habit')), name: String(habit.name || '新习惯'), days: habit.days && typeof habit.days === 'object' ? habit.days : {} }));
     const moodNames = ['开心', '平静', '一般', '疲惫', '焦虑'];
@@ -387,11 +405,26 @@
 
     const rawFocusSettings = objectOrEmpty(state.focusSettings);
     const focusVolume = (value, fallback) => Number.isFinite(Number(value)) ? clamp(Number(value), 0, 1) : fallback;
+    const focusRoomIds = ['leaf-rain', 'library', 'cafe', 'magic-bookshop', 'celestial', 'temple'];
+    const focusAmbienceIds = ['window-rain', 'leaf-rain', 'deep-rain', 'library', 'cafe', 'hearth', 'cloud-wind', 'temple'];
+    const focusMusicIds = ['star-rain', 'graphite', 'quiet-books', 'constellations', 'temple-dawn'];
+    const hasNewFocusSettings = Object.prototype.hasOwnProperty.call(rawFocusSettings, 'ambienceId')
+      || Object.prototype.hasOwnProperty.call(rawFocusSettings, 'roomId');
     state.focusSettings = {
-      rainEnabled: typeof rawFocusSettings.rainEnabled === 'boolean' ? rawFocusSettings.rainEnabled : base.focusSettings.rainEnabled,
+      roomId: focusRoomIds.includes(rawFocusSettings.roomId) ? rawFocusSettings.roomId : base.focusSettings.roomId,
+      ambienceId: focusAmbienceIds.includes(rawFocusSettings.ambienceId)
+        ? rawFocusSettings.ambienceId
+        : hasNewFocusSettings ? base.focusSettings.ambienceId : 'window-rain',
+      ambienceEnabled: typeof rawFocusSettings.ambienceEnabled === 'boolean'
+        ? rawFocusSettings.ambienceEnabled
+        : typeof rawFocusSettings.rainEnabled === 'boolean' ? rawFocusSettings.rainEnabled : base.focusSettings.ambienceEnabled,
+      ambienceVolume: focusVolume(rawFocusSettings.ambienceVolume ?? rawFocusSettings.rainVolume, base.focusSettings.ambienceVolume),
+      musicId: focusMusicIds.includes(rawFocusSettings.musicId)
+        ? rawFocusSettings.musicId
+        : hasNewFocusSettings ? base.focusSettings.musicId : 'star-rain',
       musicEnabled: typeof rawFocusSettings.musicEnabled === 'boolean' ? rawFocusSettings.musicEnabled : base.focusSettings.musicEnabled,
-      rainVolume: focusVolume(rawFocusSettings.rainVolume, base.focusSettings.rainVolume),
-      musicVolume: focusVolume(rawFocusSettings.musicVolume, base.focusSettings.musicVolume)
+      musicVolume: focusVolume(rawFocusSettings.musicVolume, base.focusSettings.musicVolume),
+      motionEnabled: typeof rawFocusSettings.motionEnabled === 'boolean' ? rawFocusSettings.motionEnabled : base.focusSettings.motionEnabled
     };
 
     const rawHabits = Array.isArray(state.habits) && state.habits.length ? state.habits : starterHabits();
@@ -432,7 +465,8 @@
     };
     if (!state.collection.outfits.includes('daily-daylight')) state.collection.outfits.unshift('daily-daylight');
     if (!state.collection.outfits.includes(state.collection.featuredOutfitId)) state.collection.featuredOutfitId = state.collection.outfits[0];
-    if (!state.collection.scenes.length) state.collection.scenes = ['today-desk', 'focus-night'];
+    const baseFocusScenes = ['today-desk', 'focus-leaf-rain', 'focus-library', 'focus-cafe', 'focus-magic-bookshop', 'focus-celestial', 'focus-temple'];
+    state.collection.scenes = [...new Set([...state.collection.scenes, ...baseFocusScenes])];
     state.monthlyMemories = Object.fromEntries(Object.entries(objectOrEmpty(state.monthlyMemories)).filter(([month, memory]) => /^\d{4}-\d{2}$/.test(month) && memory && typeof memory === 'object').map(([month, memory]) => [month, {
       month,
       keyword: String(memory.keyword ?? '').slice(0, 24),
