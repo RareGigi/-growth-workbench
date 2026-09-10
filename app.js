@@ -788,11 +788,37 @@
     return Math.max(0, (Number(timer.remainingSeconds) || 0) - elapsed);
   }
 
-  const FOCUS_AUDIO_VERSION = '2026.09-audio-fix';
+  const FOCUS_ASSET_VERSION = '2026.09-immersive-room';
+  const FOCUS_ROOMS = Object.freeze([
+    { id: 'leaf-rain', name: '窗叶听雨', eyebrow: 'RAIN & LEAVES', note: '雨落叶尖，陪你慢慢写完这一页。', image: 'assets/scenes/focus-leaf-rain.webp', ambienceId: 'leaf-rain', rain: true, position: 'center' },
+    { id: 'library', name: '深夜图书馆', eyebrow: 'NIGHT LIBRARY', note: '木质书桌与克制的室内低频。', image: 'assets/scenes/focus-library.webp', ambienceId: 'library', rain: false, position: 'center' },
+    { id: 'cafe', name: '雨晨咖啡厅', eyebrow: 'QUIET CAFE', note: '模糊人声留在远处，眼前只剩纸笔。', image: 'assets/scenes/focus-cafe.webp', ambienceId: 'cafe', rain: true, position: 'center' },
+    { id: 'magic-bookshop', name: '月灯书屋', eyebrow: 'MOONLIT BOOKSHOP', note: '旧书、炉火与一盏不熄的灯。', image: 'assets/scenes/focus-magic-bookshop.webp', ambienceId: 'hearth', rain: false, position: 'center' },
+    { id: 'celestial', name: '云上天宫', eyebrow: 'ABOVE THE CLOUDS', note: '远山与云风，让思绪变得开阔。', image: 'assets/scenes/focus-celestial.webp', ambienceId: 'cloud-wind', rain: false, position: 'center' },
+    { id: 'temple', name: '山寺晨光', eyebrow: 'MOUNTAIN TEMPLE', note: '松风、薄雾与很远的一声钟。', image: 'assets/scenes/focus-temple.webp', ambienceId: 'temple', rain: false, position: 'center' }
+  ]);
   const FOCUS_AUDIO_TRACKS = Object.freeze({
-    rain: { src: `assets/scenes/rain-window.mp3?v=${FOCUS_AUDIO_VERSION}`, label: '窗雨' },
-    music: { src: `assets/scenes/star-rain.mp3?v=${FOCUS_AUDIO_VERSION}`, label: '星雨琴音' }
+    ambience: Object.freeze({
+      'window-rain': { src: 'assets/scenes/rain-window.mp3', label: '窗边细雨', note: '均匀、柔和' },
+      'leaf-rain': { src: 'assets/scenes/ambience-leaf-rain.mp3', label: '叶间落雨', note: '雨滴与湿叶' },
+      'deep-rain': { src: 'assets/scenes/ambience-deep-rain.mp3', label: '深夜大雨', note: '更厚的低频雨幕' },
+      library: { src: 'assets/scenes/ambience-library.mp3', label: '书库低语', note: '稳定室内底噪' },
+      cafe: { src: 'assets/scenes/ambience-cafe.mp3', label: '远处咖啡厅', note: '弱化语言的人声底噪' },
+      hearth: { src: 'assets/scenes/ambience-hearth.mp3', label: '壁炉轻响', note: '细小木柴声' },
+      'cloud-wind': { src: 'assets/scenes/ambience-cloud-wind.mp3', label: '云间柔风', note: '缓慢空气流动' },
+      temple: { src: 'assets/scenes/ambience-temple.mp3', label: '松风远钟', note: '极轻风声与疏钟' }
+    }),
+    music: Object.freeze({
+      'star-rain': { src: 'assets/scenes/star-rain.mp3', label: '星雨琴音', note: '轻钢琴 · 原创' },
+      graphite: { src: 'assets/scenes/music-graphite.mp3', label: '静默铅笔', note: '低存在感 Lo-fi' },
+      'quiet-books': { src: 'assets/scenes/music-quiet-books.mp3', label: '书页微光', note: '温暖书店节拍' },
+      constellations: { src: 'assets/scenes/music-constellations.mp3', label: '温柔星群', note: '轻柔梦境氛围' },
+      'temple-dawn': { src: 'assets/scenes/music-temple-dawn.mp3', label: '晨钟之前', note: '东方安静氛围' }
+    })
   });
+
+  const selectedFocusRoom = () => FOCUS_ROOMS.find((room) => room.id === state().focusSettings.roomId) || FOCUS_ROOMS[0];
+  const selectedFocusTrack = (channel) => FOCUS_AUDIO_TRACKS[channel]?.[state().focusSettings[`${channel}Id`]] || Object.values(FOCUS_AUDIO_TRACKS[channel] || {})[0];
 
   function stopRainScene() {
     if (rainAnimationFrame) cancelAnimationFrame(rainAnimationFrame);
@@ -858,19 +884,29 @@
   }
 
   function ensureFocusAudioMedia() {
-    if (focusAudioMedia || typeof Audio !== 'function') return focusAudioMedia;
-    focusAudioMedia = Object.fromEntries(Object.entries(FOCUS_AUDIO_TRACKS).map(([channel, track]) => {
-      const element = new Audio(new URL(track.src, document.baseURI).href);
+    if (typeof Audio !== 'function') return null;
+    focusAudioMedia ||= {};
+    ['ambience', 'music'].forEach((channel) => {
+      const trackId = state().focusSettings[`${channel}Id`];
+      const track = selectedFocusTrack(channel);
+      const current = focusAudioMedia[channel];
+      if (current?.dataset.trackId === trackId) return;
+      if (current) {
+        current.pause();
+        current.remove();
+      }
+      const element = new Audio(new URL(`${track.src}?v=${FOCUS_ASSET_VERSION}`, document.baseURI).href);
       element.loop = true;
-      element.preload = 'auto';
+      element.preload = 'none';
       element.setAttribute('playsinline', '');
       element.setAttribute('webkit-playsinline', '');
       element.setAttribute('aria-hidden', 'true');
       element.dataset.focusAudio = channel;
+      element.dataset.trackId = trackId;
       element.hidden = true;
       document.body.append(element);
-      return [channel, element];
-    }));
+      focusAudioMedia[channel] = element;
+    });
     return focusAudioMedia;
   }
 
@@ -882,8 +918,9 @@
   function applyFocusAudioLevels() {
     const media = ensureFocusAudioMedia();
     if (!media) return;
-    ['rain', 'music'].forEach((channel) => {
+    ['ambience', 'music'].forEach((channel) => {
       const enabled = state().focusSettings[`${channel}Enabled`];
+      if (!media[channel]) return;
       media[channel].muted = false;
       media[channel].volume = enabled ? focusMediaVolume(channel) : 0;
       if (!enabled && !media[channel].paused) media[channel].pause();
@@ -896,11 +933,11 @@
       focusAudioIssue = '当前浏览器不支持网页声音。';
       return Promise.resolve(false);
     }
-    const channels = ['rain', 'music'].filter((channel) => state().focusSettings[`${channel}Enabled`] && focusMediaVolume(channel) > 0);
+    const channels = ['ambience', 'music'].filter((channel) => state().focusSettings[`${channel}Enabled`] && focusMediaVolume(channel) > 0);
     if (!channels.length) {
-      focusAudioIssue = state().focusSettings.rainEnabled || state().focusSettings.musicEnabled
+      focusAudioIssue = state().focusSettings.ambienceEnabled || state().focusSettings.musicEnabled
         ? '声音音量为 0，请先把滑块调高。'
-        : '请先开启窗雨或星雨琴音。';
+        : '请先开启环境声或轻音乐。';
       return Promise.resolve(false);
     }
     const requestEpoch = ++focusAudioEpoch;
@@ -917,7 +954,7 @@
         return Promise.reject(error);
       }
     });
-    ['rain', 'music'].filter((channel) => !channels.includes(channel)).forEach((channel) => media[channel].pause());
+    ['ambience', 'music'].filter((channel) => !channels.includes(channel)).forEach((channel) => media[channel]?.pause());
     const timeout = new Promise((resolve) => setTimeout(() => resolve(null), 3500));
     return Promise.race([Promise.allSettled(requested), timeout]).then((results) => {
       if (requestEpoch !== focusAudioEpoch) return false;
@@ -949,7 +986,7 @@
     focusAudioFadeFrame = null;
     const media = focusAudioMedia;
     if (!media) return;
-    const channels = ['rain', 'music'].filter((channel) => !media[channel].paused);
+    const channels = ['ambience', 'music'].filter((channel) => media[channel] && !media[channel].paused);
     if (immediate || !channels.length) {
       channels.forEach((channel) => media[channel].pause());
       applyFocusAudioLevels();
@@ -980,22 +1017,22 @@
       return;
     }
     const soundAttempt = startFocusAudio();
-    announce('正在开启雨夜氛围');
+    announce('正在开启自习室声音');
     render({ preserveScroll: true });
     soundAttempt.then((started) => {
       if (state().ui.page !== 'focus') return;
-      announce(started ? '雨夜氛围已开启' : focusAudioIssue);
+      announce(started ? '自习室声音已开启' : focusAudioIssue);
       render({ preserveScroll: true });
     });
   }
 
   function toggleFocusSound(channel) {
-    if (!['rain', 'music'].includes(channel)) return;
+    if (!['ambience', 'music'].includes(channel)) return;
     const settings = state().focusSettings;
     const key = `${channel}Enabled`;
     settings[key] = !settings[key];
     Core.save('focus-sound-toggle');
-    const anyEnabled = settings.rainEnabled || settings.musicEnabled;
+    const anyEnabled = settings.ambienceEnabled || settings.musicEnabled;
     let soundAttempt = null;
     if (!anyEnabled) {
       stopFocusAudio();
@@ -1004,7 +1041,7 @@
     } else if (settings[key]) {
       soundAttempt = startFocusAudio();
     }
-    announce(`${channel === 'rain' ? '窗雨' : '星雨琴音'}已${settings[key] ? '开启' : '关闭'}`);
+    announce(`${channel === 'ambience' ? selectedFocusTrack('ambience').label : selectedFocusTrack('music').label}已${settings[key] ? '开启' : '关闭'}`);
     render({ preserveScroll: true });
     soundAttempt?.then((started) => {
       if (state().ui.page !== 'focus') return;
@@ -1027,6 +1064,31 @@
     focusWakeLock = null;
   }
 
+  function setupFocusScene() {
+    setupRainScene();
+    const video = document.querySelector('[data-focus-motion-video]');
+    if (!video) return;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const saveData = Boolean(navigator.connection?.saveData);
+    const fallback = (message) => {
+      video.hidden = true;
+      document.querySelector('.focus-scene')?.classList.add('motion-fallback');
+      const status = document.querySelector('[data-motion-status]');
+      if (status) status.textContent = message;
+    };
+    if (reduceMotion) return fallback('跟随系统静态');
+    if (saveData) return fallback('省流量静态');
+    if (state().timer?.status === 'paused') {
+      video.pause();
+      const status = document.querySelector('[data-motion-status]');
+      if (status) status.textContent = '动作已暂停';
+      return;
+    }
+    video.addEventListener('error', () => fallback('静态画面'), { once: true });
+    const playback = video.play();
+    if (playback && typeof playback.catch === 'function') playback.catch(() => fallback('轻触启用动态'));
+  }
+
   function focusPage() {
     const timer = state().timer;
     const remaining = remainingSeconds(timer);
@@ -1037,15 +1099,28 @@
     const tasks = activeTasks().filter((task) => task.status === 'todo');
     const currentLabel = timer?.label || taskById(timer?.taskId)?.title || '';
     const settings = state().focusSettings;
+    const room = selectedFocusRoom();
+    const ambience = selectedFocusTrack('ambience');
+    const music = selectedFocusTrack('music');
     const audioSupported = typeof Audio === 'function';
     if (audioSupported) ensureFocusAudioMedia();
     const sessionState = timer?.status === 'running' ? '正在专注' : timer?.status === 'paused' ? '暂时停笔' : '准备开始';
     const soundState = focusAudioPlaying ? '氛围播放中' : focusAudioStarting ? '正在连接声音' : focusAudioIssue ? '声音没有启动' : timer?.status === 'running' ? '点按开启声音' : '轻触试听后开始';
     const soundHelp = focusAudioIssue || 'iPhone 首次使用请轻触「试听」；开始、继续也会同步开启声音。';
     return `<div class="page inner-page focus-page ${timer ? 'has-session' : ''} ${timer?.status === 'running' ? 'is-running' : ''}">
-      ${pageHeader('FOCUS ROOM', '雨夜自习室', '把雨留在窗外，把这一刻留给自己。')}
-      <section class="focus-room" aria-label="雨夜专注自习室">
-        <div class="focus-scene">${img('assets/scenes/focus-night.webp', '银灰发青年在雨夜书桌前安静学习', 1586, 992, { className: 'focus-scene-image', eager: true })}<canvas class="rain-canvas" width="1586" height="992" data-rain-canvas aria-hidden="true"></canvas><div class="focus-scene-shade" aria-hidden="true"></div><div class="focus-weather">${icon('rain')}<span><b>窗外有雨</b><small>${timer?.status === 'running' ? '雨幕会陪你到这一轮结束' : '轻触开始，进入自习室'}</small></span><em>动态场景</em></div><div class="focus-scene-caption"><span>RAINY STUDY ROOM</span><p>暖灯、夜雨与安静的书桌。</p></div></div>
+      ${pageHeader('FOCUS ROOM', '沉浸自习室', '选一处想停留的地方，让纸笔、环境声与时间一起陪你。')}
+      <section class="focus-room" aria-label="${attr(room.name)}专注自习室">
+        <div class="focus-scene">
+          ${img(`${room.image}?v=${FOCUS_ASSET_VERSION}`, `${room.name}写实自习场景`, 1672, 941, { className: 'focus-scene-image', eager: true })}
+          ${settings.motionEnabled ? `<video class="focus-writing-video" src="assets/scenes/focus-writing-loop.mp4?v=${FOCUS_ASSET_VERSION}" ${timer?.status === 'paused' ? '' : 'autoplay '}muted loop playsinline webkit-playsinline preload="metadata" data-focus-motion-video aria-hidden="true"></video>` : ''}
+          ${room.rain ? '<canvas class="rain-canvas" width="1672" height="941" data-rain-canvas aria-hidden="true"></canvas>' : ''}
+          <div class="focus-scene-shade" aria-hidden="true"></div>
+          <div class="focus-weather">${icon(room.rain ? 'rain' : 'focus')}<span><b>${esc(room.name)}</b><small>${timer?.status === 'running' ? '这一幕会陪你到本轮结束' : ambience.note}</small></span><em>${room.rain ? '雨幕' : '静谧'}场景</em></div>
+          <button type="button" class="focus-motion-toggle ${settings.motionEnabled ? 'active' : ''}" data-action="focus-motion-toggle" aria-pressed="${settings.motionEnabled}" aria-label="${settings.motionEnabled ? '关闭' : '开启'}手写动态">${icon(settings.motionEnabled ? 'pause' : 'play')}<span data-motion-status>${settings.motionEnabled ? '手写动态' : '静态画面'}</span></button>
+          <div class="focus-stage-time" aria-hidden="true"><small>${esc(currentLabel || '这一轮只做一件事')}</small><strong data-timer-clock>${formatClock(remaining)}</strong><span>${sessionState}</span></div>
+          <div class="focus-scene-caption"><span>${esc(room.eyebrow)}</span><p>${esc(room.note)}</p></div>
+        </div>
+        <nav class="focus-room-picker" aria-label="选择自习室">${FOCUS_ROOMS.map((option) => `<button type="button" data-action="focus-room-select" data-id="${option.id}" class="${room.id === option.id ? 'active' : ''}" aria-pressed="${room.id === option.id}">${img(`${option.image}?v=${FOCUS_ASSET_VERSION}`, '', 160, 90, { shellClass: 'focus-room-thumb' })}<span class="focus-room-label">${esc(option.name)}</span></button>`).join('')}</nav>
         <div class="timer-panel">
           <div class="focus-mode-status"><span><i></i>${sessionState}</span><small>${currentLabel || '先选好这一轮要完成的事'}</small></div>
           <div class="focus-fields"><label>当前任务<select id="focus-task" ${timer ? 'disabled' : ''}><option value="">自定义专注</option>${tasks.map((task) => `<option value="${attr(task.id)}" ${(timer?.taskId || focusDraftTaskId) === task.id ? 'selected' : ''}>${esc(task.title)}</option>`).join('')}</select></label><label>这一轮只做<input id="focus-label" maxlength="80" value="${attr(currentLabel)}" placeholder="例如：CPA 审计专题六" ${timer ? 'disabled' : ''}></label></div>
@@ -1055,8 +1130,8 @@
           <section class="focus-soundscape" aria-label="专注氛围声音">
             <header><div><span>自习室声音</span><b>${soundState}</b></div><button type="button" class="sound-master ${focusAudioPlaying || focusAudioStarting ? 'active' : ''}" data-action="focus-audio-master" aria-pressed="${focusAudioPlaying || focusAudioStarting}" ${audioSupported ? '' : 'disabled'}>${icon(focusAudioPlaying ? 'muted' : 'volume')}<span>${focusAudioPlaying ? '关闭' : focusAudioStarting ? '连接中' : timer ? '开启' : '试听'}</span></button></header>
             <div class="sound-channels">
-              <div class="sound-channel ${settings.rainEnabled ? 'enabled' : ''}"><button type="button" data-action="focus-sound-toggle" data-channel="rain" aria-pressed="${settings.rainEnabled}">${icon('rain')}<span><b>窗雨</b><small>柔和白噪音</small></span></button><label><span>雨声</span><input type="range" min="0" max="100" step="1" value="${Math.round(settings.rainVolume * 100)}" data-focus-volume="rain" aria-label="窗雨音量"><output data-focus-output="rain">${Math.round(settings.rainVolume * 100)}%</output></label></div>
-              <div class="sound-channel ${settings.musicEnabled ? 'enabled' : ''}"><button type="button" data-action="focus-sound-toggle" data-channel="music" aria-pressed="${settings.musicEnabled}">${icon('music')}<span><b>星雨琴音</b><small>原创生成轻音乐</small></span></button><label><span>音乐</span><input type="range" min="0" max="100" step="1" value="${Math.round(settings.musicVolume * 100)}" data-focus-volume="music" aria-label="星雨琴音音量"><output data-focus-output="music">${Math.round(settings.musicVolume * 100)}%</output></label></div>
+              <div class="sound-channel ${settings.ambienceEnabled ? 'enabled' : ''}"><button type="button" data-action="focus-sound-toggle" data-channel="ambience" aria-pressed="${settings.ambienceEnabled}">${icon(room.rain ? 'rain' : 'volume')}<span><b>${esc(ambience.label)}</b><small>${esc(ambience.note)}</small></span></button><label class="sound-track-choice"><span>环境</span><select data-focus-track="ambience" aria-label="选择环境声">${Object.entries(FOCUS_AUDIO_TRACKS.ambience).map(([id, track]) => `<option value="${id}" ${settings.ambienceId === id ? 'selected' : ''}>${esc(track.label)}</option>`).join('')}</select></label><label><span>音量</span><input type="range" min="0" max="100" step="1" value="${Math.round(settings.ambienceVolume * 100)}" data-focus-volume="ambience" aria-label="环境声音量"><output data-focus-output="ambience">${Math.round(settings.ambienceVolume * 100)}%</output></label></div>
+              <div class="sound-channel ${settings.musicEnabled ? 'enabled' : ''}"><button type="button" data-action="focus-sound-toggle" data-channel="music" aria-pressed="${settings.musicEnabled}">${icon('music')}<span><b>${esc(music.label)}</b><small>${esc(music.note)}</small></span></button><label class="sound-track-choice"><span>音乐</span><select data-focus-track="music" aria-label="选择轻音乐">${Object.entries(FOCUS_AUDIO_TRACKS.music).map(([id, track]) => `<option value="${id}" ${settings.musicId === id ? 'selected' : ''}>${esc(track.label)}</option>`).join('')}</select></label><label><span>音量</span><input type="range" min="0" max="100" step="1" value="${Math.round(settings.musicVolume * 100)}" data-focus-volume="music" aria-label="轻音乐音量"><output data-focus-output="music">${Math.round(settings.musicVolume * 100)}%</output></label></div>
             </div>
             <p class="sound-help ${focusAudioIssue ? 'has-issue' : ''}" role="${focusAudioIssue ? 'alert' : 'note'}">${esc(soundHelp)}</p>
           </section>
@@ -1255,7 +1330,7 @@
       <section class="monthly-editor"><div class="monthly-paper"><span class="month-ribbon">月度纪念</span><h2>${currentMonth.replace('-', ' · ')}</h2><div class="monthly-paper-grid"><div><div class="monthly-facts"><p><span>完成任务</span><b>${stats.completedTasks}</b></p><p><span>专注时间</span><b>${formatMinutes(stats.focusMinutes)}</b></p><p><span>成长领域</span><b>${esc(stats.growthArea)}</b></p></div><div class="paper-stickers">${stickerSlots(3, memoryStickers)}</div></div><figure class="monthly-character-card" data-monthly-outfit-preview>${img(selectedOutfit.image, `${selectedOutfit.name}本月角色卡面`, 853, 1844)}${selectedBadge ? `<span class="monthly-character-badge" title="${attr(selectedBadge.name)}">${img(selectedBadge.image, selectedBadge.name, 180, 180)}</span>` : ''}<figcaption>${esc(selectedOutfit.name)}</figcaption></figure></div></div>
         <form data-form="monthly"><div class="monthly-collection-fields"><label>本月角色卡面<select name="outfitId" aria-describedby="monthly-outfit-hint">${ownedOutfits.map((outfit) => `<option value="${attr(outfit.id)}" ${outfit.id === selectedOutfit.id ? 'selected' : ''}>${esc(outfit.name)}</option>`).join('')}</select><small id="monthly-outfit-hint">选择后，上方卡面会即时预览</small></label><label>本月徽章<select name="badgeId"><option value="">暂不放置</option>${ownedBadges.map((badge) => `<option value="${attr(badge.id)}" ${badge.id === selectedBadge?.id ? 'selected' : ''}>${esc(badge.name)}</option>`).join('')}</select></label></div><label>本月关键词<input name="keyword" maxlength="24" value="${attr(saved.keyword || '')}" placeholder="例如：稳定"></label><label>本月总结<textarea name="summary" rows="5" maxlength="480" placeholder="这个月，我想记住……">${esc(saved.summary || '')}</textarea></label><button type="submit" class="primary-button">保存本月纪念页</button></form>
       </section>
-      <section class="scene-collection">${sectionHead('场景收藏', `${state().collection.scenes.length}/${Core.SCENES.length} 已拥有`)}<div>${Core.SCENES.map((scene) => { const owned = state().collection.scenes.includes(scene.id); return `<article class="scene-card ${owned ? '' : 'locked'}">${img(scene.image, scene.name, scene.id === 'today-desk' ? 1672 : 1586, scene.id === 'today-desk' ? 941 : 992)}<span>${owned ? esc(scene.name) : `${icon('lock')}待解锁`}</span></article>`; }).join('')}</div></section>
+      <section class="scene-collection">${sectionHead('场景收藏', `${state().collection.scenes.length}/${Core.SCENES.length} 已拥有`)}<div>${Core.SCENES.map((scene) => { const owned = state().collection.scenes.includes(scene.id); return `<article class="scene-card ${owned ? '' : 'locked'}">${img(scene.image, scene.name, scene.width || 1586, scene.height || 992)}<span>${owned ? esc(scene.name) : `${icon('lock')}待解锁`}</span></article>`; }).join('')}</div></section>
       <section class="history-months">${sectionHead('历史月份', `${months.length} 页永久保存`)}${months.length ? `<div>${historyCards}</div>` : emptyState('还没有月度纪念页', '保存这个月，第一本成长册就会出现。')}</section>
       <section class="data-vault">${sectionHead('数据保管', '为很多年后的自己留一份副本')}
         <div class="data-vault-row"><span class="data-vault-mark">${icon('shield')}</span><div class="data-vault-copy"><h3>这本成长册保存在当前设备</h3><p>最近保存 ${backupTimeLabel(state().updatedAt)} · ${archiveStats.tasks} 个任务 · ${archiveStats.notes} 篇笔记 · ${archiveStats.memories} 页月度纪念</p></div><div class="backup-actions"><button type="button" class="secondary-button" data-action="backup-export">${icon('download')}导出备份</button><button type="button" class="primary-button" data-action="backup-import-select">${icon('upload')}恢复备份</button><input id="backup-file-input" class="backup-file-input" type="file" accept=".json,application/json" data-backup-file aria-label="选择小小生长册备份文件"></div></div>
@@ -1411,7 +1486,7 @@
         document.querySelector('.toast')?.classList.remove('show');
       }, 2600);
     }
-    if (state().ui.page === 'focus') setupRainScene();
+    if (state().ui.page === 'focus') setupFocusScene();
     else stopRainScene();
     syncTimerView();
   }
@@ -1511,10 +1586,10 @@
     focusDraftTaskId = taskId || '';
     const soundAttempt = startFocusAudio();
     void requestFocusWakeLock();
-    saveAndRender('focus-start', '专注开始 · 雨夜自习室已进入');
+    saveAndRender('focus-start', `专注开始 · 已进入${selectedFocusRoom().name}`);
     soundAttempt.then((started) => {
       if (state().ui.page !== 'focus' || state().timer?.status !== 'running') return;
-      announce(started ? '雨夜声音已开启' : focusAudioIssue);
+      announce(started ? '自习室声音已开启' : focusAudioIssue);
       render({ preserveScroll: true });
     });
   }
@@ -1540,7 +1615,7 @@
     saveAndRender('focus-resume', '继续专注');
     soundAttempt.then((started) => {
       if (state().ui.page !== 'focus' || state().timer?.status !== 'running') return;
-      announce(started ? '雨夜声音已恢复' : focusAudioIssue);
+      announce(started ? '自习室声音已恢复' : focusAudioIssue);
       render({ preserveScroll: true });
     });
   }
@@ -1732,6 +1807,27 @@
     if (action === 'focus-end') return finishFocus(false);
     if (action === 'focus-audio-master') return toggleFocusAudio();
     if (action === 'focus-sound-toggle') return toggleFocusSound(target.dataset.channel);
+    if (action === 'focus-room-select') {
+      const room = FOCUS_ROOMS.find((item) => item.id === id);
+      if (!room || room.id === state().focusSettings.roomId) return;
+      const shouldResumeAudio = focusAudioPlaying || focusAudioStarting;
+      state().focusSettings.roomId = room.id;
+      state().focusSettings.ambienceId = room.ambienceId;
+      Core.save('focus-room');
+      const soundAttempt = shouldResumeAudio ? startFocusAudio() : null;
+      announce(`已进入${room.name}`);
+      render({ preserveScroll: true });
+      soundAttempt?.then((started) => {
+        if (state().ui.page !== 'focus' || started) return;
+        announce(focusAudioIssue);
+        render({ preserveScroll: true });
+      });
+      return;
+    }
+    if (action === 'focus-motion-toggle') {
+      state().focusSettings.motionEnabled = !state().focusSettings.motionEnabled;
+      return saveAndRender('focus-motion', state().focusSettings.motionEnabled ? '手写动态已开启' : '已切换为静态画面');
+    }
     if (action === 'habit-new') return openModal({ type: 'habit' });
     if (action === 'habit-toggle') {
       const habit = state().habits.find((item) => item.id === id);
@@ -1950,7 +2046,7 @@
   app.addEventListener('input', (event) => {
     if (event.target.matches('[data-focus-volume]')) {
       const channel = event.target.dataset.focusVolume;
-      if (!['rain', 'music'].includes(channel)) return;
+      if (!['ambience', 'music'].includes(channel)) return;
       const volume = Core.clamp(Number(event.target.value) / 100, 0, 1);
       state().focusSettings[`${channel}Volume`] = volume;
       const output = document.querySelector(`[data-focus-output="${channel}"]`);
@@ -1987,6 +2083,23 @@
   });
 
   app.addEventListener('change', async (event) => {
+    if (event.target.matches('[data-focus-track]')) {
+      const channel = event.target.dataset.focusTrack;
+      const trackId = event.target.value;
+      if (!FOCUS_AUDIO_TRACKS[channel]?.[trackId]) return;
+      state().focusSettings[`${channel}Id`] = trackId;
+      state().focusSettings[`${channel}Enabled`] = true;
+      Core.save('focus-track');
+      const soundAttempt = startFocusAudio();
+      announce(`正在试听${FOCUS_AUDIO_TRACKS[channel][trackId].label}`);
+      render({ preserveScroll: true });
+      soundAttempt.then((started) => {
+        if (state().ui.page !== 'focus') return;
+        announce(started ? `${FOCUS_AUDIO_TRACKS[channel][trackId].label}已播放` : focusAudioIssue);
+        render({ preserveScroll: true });
+      });
+      return;
+    }
     if (event.target.matches('[data-backup-file]')) {
       const [file] = event.target.files || [];
       await prepareBackupImport(file);
@@ -2054,8 +2167,8 @@
     syncTimerView();
     if (state().ui.page === 'focus' && state().timer?.status === 'running') {
       void requestFocusWakeLock();
-      const enabledChannels = ['rain', 'music'].filter((channel) => state().focusSettings[`${channel}Enabled`]);
-      const interrupted = focusAudioPlaying && focusAudioMedia && enabledChannels.every((channel) => focusAudioMedia[channel].paused);
+      const enabledChannels = ['ambience', 'music'].filter((channel) => state().focusSettings[`${channel}Enabled`]);
+      const interrupted = focusAudioPlaying && focusAudioMedia && enabledChannels.every((channel) => focusAudioMedia[channel]?.paused !== false);
       if (interrupted) {
         focusAudioPlaying = false;
         focusAudioIssue = '声音已被 iPhone 暂停，请点「开启」恢复。';
