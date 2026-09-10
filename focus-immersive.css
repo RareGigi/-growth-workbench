@@ -1,0 +1,550 @@
+/* Immersive focus controls layered on top of the canonical focus room. */
+body.focus-immersive-active {
+  overflow: hidden;
+  background: #0d1117;
+}
+
+body.focus-immersive-active .app-shell {
+  display: block;
+  min-height: 100dvh;
+  background: #0d1117;
+}
+
+body.focus-immersive-active .sidebar,
+body.focus-immersive-active .topbar,
+body.focus-immersive-active .global-fab,
+body.focus-immersive-active .focus-page > .page-header,
+body.focus-immersive-active .focus-history,
+body.focus-immersive-active .focus-room-picker,
+body.focus-immersive-active .timer-panel {
+  display: none !important;
+}
+
+body.focus-immersive-active .main-shell,
+body.focus-immersive-active #view,
+body.focus-immersive-active .focus-page,
+body.focus-immersive-active .focus-room {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  height: 100dvh;
+  min-height: 100dvh;
+  margin: 0;
+  padding: 0;
+}
+
+body.focus-immersive-active .main-shell,
+body.focus-immersive-active #view,
+body.focus-immersive-active .focus-page {
+  overflow: hidden;
+}
+
+body.focus-immersive-active .focus-room {
+  display: block;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: #0d1117;
+}
+
+body.focus-immersive-active .focus-scene {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  min-height: 100dvh;
+  border-radius: 0;
+  background: #111722;
+}
+
+body.focus-immersive-active .focus-scene > .image-shell,
+body.focus-immersive-active .focus-scene > .image-shell > img,
+body.focus-immersive-active .focus-scene-image {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  object-fit: cover;
+}
+
+body.focus-immersive-active .focus-scene-shade {
+  background:
+    linear-gradient(180deg, rgba(5, 10, 18, 0.14) 0%, rgba(6, 10, 17, 0.03) 38%, rgba(5, 8, 14, 0.58) 100%),
+    linear-gradient(90deg, rgba(7, 11, 20, 0.16), transparent 36%, transparent 66%, rgba(7, 11, 20, 0.1));
+}
+
+body.focus-immersive-active .focus-weather {
+  top: max(18px, env(safe-area-inset-top));
+  left: max(18px, env(safe-area-inset-left));
+  right: auto;
+  max-width: min(430px, calc(100vw - 36px));
+  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(13, 18, 28, .34);
+  color: #fff;
+  box-shadow: 0 16px 40px rgba(0,0,0,.14);
+  backdrop-filter: blur(16px) saturate(1.1);
+  -webkit-backdrop-filter: blur(16px) saturate(1.1);
+}
+
+body.focus-immersive-active .focus-weather small,
+body.focus-immersive-active .focus-weather em {
+  color: rgba(255,255,255,.72);
+}
+
+body.focus-immersive-active .focus-motion-toggle {
+  top: max(18px, env(safe-area-inset-top));
+  right: max(18px, env(safe-area-inset-right));
+  border-color: rgba(255,255,255,.16);
+  background: rgba(13, 18, 28, .34);
+  color: #fff;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+body.focus-immersive-active .focus-stage-time {
+  display: block;
+  top: 50%;
+  right: auto;
+  bottom: auto;
+  left: 50%;
+  width: min(620px, calc(100vw - 36px));
+  transform: translate(-50%, -53%);
+  color: #fff;
+  text-align: center;
+  text-shadow: 0 3px 24px rgba(0,0,0,.32);
+}
+
+body.focus-immersive-active .focus-stage-time small {
+  display: block;
+  max-width: 90%;
+  margin: 0 auto 12px;
+  overflow: hidden;
+  color: rgba(255,255,255,.78);
+  font-size: clamp(12px, 1.5vw, 15px);
+  letter-spacing: .06em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.focus-immersive-active .focus-stage-time strong {
+  display: block;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: clamp(64px, 11vw, 142px);
+  font-weight: 420;
+  letter-spacing: -.07em;
+  line-height: .95;
+}
+
+body.focus-immersive-active .focus-stage-time span {
+  display: inline-block;
+  margin-top: 14px;
+  padding: 7px 12px;
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 999px;
+  background: rgba(10,14,22,.22);
+  color: rgba(255,255,255,.82);
+  font-size: 11px;
+  letter-spacing: .08em;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+body.focus-immersive-active .focus-scene-caption {
+  right: max(18px, env(safe-area-inset-right));
+  bottom: calc(108px + env(safe-area-inset-bottom));
+  left: auto;
+  max-width: 320px;
+  color: rgba(255,255,255,.72);
+  text-align: right;
+}
+
+body.focus-immersive-active .focus-scene-caption span,
+body.focus-immersive-active .focus-scene-caption p {
+  color: inherit;
+}
+
+.immersive-dock {
+  position: fixed;
+  z-index: 150;
+  right: max(18px, env(safe-area-inset-right));
+  bottom: max(18px, env(safe-area-inset-bottom));
+  left: max(18px, env(safe-area-inset-left));
+  display: grid;
+  grid-template-columns: minmax(170px, .8fr) minmax(360px, 1.2fr);
+  align-items: center;
+  gap: 18px;
+  max-width: 920px;
+  min-height: 76px;
+  margin: 0 auto;
+  padding: 10px 12px 10px 18px;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 24px;
+  background: rgba(13, 18, 28, .58);
+  color: #fff;
+  box-shadow: 0 24px 70px rgba(0,0,0,.28);
+  backdrop-filter: blur(22px) saturate(1.15);
+  -webkit-backdrop-filter: blur(22px) saturate(1.15);
+}
+
+.immersive-dock-status {
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: baseline;
+  justify-content: start;
+  column-gap: 12px;
+}
+
+.immersive-dock-status span {
+  grid-column: 1 / -1;
+  margin-bottom: 2px;
+  color: rgba(255,255,255,.68);
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: .08em;
+}
+
+.immersive-dock-status strong {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 22px;
+  font-weight: 560;
+  letter-spacing: -.04em;
+}
+
+.immersive-dock-status small {
+  color: rgba(255,255,255,.56);
+  font-size: 10px;
+}
+
+.immersive-dock-actions {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.immersive-dock-actions button,
+.immersive-sheet button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.immersive-dock-actions button {
+  display: flex;
+  min-height: 54px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 10px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 16px;
+  background: rgba(255,255,255,.075);
+  color: rgba(255,255,255,.86);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.immersive-dock-actions button:hover,
+.immersive-dock-actions button:focus-visible {
+  border-color: rgba(255,255,255,.28);
+  background: rgba(255,255,255,.13);
+}
+
+.immersive-dock-actions button.immersive-primary {
+  background: rgba(244,247,255,.94);
+  color: #27334d;
+}
+
+.immersive-dock-actions svg,
+.immersive-sheet svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.immersive-sheet {
+  position: fixed;
+  z-index: 170;
+  top: max(18px, env(safe-area-inset-top));
+  right: max(18px, env(safe-area-inset-right));
+  bottom: calc(112px + env(safe-area-inset-bottom));
+  width: min(430px, calc(100vw - 36px));
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 24px;
+  background: rgba(245,247,252,.92);
+  color: #293246;
+  box-shadow: 0 28px 90px rgba(0,0,0,.3);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(20px) scale(.985);
+  transition: opacity .18s ease, transform .18s ease;
+  backdrop-filter: blur(24px) saturate(1.08);
+  -webkit-backdrop-filter: blur(24px) saturate(1.08);
+}
+
+body.focus-adjust-open .immersive-sheet {
+  opacity: 1;
+  pointer-events: auto;
+  transform: none;
+}
+
+.immersive-sheet > header {
+  display: flex;
+  min-height: 70px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 16px 11px 18px;
+  border-bottom: 1px solid rgba(70,83,112,.1);
+}
+
+.immersive-sheet > header small {
+  display: block;
+  color: #7c879e;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .14em;
+}
+
+.immersive-sheet > header h2 {
+  margin: 2px 0 0;
+  font-size: 18px;
+  letter-spacing: -.02em;
+}
+
+.immersive-sheet > header button {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 14px;
+  background: rgba(90,105,138,.08);
+  color: #47536d;
+}
+
+.immersive-sheet-scroll {
+  height: calc(100% - 70px);
+  overflow: auto;
+  padding: 16px 18px 18px;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.immersive-section-head,
+.immersive-channel-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.immersive-section-head > span,
+.immersive-channel-title > span {
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.immersive-section-head > button,
+.immersive-channel-title > button {
+  display: flex;
+  min-height: 36px;
+  align-items: center;
+  gap: 5px;
+  padding: 0 10px;
+  border-radius: 11px;
+  background: #e8edf9;
+  color: #536ba6;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.immersive-section-head > button svg { width: 14px; height: 14px; }
+
+.immersive-room-chips {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.immersive-room-chips button {
+  min-height: 44px;
+  padding: 7px;
+  border: 1px solid #dce2ef;
+  border-radius: 12px;
+  background: rgba(255,255,255,.74);
+  color: #5d687e;
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.immersive-room-chips button.active {
+  border-color: #9badd7;
+  background: #e9eefb;
+  color: #405b9b;
+  box-shadow: inset 0 0 0 1px rgba(84,110,171,.08);
+}
+
+.immersive-audio-grid {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.immersive-channel {
+  padding: 13px;
+  border: 1px solid #dfe4ef;
+  border-radius: 15px;
+  background: rgba(255,255,255,.68);
+  opacity: .7;
+}
+
+.immersive-channel.enabled { opacity: 1; }
+
+.immersive-channel select {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 8px;
+  padding: 0 12px;
+  border: 1px solid #d7ddea;
+  border-radius: 11px;
+  background: #fff;
+  color: #374158;
+  font-size: 12px;
+}
+
+.immersive-channel label {
+  display: grid;
+  grid-template-columns: 34px 1fr 34px;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  color: #7b8498;
+  font-size: 10px;
+}
+
+.immersive-channel input[type="range"] {
+  width: 100%;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  accent-color: #647db9;
+}
+
+.immersive-channel output { text-align: right; }
+
+.immersive-tip {
+  margin: 12px 2px 0;
+  color: #7c8699;
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.immersive-sheet-actions {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #e1e5ee;
+}
+
+.immersive-sheet-actions button {
+  width: 100%;
+  min-height: 46px;
+  border-radius: 13px;
+  background: #edf0f6;
+  color: #677086;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+body.focus-immersive-paused .focus-scene::after {
+  content: '已暂停';
+  position: absolute;
+  z-index: 6;
+  top: 50%;
+  left: 50%;
+  margin-top: clamp(72px, 10vw, 120px);
+  padding: 7px 12px;
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 999px;
+  background: rgba(8,12,20,.32);
+  color: rgba(255,255,255,.82);
+  font-size: 11px;
+  letter-spacing: .08em;
+  transform: translateX(-50%);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+@media (max-width: 760px) {
+  body.focus-immersive-active .focus-weather {
+    top: max(12px, env(safe-area-inset-top));
+    left: max(12px, env(safe-area-inset-left));
+    max-width: calc(100vw - 70px);
+    padding: 8px 10px;
+  }
+  body.focus-immersive-active .focus-weather small,
+  body.focus-immersive-active .focus-weather em { display: none; }
+  body.focus-immersive-active .focus-motion-toggle {
+    top: max(12px, env(safe-area-inset-top));
+    right: max(12px, env(safe-area-inset-right));
+    width: 44px;
+    min-width: 44px;
+    padding: 0;
+  }
+  body.focus-immersive-active .focus-motion-toggle span { display: none; }
+  body.focus-immersive-active .focus-stage-time {
+    top: 46%;
+    width: calc(100vw - 28px);
+  }
+  body.focus-immersive-active .focus-stage-time strong {
+    font-size: clamp(62px, 23vw, 96px);
+  }
+  body.focus-immersive-active .focus-scene-caption { display: none; }
+  .immersive-dock {
+    right: max(10px, env(safe-area-inset-right));
+    bottom: max(10px, env(safe-area-inset-bottom));
+    left: max(10px, env(safe-area-inset-left));
+    display: block;
+    min-height: 0;
+    padding: 8px;
+    border-radius: 20px;
+  }
+  .immersive-dock-status {
+    display: none;
+  }
+  .immersive-dock-actions {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 5px;
+  }
+  .immersive-dock-actions button {
+    min-width: 0;
+    min-height: 52px;
+    padding: 0 5px;
+    border-radius: 14px;
+    font-size: 10px;
+  }
+  .immersive-dock-actions svg { width: 17px; height: 17px; }
+  .immersive-sheet {
+    top: auto;
+    right: max(10px, env(safe-area-inset-right));
+    bottom: calc(78px + env(safe-area-inset-bottom));
+    left: max(10px, env(safe-area-inset-left));
+    width: auto;
+    max-height: min(72dvh, 610px);
+    border-radius: 22px;
+    transform: translateY(14px) scale(.985);
+  }
+  .immersive-sheet > header { min-height: 62px; }
+  .immersive-sheet-scroll { height: auto; max-height: calc(min(72dvh, 610px) - 62px); }
+  .immersive-room-chips { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 390px) {
+  .immersive-dock-actions button { gap: 4px; font-size: 9px; }
+  .immersive-sheet-scroll { padding-inline: 14px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .immersive-sheet { transition: none; }
+}
