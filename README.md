@@ -19,11 +19,17 @@
 ```text
 index.html
 app.css
-app.js                  # 主界面与业务交互
-core.js                 # 状态、迁移、修复、奖励与持久化
-focus-immersive.css     # 沉浸专注布局
-focus-immersive.js      # 沉浸层与声音面板
-focus-room-experience.js# 扩展场景库、筛选、时段推荐与房间声景预设
+accessibility.css        # 手机字号、触控与 reduced-motion 兼容层
+app.js                   # 主界面与业务交互
+core.js                  # 状态、迁移、修复、奖励与持久化
+focus-immersive.css      # 沉浸专注布局
+focus-immersive.js       # 沉浸层与声音面板
+focus-room-experience.js # 14 个场景、筛选、时段推荐与房间声景预设
+focus-overlay-a11y.js    # 专注弹层键盘焦点约束与关闭后焦点恢复
+icon.svg
+icon-180.png             # iPhone 添加到主屏幕使用
+scripts/
+  validate-static.mjs    # 零依赖静态发布检查
 assets/
   ui/
   character/
@@ -67,6 +73,12 @@ assets/
 
 所有音频通过原生 `HTMLAudioElement` 播放，暂停 / 结束 / 离开页面时会淡出。iPhone 刷新运行中的计时器或从后台返回后，若浏览器中断声音，需要再次轻触「开启」，这是移动 Safari 的用户手势限制。
 
+### 手机与可访问性
+
+移动端正式信息字号不低于 12px；表单和选择控件在手机宽度下使用 16px，避免 iOS Safari 聚焦时自动放大页面。交互控件保持至少 44px 触控尺寸，并对 `prefers-reduced-motion` 提供低动画模式。
+
+房间选择和声音设置弹层打开后会把键盘焦点带入弹层、限制 Tab 在弹层内循环，并在关闭后把焦点还给原来的入口按钮。iPhone 添加到主屏幕时使用专门的 `icon-180.png`，浏览器标签页仍保留轻量 SVG favicon。
+
 ## 素材与许可
 
 交互调研参考了 [Moodist](https://github.com/remvze/moodist) 的分层环境声与专注联动，但没有复制其代码或音频。轻音乐选自 [Open Lo-Fi](https://github.com/btahir/open-lofi) 的 CC0 曲库并重新做较低响度编码。
@@ -77,16 +89,19 @@ assets/
 
 ## 质量检查
 
-发布前至少执行：
+仓库已经有 `.github/workflows/quality-check.yml`。每次推送到 `main` 或提交 PR 时会自动执行：JavaScript 语法检查、14 个自习室配置、所有场景图与本地音频引用、默认音量、SVG 画布与远程资源、manifest、iPhone 图标、移动端字号和焦点层接线检查。
+
+本地可执行：
 
 ```bash
 node --check core.js
 node --check app.js
 node --check focus-immersive.js
 node --check focus-room-experience.js
-npx --yes impeccable detect --json .
+node --check focus-overlay-a11y.js
+node scripts/validate-static.mjs
 ```
 
-并在正式预览中检查桌面、768px iPad、430px iPhone 与 390px iPhone：导航抽屉、今日分段、任务操作、日历、专注计时、房间筛选、环境声 / 音乐切换、备份恢复、弹层焦点、图片降级、滚动、safe area 与刷新后的状态恢复。
+并在正式预览中检查桌面、768px iPad、430px iPhone 与 390px iPhone：导航抽屉、今日分段、任务操作、日历、专注计时、房间筛选、环境声 / 音乐切换、备份恢复、弹层焦点、图片降级、滚动、safe area、添加到主屏幕与刷新后的状态恢复。
 
 产品范围与验收标准见 [PRODUCT.md](PRODUCT.md)，视觉规范见 [DESIGN.md](DESIGN.md)。
