@@ -48,6 +48,7 @@ if (!errors.length) {
     .filter((path) => !/^(?:https?:|data:|#)/.test(path));
   localRefs.forEach((path) => assertFile(path, `index.html 引用`));
   assert(index.includes('accessibility.css'), 'index.html 未加载 accessibility.css');
+  assert(index.includes('focus-room-experience.js'), 'index.html 未加载统一自习室体验层');
   assert(index.includes('focus-overlay-a11y.js'), 'index.html 未加载 focus-overlay-a11y.js');
   assert(/rel="apple-touch-icon"[^>]+icon-180\.png/.test(index), 'index.html 未使用 180px Apple Touch Icon');
   assert(!index.includes('focus-preset-sync.js'), 'index.html 仍引用已合并的 focus-preset-sync.js');
@@ -88,9 +89,14 @@ if (!errors.length) {
 
   if (roomBlock) {
     const roomLines = roomBlock[1].split('\n').map((line) => line.trim()).filter((line) => line.startsWith('{ id:'));
-    assert(roomLines.length === 14, `自习室应为 14 个，当前解析到 ${roomLines.length} 个`);
+    assert(roomLines.length === 16, `自习室应为 16 个，当前解析到 ${roomLines.length} 个`);
     const seen = new Set();
+    const soundPairs = new Set();
     const groups = new Set();
+    const corePresets = new Map(
+      [...core.matchAll(/^\s{4}(?:'([^']+)'|([A-Za-z0-9-]+)):\s*Object\.freeze\(\{ ambienceId: '([^']+)', musicId: '([^']+)', ambienceVolume: ([.\d]+), musicVolume: ([.\d]+) \}\),?$/gm)]
+        .map((match) => [match[1] || match[2], { ambience: match[3], music: match[4], ambienceVolume: Number(match[5]), musicVolume: Number(match[6]) }])
+    );
     const appTrackIds = new Set(
       [...app.matchAll(/(?:'([^']+)'|([A-Za-z0-9-]+)):\s*\{\s*src:\s*'assets\/scenes\/[^']+\.mp3'/g)]
         .map((match) => match[1] || match[2])
@@ -115,6 +121,15 @@ if (!errors.length) {
       assert(Number.isFinite(ambienceVolume) && ambienceVolume >= 0 && ambienceVolume <= 1, `房间 ${id} 环境声音量无效`);
       assert(Number.isFinite(musicVolume) && musicVolume >= 0 && musicVolume <= 1, `房间 ${id} 音乐音量无效`);
       assert(musicVolume <= ambienceVolume, `房间 ${id} 默认音乐不应盖过环境声`);
+      const soundPair = `${ambience}+${music}`;
+      assert(!soundPairs.has(soundPair), `房间 ${id} 与其他房间重复使用完整声景组合：${soundPair}`);
+      soundPairs.add(soundPair);
+      const preset = corePresets.get(id);
+      assert(Boolean(preset), `core.js 缺少房间 ${id} 的正式声景预设`);
+      if (preset) {
+        assert(preset.ambience === ambience && preset.music === music, `房间 ${id} 的体验层与正式声景曲目不一致`);
+        assert(preset.ambienceVolume === ambienceVolume && preset.musicVolume === musicVolume, `房间 ${id} 的体验层与正式声景音量不一致`);
+      }
 
       if (image && extname(image) === '.svg' && existsSync(file(image))) {
         const svg = read(image);
@@ -128,21 +143,26 @@ if (!errors.length) {
     ['real', 'ancient', 'xuanhuan', 'fantasy', 'rain'].forEach((group) => {
       assert(groups.has(group), `房间库缺少分组：${group}`);
     });
+    const recommendationIds = [...experience.matchAll(/return '([^']+)';/g)].map((match) => match[1]);
+    recommendationIds.forEach((id) => assert(seen.has(id), `时段推荐仍指向已移除房间：${id}`));
   }
 
   const audioPaths = [...app.matchAll(/src:\s*'(assets\/scenes\/[^']+\.mp3)'/g)].map((match) => match[1]);
   [...new Set(audioPaths)].forEach((path) => assertFile(path, '专注音频'));
 
   const inventory = {
+    FOCUS_ROOMS: arrayCount(app, 'FOCUS_ROOMS'),
     OUTFITS: arrayCount(core, 'OUTFITS'),
     STICKERS: arrayCount(core, 'STICKERS'),
     BADGES: arrayCount(core, 'BADGES'),
     SCENES: arrayCount(core, 'SCENES')
   };
-  assert(inventory.OUTFITS === 10, `卡面应为 10 套，当前 ${inventory.OUTFITS}`);
-  assert(inventory.STICKERS === 17, `贴纸应为 17 枚，当前 ${inventory.STICKERS}`);
-  assert(inventory.BADGES === 6, `徽章应为 6 枚，当前 ${inventory.BADGES}`);
-  assert(Number.isInteger(inventory.SCENES) && inventory.SCENES >= 10, `收藏场景数量异常：${inventory.SCENES}`);
+  assert(inventory.FOCUS_ROOMS === 16, `主界面自习室应为 16 个，当前 ${inventory.FOCUS_ROOMS}`);
+  assert(inventory.OUTFITS === 16, `卡面应为 16 套，当前 ${inventory.OUTFITS}`);
+  assert(inventory.STICKERS === 25, `贴纸应为 25 枚，当前 ${inventory.STICKERS}`);
+  assert(inventory.BADGES === 12, `徽章应为 12 枚，当前 ${inventory.BADGES}`);
+  assert(inventory.SCENES === 20, `收藏场景应为 20 个，当前 ${inventory.SCENES}`);
+  assertFile('assets/journal/ephemera-cluster.svg', '贴纸册复杂手账拼贴');
   assert(/tasks:\s*\[\]/.test(core), '默认状态不应预填已完成任务');
   assert(/focusSessions:\s*\[\]/.test(core), '默认状态不应预填专注会话');
 

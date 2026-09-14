@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200" fill="none">
+  <defs><filter id="glow" x="-70%" y="-70%" width="240%" height="240%"><feGaussianBlur stdDeviation="9"/></filter><filter id="s" x="-30%" y="-30%" width="170%" height="180%"><feDropShadow dy="5" stdDeviation="4" flood-color="#53627F" flood-opacity=".2"/></filter></defs><circle cx="105" cy="103" r="62" fill="#F4D996" opacity=".34" filter="url(#glow)"/>
+  <g filter="url(#s)" stroke="#FFFDF9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M28 53c28 2 44-9 54-32" stroke-width="11"/><path d="M28 53c28 2 44-9 54-32" stroke="#7589B8" stroke-width="4"/><path d="M51 42c-13-8-24-5-29 8 12 7 22 4 29-8Zm22-11c10-13 21-14 31-3-9 12-20 13-31 3Z" fill="#94B7A6" stroke-width="5"/>
+    <path d="M83 42c0-16 44-16 44 0" stroke="#7788B9" stroke-width="9"/><path d="M67 57h76l-8 88H75l-8-88Z" fill="#DDAF82" stroke-width="10"/><path d="M82 73h46v55H82z" fill="#FFF2BE" stroke-width="6"/><path d="M105 73v55M82 100h46" stroke="#C88682" stroke-width="3"/><path d="M105 145v28" stroke="#7788B9" stroke-width="9"/><path d="m105 172-10 11m10-11 10 11" stroke="#D69AA9" stroke-width="6"/>
+    <path d="m105 83 5 11 12 2-9 8 2 12-10-6-10 6 2-12-9-8 12-2 5-11Z" fill="#B7A9DA" stroke-width="3"/><path d="M151 77c12-8 22-7 27 2-8 9-18 10-27-2Zm8 23c10-6 18-4 21 4-8 7-15 7-21-4Z" fill="#E5EAF6" stroke-width="4"/>
+  </g>
+</svg>

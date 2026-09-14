@@ -21,7 +21,13 @@
     { id: 'anniversary-orbit', name: '星轨誓约', series: '周年限定', image: 'assets/outfits/anniversary-orbit.webp', price: 420, release: 'limited', hair: '星穹背梳', accessories: '星芒胸针 · 蓝宝耳钉 · 周年缎带', palette: '珍珠白 / 星河蓝 / 香槟金' },
     { id: 'radiant-rite', name: '逐光礼赞', series: '辉光典藏', image: 'assets/outfits/radiant-rite.webp', price: 480, release: 'limited', hair: '逐光银羽', accessories: '光环额饰 · 棱晶胸针 · 仪典光杖', palette: '象牙白 / 晨光金 / 棱镜蓝' },
     { id: 'midnight-crown', name: '星夜加冕', series: '暗夜典藏', image: 'assets/outfits/midnight-crown.webp', price: 520, release: 'limited', hair: '夜风长层', accessories: '星环 · 蓝晶耳链 · 天体权杖', palette: '深空蓝 / 冷银 / 紫晶' },
-    { id: 'festival-fireworks', name: '烟火来信', series: '节日限定', image: 'assets/outfits/festival-fireworks.webp', price: 280, release: 'new', hair: '焰尾束线', accessories: '烟火胸针 · 玉耳扣 · 火花信封', palette: '墨蓝 / 暖灰 / 暗绯' }
+    { id: 'festival-fireworks', name: '烟火来信', series: '节日限定', image: 'assets/outfits/festival-fireworks.webp', price: 280, release: 'new', hair: '焰尾束线', accessories: '烟火胸针 · 玉耳扣 · 火花信封', palette: '墨蓝 / 暖灰 / 暗绯' },
+    { id: 'mint-daylight', name: '薄荷晴昼', series: '自然日常', image: 'assets/outfits/mint-daylight.webp', price: 200, release: 'new', hair: '晴光碎银', accessories: '叶脉刺绣 · 银色吊坠 · 白兔伙伴', palette: '薄荷绿 / 象牙白 / 晴空蓝' },
+    { id: 'mist-harbor', name: '雾港漫步', series: '城市漫游', image: 'assets/outfits/mist-harbor.webp', price: 260, release: 'new', hair: '港风短发', accessories: '绒兔胸针 · 银链 · 深蓝雨伞', palette: '珍珠灰 / 雾蓝 / 炭灰' },
+    { id: 'amber-pages', name: '琥珀书页', series: '学院阅读', image: 'assets/outfits/amber-pages.webp', price: 280, release: 'new', hair: '柔软帘发', accessories: '古书胸针 · 松结领带 · 精装书', palette: '燕麦 / 琥珀 / 暮蓝' },
+    { id: 'frost-traveler', name: '星霜旅人', series: '冬夜远行', image: 'assets/outfits/frost-traveler.webp', price: 420, release: 'limited', hair: '霜夜银羽', accessories: '星图刺绣 · 月石胸针 · 长围巾', palette: '午夜蓝 / 霜灰 / 暖金' },
+    { id: 'cloud-pavilion', name: '云间雅士', series: '古风华章', image: 'assets/outfits/cloud-pavilion.webp', price: 460, release: 'limited', hair: '云光银发', accessories: '青玉佩 · 云纹折扇 · 流苏腰饰', palette: '月白 / 青瓷 / 淡金' },
+    { id: 'astral-keeper', name: '星枢司辰', series: '玄穹典藏', image: 'assets/outfits/astral-keeper.webp', price: 560, release: 'limited', hair: '星月银灰', accessories: '月石扣 · 星图册 · 黄铜星盘', palette: '深空蓝 / 星雾紫 / 冷银' }
   ]);
 
   const SCENES = Object.freeze([
@@ -32,9 +38,19 @@
     { id: 'focus-magic-bookshop', name: '月灯书屋', image: 'assets/scenes/focus-magic-bookshop.webp', width: 1672, height: 941 },
     { id: 'focus-celestial', name: '云上天宫', image: 'assets/scenes/focus-celestial.webp', width: 1672, height: 941 },
     { id: 'focus-temple', name: '山寺晨光', image: 'assets/scenes/focus-temple.webp', width: 1672, height: 941 },
+    { id: 'focus-forest-glasshouse', name: '雾林花房', image: 'assets/scenes/focus-forest-glasshouse.webp', width: 1672, height: 941 },
+    { id: 'focus-snow-cabin', name: '雪夜木屋', image: 'assets/scenes/focus-snow-cabin.webp', width: 1672, height: 941 },
+    { id: 'focus-ocean-cliff', name: '海崖晨光', image: 'assets/scenes/focus-ocean-cliff.webp', width: 1672, height: 941 },
+    { id: 'focus-night-train', name: '夜行列车', image: 'assets/scenes/focus-night-train.webp', width: 1672, height: 941 },
     { id: 'focus-night', name: '静夜专注', image: 'assets/scenes/focus-night.webp', width: 1586, height: 992 },
     { id: 'cafe-afternoon', name: '午后咖啡馆', image: 'assets/scenes/cafe-afternoon.webp', width: 1586, height: 992 },
-    { id: 'garden-morning', name: '晨雾花园', image: 'assets/scenes/garden-morning.webp', width: 1586, height: 992 }
+    { id: 'garden-morning', name: '晨雾花园', image: 'assets/scenes/garden-morning.webp', width: 1586, height: 992 },
+    { id: 'atelier-spring', name: '春日画室', image: 'assets/scenes/atelier-spring.webp', width: 1672, height: 941, hint: '明亮创作 · 适合规划与输出' },
+    { id: 'lakeside-autumn', name: '湖畔书台', image: 'assets/scenes/lakeside-autumn.webp', width: 1672, height: 941, hint: '开阔秋色 · 适合阅读与复盘' },
+    { id: 'conservatory-lavender', name: '薰衣草花房', image: 'assets/scenes/conservatory-lavender.webp', width: 1672, height: 941, hint: '雨夜花房 · 适合温柔推进' },
+    { id: 'tram-rain', name: '雨夜电车站', image: 'assets/scenes/tram-rain.webp', width: 1672, height: 941, hint: '城市雨幕 · 适合短时冲刺' },
+    { id: 'cloud-pavilion-study', name: '云间仙阁', image: 'assets/scenes/cloud-pavilion-study.webp', width: 1672, height: 941, hint: '云海古阁 · 适合长读与书写' },
+    { id: 'astral-archive', name: '星潮秘库', image: 'assets/scenes/astral-archive.webp', width: 1672, height: 941, hint: '玄穹星图 · 适合深度思考' }
   ]);
 
   const STICKERS = Object.freeze([
@@ -54,7 +70,15 @@
     { id: 'planet', name: '环游小星球', image: 'assets/stickers/planet.svg', hint: '保存第一张月度手账' },
     { id: 'study-seal', name: '学习章', image: 'assets/stickers/study-seal.svg', hint: '累计学习 5 小时' },
     { id: 'writing-seal', name: '写作章', image: 'assets/stickers/writing-seal.svg', hint: '累计写作 5,000 字' },
-    { id: 'sport-seal', name: '运动章', image: 'assets/stickers/sport-seal.svg', hint: '完成 5 次运动记录' }
+    { id: 'sport-seal', name: '运动章', image: 'assets/stickers/sport-seal.svg', hint: '完成 5 次运动记录' },
+    { id: 'hourglass', name: '五分钟也算', image: 'assets/stickers/hourglass.svg', hint: '完成一次 5 分钟起步' },
+    { id: 'umbrella', name: '雨伞小憩', image: 'assets/stickers/umbrella.svg', hint: '累计专注 60 分钟' },
+    { id: 'lantern', name: '长明小灯', image: 'assets/stickers/lantern.svg', hint: '在 7 天留下日记' },
+    { id: 'leaf-letter', name: '叶间来信', image: 'assets/stickers/leaf-letter.svg', hint: '写下 3 篇笔记' },
+    { id: 'shell', name: '海风贝壳', image: 'assets/stickers/shell.svg', hint: '累计完成 10 件任务' },
+    { id: 'train-ticket', name: '远行车票', image: 'assets/stickers/train-ticket.svg', hint: '完成 10 次专注' },
+    { id: 'snowflake', name: '初雪收藏', image: 'assets/stickers/snowflake.svg', hint: '完成 14 次习惯打卡' },
+    { id: 'ribbon', name: '月度缎带', image: 'assets/stickers/ribbon.svg', hint: '保存 3 张月度手账' }
   ]);
 
   const BADGES = Object.freeze([
@@ -63,7 +87,13 @@
     { id: 'seven-days', name: '连续记录 7 天', image: 'assets/badges/seven-days.svg', hint: '连续七天留下记录', hidden: false },
     { id: 'first-memory', name: '第一本成长册', image: 'assets/badges/first-memory.svg', hint: '保存第一张月度手账', hidden: false },
     { id: 'novel-50k', name: '小说 5 万字', image: 'assets/badges/novel-50k.svg', hint: '一个会自己出现的成就', hidden: true },
-    { id: 'project-chapter', name: '完成重要章节', image: 'assets/badges/project-chapter.svg', hint: '完成一个项目节点', hidden: true }
+    { id: 'project-chapter', name: '完成重要章节', image: 'assets/badges/project-chapter.svg', hint: '完成一个项目节点', hidden: true },
+    { id: 'first-plan', name: '今日启程', image: 'assets/badges/first-plan.svg', hint: '采用第一份智能拆解计划', hidden: false },
+    { id: 'focus-25', name: '完整番茄', image: 'assets/badges/focus-25.svg', hint: '完成一次不少于 25 分钟的专注', hidden: false },
+    { id: 'task-30', name: '三十次兑现', image: 'assets/badges/task-30.svg', hint: '累计完成 30 件任务', hidden: false },
+    { id: 'habit-30', name: '温柔坚持', image: 'assets/badges/habit-30.svg', hint: '累计完成 30 次习惯打卡', hidden: false },
+    { id: 'note-10', name: '十页留痕', image: 'assets/badges/note-10.svg', hint: '写下 10 篇笔记', hidden: false },
+    { id: 'all-rounder', name: '星图展开', image: 'assets/badges/all-rounder.svg', hint: '在 4 个不同领域留下成长记录', hidden: true }
   ]);
 
   const AREA_META = Object.freeze({
@@ -74,6 +104,25 @@
     运动: { color: '#6ca98f', unit: '分钟' },
     英语: { color: '#6f9eb9', unit: '分钟' },
     播客: { color: '#c38f73', unit: '分钟' }
+  });
+
+  const FOCUS_SOUND_PRESETS = Object.freeze({
+    'leaf-rain': Object.freeze({ ambienceId: 'leaf-rain', musicId: 'rain-brushstrokes', ambienceVolume: 0.46, musicVolume: 0.12 }),
+    library: Object.freeze({ ambienceId: 'library', musicId: 'quiet-books', ambienceVolume: 0.38, musicVolume: 0.1 }),
+    cafe: Object.freeze({ ambienceId: 'cafe', musicId: 'breezy-terrace', ambienceVolume: 0.36, musicVolume: 0.11 }),
+    'magic-bookshop': Object.freeze({ ambienceId: 'hearth', musicId: 'lamplight-chapter', ambienceVolume: 0.32, musicVolume: 0.1 }),
+    celestial: Object.freeze({ ambienceId: 'cloud-wind', musicId: 'constellations', ambienceVolume: 0.34, musicVolume: 0.09 }),
+    temple: Object.freeze({ ambienceId: 'temple', musicId: 'temple-dawn', ambienceVolume: 0.32, musicVolume: 0.09 }),
+    'forest-glasshouse': Object.freeze({ ambienceId: 'glasshouse-rain', musicId: 'glasshouse-ghosts', ambienceVolume: 0.4, musicVolume: 0.1 }),
+    'snow-cabin': Object.freeze({ ambienceId: 'snow-wind', musicId: 'snow-needle', ambienceVolume: 0.36, musicVolume: 0.1 }),
+    'ocean-cliff': Object.freeze({ ambienceId: 'ocean-swell', musicId: 'sea-glass', ambienceVolume: 0.42, musicVolume: 0.09 }),
+    'night-train': Object.freeze({ ambienceId: 'train-rain', musicId: 'last-train', ambienceVolume: 0.34, musicVolume: 0.11 }),
+    'atelier-spring': Object.freeze({ ambienceId: 'window-rain', musicId: 'graphite', ambienceVolume: 0.28, musicVolume: 0.1 }),
+    'lakeside-autumn': Object.freeze({ ambienceId: 'ocean-swell', musicId: 'breezy-terrace', ambienceVolume: 0.3, musicVolume: 0.09 }),
+    'conservatory-lavender': Object.freeze({ ambienceId: 'glasshouse-rain', musicId: 'constellations', ambienceVolume: 0.38, musicVolume: 0.08 }),
+    'tram-rain': Object.freeze({ ambienceId: 'train-rain', musicId: 'rain-brushstrokes', ambienceVolume: 0.4, musicVolume: 0.1 }),
+    'cloud-pavilion-study': Object.freeze({ ambienceId: 'cloud-wind', musicId: 'temple-dawn', ambienceVolume: 0.3, musicVolume: 0.08 }),
+    'astral-archive': Object.freeze({ ambienceId: 'library', musicId: 'constellations', ambienceVolume: 0.3, musicVolume: 0.08 })
   });
 
   const localDateKey = (value = new Date()) => {
@@ -129,12 +178,13 @@
     timer: null,
     focusSettings: {
       roomId: 'leaf-rain',
-      ambienceId: 'leaf-rain',
+      ambienceId: FOCUS_SOUND_PRESETS['leaf-rain'].ambienceId,
       ambienceEnabled: true,
-      ambienceVolume: 0.48,
-      musicId: 'graphite',
-      musicEnabled: false,
-      musicVolume: 0.16,
+      ambienceVolume: FOCUS_SOUND_PRESETS['leaf-rain'].ambienceVolume,
+      musicId: FOCUS_SOUND_PRESETS['leaf-rain'].musicId,
+      musicEnabled: true,
+      musicVolume: FOCUS_SOUND_PRESETS['leaf-rain'].musicVolume,
+      soundscapePresetVersion: 2,
       motionEnabled: true
     },
     habits: starterHabits(),
@@ -146,7 +196,7 @@
     weeklyReviews: {},
     planning: { defaultMinutes: 60, defaultEnergy: 'steady', lastTracks: ['tax', 'english', 'podcast', 'cpa', 'writing'], lastProjectId: '', lastInput: '', adoptedPlans: [] },
     rewards: { stars: 0, coins: 0 },
-    collection: { outfits: ['daily-daylight'], featuredOutfitId: 'daily-daylight', stickers: [], badges: [], scenes: ['today-desk', 'focus-leaf-rain', 'focus-library', 'focus-cafe', 'focus-magic-bookshop', 'focus-celestial', 'focus-temple'], favorites: [] },
+    collection: { outfits: ['daily-daylight'], featuredOutfitId: 'daily-daylight', stickers: [], badges: [], scenes: ['today-desk', 'focus-leaf-rain', 'focus-library', 'focus-cafe', 'focus-magic-bookshop', 'focus-celestial', 'focus-temple', 'focus-forest-glasshouse', 'focus-snow-cabin', 'focus-ocean-cliff', 'focus-night-train'], favorites: [] },
     monthlyMemories: {}
   });
 
@@ -292,7 +342,7 @@
 
     const rawUi = objectOrEmpty(state.ui);
     const pages = new Set(['today', 'inbox', 'project', 'calendar', 'focus', 'habits', 'review', 'notes', 'collection']);
-    const collectionTabs = new Set(['wardrobe', 'stickers', 'badges', 'memories']);
+    const collectionTabs = new Set(['wardrobe', 'stickers', 'badges', 'scenes', 'memories']);
     const wardrobeFilters = new Set(['all', 'new', 'basic', 'limited', 'owned', 'favorite']);
     state.ui = {
       ...base.ui,
@@ -405,25 +455,29 @@
 
     const rawFocusSettings = objectOrEmpty(state.focusSettings);
     const focusVolume = (value, fallback) => Number.isFinite(Number(value)) ? clamp(Number(value), 0, 1) : fallback;
-    const focusRoomIds = ['leaf-rain', 'library', 'cafe', 'magic-bookshop', 'celestial', 'temple'];
-    const focusAmbienceIds = ['window-rain', 'leaf-rain', 'deep-rain', 'library', 'cafe', 'hearth', 'cloud-wind', 'temple'];
-    const focusMusicIds = ['star-rain', 'graphite', 'quiet-books', 'constellations', 'temple-dawn'];
+    const focusRoomIds = ['leaf-rain', 'library', 'cafe', 'magic-bookshop', 'celestial', 'temple', 'forest-glasshouse', 'snow-cabin', 'ocean-cliff', 'night-train'];
+    const focusAmbienceIds = ['window-rain', 'leaf-rain', 'deep-rain', 'library', 'cafe', 'hearth', 'cloud-wind', 'temple', 'glasshouse-rain', 'snow-wind', 'ocean-swell', 'train-rain'];
+    const focusMusicIds = ['star-rain', 'graphite', 'quiet-books', 'constellations', 'temple-dawn', 'rain-brushstrokes', 'breezy-terrace', 'lamplight-chapter', 'glasshouse-ghosts', 'snow-needle', 'sea-glass', 'last-train'];
     const hasNewFocusSettings = Object.prototype.hasOwnProperty.call(rawFocusSettings, 'ambienceId')
       || Object.prototype.hasOwnProperty.call(rawFocusSettings, 'roomId');
+    const roomId = focusRoomIds.includes(rawFocusSettings.roomId) ? rawFocusSettings.roomId : base.focusSettings.roomId;
+    const roomPreset = FOCUS_SOUND_PRESETS[roomId] || FOCUS_SOUND_PRESETS[base.focusSettings.roomId];
+    const needsSoundscapePreset = Number(rawFocusSettings.soundscapePresetVersion || 0) < 2;
     state.focusSettings = {
-      roomId: focusRoomIds.includes(rawFocusSettings.roomId) ? rawFocusSettings.roomId : base.focusSettings.roomId,
+      roomId,
       ambienceId: focusAmbienceIds.includes(rawFocusSettings.ambienceId)
-        ? rawFocusSettings.ambienceId
-        : hasNewFocusSettings ? base.focusSettings.ambienceId : 'window-rain',
+        && !needsSoundscapePreset ? rawFocusSettings.ambienceId
+        : needsSoundscapePreset ? roomPreset.ambienceId : hasNewFocusSettings ? base.focusSettings.ambienceId : 'window-rain',
       ambienceEnabled: typeof rawFocusSettings.ambienceEnabled === 'boolean'
-        ? rawFocusSettings.ambienceEnabled
-        : typeof rawFocusSettings.rainEnabled === 'boolean' ? rawFocusSettings.rainEnabled : base.focusSettings.ambienceEnabled,
-      ambienceVolume: focusVolume(rawFocusSettings.ambienceVolume ?? rawFocusSettings.rainVolume, base.focusSettings.ambienceVolume),
+        && !needsSoundscapePreset ? rawFocusSettings.ambienceEnabled
+        : needsSoundscapePreset ? true : typeof rawFocusSettings.rainEnabled === 'boolean' ? rawFocusSettings.rainEnabled : base.focusSettings.ambienceEnabled,
+      ambienceVolume: needsSoundscapePreset ? roomPreset.ambienceVolume : focusVolume(rawFocusSettings.ambienceVolume ?? rawFocusSettings.rainVolume, base.focusSettings.ambienceVolume),
       musicId: focusMusicIds.includes(rawFocusSettings.musicId)
-        ? rawFocusSettings.musicId
-        : hasNewFocusSettings ? base.focusSettings.musicId : 'star-rain',
-      musicEnabled: typeof rawFocusSettings.musicEnabled === 'boolean' ? rawFocusSettings.musicEnabled : base.focusSettings.musicEnabled,
-      musicVolume: focusVolume(rawFocusSettings.musicVolume, base.focusSettings.musicVolume),
+        && !needsSoundscapePreset ? rawFocusSettings.musicId
+        : needsSoundscapePreset ? roomPreset.musicId : hasNewFocusSettings ? base.focusSettings.musicId : 'star-rain',
+      musicEnabled: needsSoundscapePreset ? true : typeof rawFocusSettings.musicEnabled === 'boolean' ? rawFocusSettings.musicEnabled : base.focusSettings.musicEnabled,
+      musicVolume: needsSoundscapePreset ? roomPreset.musicVolume : focusVolume(rawFocusSettings.musicVolume, base.focusSettings.musicVolume),
+      soundscapePresetVersion: 2,
       motionEnabled: typeof rawFocusSettings.motionEnabled === 'boolean' ? rawFocusSettings.motionEnabled : base.focusSettings.motionEnabled
     };
 
@@ -465,7 +519,7 @@
     };
     if (!state.collection.outfits.includes('daily-daylight')) state.collection.outfits.unshift('daily-daylight');
     if (!state.collection.outfits.includes(state.collection.featuredOutfitId)) state.collection.featuredOutfitId = state.collection.outfits[0];
-    const baseFocusScenes = ['today-desk', 'focus-leaf-rain', 'focus-library', 'focus-cafe', 'focus-magic-bookshop', 'focus-celestial', 'focus-temple'];
+    const baseFocusScenes = ['today-desk', 'focus-leaf-rain', 'focus-library', 'focus-cafe', 'focus-magic-bookshop', 'focus-celestial', 'focus-temple', 'focus-forest-glasshouse', 'focus-snow-cabin', 'focus-ocean-cliff', 'focus-night-train', 'atelier-spring', 'lakeside-autumn', 'conservatory-lavender', 'tram-rain', 'cloud-pavilion-study', 'astral-archive'];
     state.collection.scenes = [...new Set([...state.collection.scenes, ...baseFocusScenes])];
     state.monthlyMemories = Object.fromEntries(Object.entries(objectOrEmpty(state.monthlyMemories)).filter(([month, memory]) => /^\d{4}-\d{2}$/.test(month) && memory && typeof memory === 'object').map(([month, memory]) => [month, {
       month,
@@ -537,7 +591,15 @@
       planet: Object.keys(state.monthlyMemories).length >= 1,
       'study-seal': (summary.areas.学习 || 0) >= 300,
       'writing-seal': summary.writingWords >= 5000,
-      'sport-seal': summary.exerciseCount >= 5
+      'sport-seal': summary.exerciseCount >= 5,
+      hourglass: state.focusSessions.some((session) => Number(session.actualMinutes) >= 5),
+      umbrella: summary.focusMinutes >= 60,
+      lantern: Object.values(state.journal).filter((text) => String(text || '').trim()).length >= 7,
+      'leaf-letter': state.notes.length >= 3,
+      shell: completed.length >= 10,
+      'train-ticket': state.focusSessions.length >= 10,
+      snowflake: habitChecks >= 14,
+      ribbon: Object.keys(state.monthlyMemories).length >= 3
     };
     const badgeRules = {
       'first-focus': state.focusSessions.length >= 1,
@@ -545,7 +607,13 @@
       'seven-days': summary.streak >= 7,
       'first-memory': Object.keys(state.monthlyMemories).length >= 1,
       'novel-50k': summary.writingWords >= 50000,
-      'project-chapter': state.projects.some((project) => (project.milestones || []).some((milestone) => milestone.done))
+      'project-chapter': state.projects.some((project) => (project.milestones || []).some((milestone) => milestone.done)),
+      'first-plan': (state.planning?.adoptedPlans || []).length >= 1,
+      'focus-25': state.focusSessions.some((session) => Number(session.actualMinutes) >= 25),
+      'task-30': completed.length >= 30,
+      'habit-30': habitChecks >= 30,
+      'note-10': state.notes.length >= 10,
+      'all-rounder': Object.keys(summary.areas).filter((area) => Number(summary.areas[area]) > 0).length >= 4
     };
     const unlocked = { stickers: [], badges: [], scenes: [] };
     Object.entries(stickerRules).forEach(([id, eligible]) => {
@@ -554,8 +622,14 @@
     Object.entries(badgeRules).forEach(([id, eligible]) => {
       if (eligible && !state.collection.badges.includes(id)) { state.collection.badges.push(id); unlocked.badges.push(id); }
     });
-    if (summary.focusMinutes >= 180 && !state.collection.scenes.includes('cafe-afternoon')) { state.collection.scenes.push('cafe-afternoon'); unlocked.scenes.push('cafe-afternoon'); }
-    if (summary.streak >= 7 && !state.collection.scenes.includes('garden-morning')) { state.collection.scenes.push('garden-morning'); unlocked.scenes.push('garden-morning'); }
+    const sceneRules = {
+      'focus-night': summary.focusMinutes >= 60,
+      'cafe-afternoon': summary.focusMinutes >= 180,
+      'garden-morning': summary.streak >= 7
+    };
+    Object.entries(sceneRules).forEach(([id, eligible]) => {
+      if (eligible && !state.collection.scenes.includes(id)) { state.collection.scenes.push(id); unlocked.scenes.push(id); }
+    });
     return unlocked;
   };
 
@@ -586,7 +660,7 @@
   if (!loaded || migratedFrom) persist();
 
   window.GrowthCore = {
-    STORAGE_KEY, LEGACY_KEYS, OUTFITS, SCENES, STICKERS, BADGES, AREA_META,
+    STORAGE_KEY, LEGACY_KEYS, OUTFITS, SCENES, STICKERS, BADGES, AREA_META, FOCUS_SOUND_PRESETS,
     get state() { return state; },
     save, replace, subscribe, migratedFrom, uid, clamp, localDateKey, monthKey,
     parseDateKey, addDays, startOfWeek, endOfWeek, totals, recordDays, evaluateUnlocks

@@ -167,6 +167,29 @@
     return PLAN_TRACKS.find((track) => track.match.some((keyword) => text.includes(keyword.toLowerCase()))) || null;
   };
   const rewardForMinutes = (minutes) => Core.clamp(Math.ceil((Number(minutes) || 25) / 5), 5, 20);
+  const starterStepForTask = (task) => {
+    if (!task) return '先写下一件两分钟内能做的小事';
+    const title = String(task.title || '这件事');
+    const text = title.toLowerCase();
+    if (/联系|回复|邮件|消息|沟通/.test(text)) return `写出 ${title} 的第一句话并发送`;
+    if (/写|稿|文案|小说|章节|提纲/.test(text) || task.area === '写作') return `打开文档，先写 ${title} 的 3 个要点`;
+    if (/题|复习|学习|课程|审计|税|cpa|英语|单词|阅读/.test(text) || ['学习', '英语'].includes(task.area)) return `打开资料，只推进 ${title} 的最小一小节`;
+    if (/运动|跑|练|瑜伽|健身/.test(text) || task.area === '运动') return `换好装备，为 ${title} 热身 5 分钟`;
+    if (/整理|收拾|清理|打扫/.test(text)) return `只整理 ${title} 最显眼的一小块`;
+    return `打开需要的材料，只做 ${title} 的第一小步`;
+  };
+  const workloadSummary = (tasks) => {
+    const minutes = tasks.reduce((sum, task) => sum + (Number(task.minutes) || 0), 0);
+    if (!minutes) return { minutes: 0, label: '今天还没有待办', tone: 'empty' };
+    const finishAt = new Date(Date.now() + minutes * 60 * 1000);
+    const time = finishAt.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false });
+    const day = Core.localDateKey(finishAt) === TODAY() ? '' : '明天 ';
+    return {
+      minutes,
+      label: `剩余约 ${formatMinutes(minutes)} · 连续推进预计 ${day}${time} 收尾`,
+      tone: minutes > 240 ? 'heavy' : minutes > 120 ? 'full' : 'light'
+    };
+  };
 
   function parseSmartTask(value) {
     const source = String(value || '').trim();
@@ -637,7 +660,9 @@
   function todayPage() {
     const todayTasks = activeTasks();
     const priorities = todayTasks.filter((task) => task.priority).slice(0, 3);
-    const nextTask = priorities.find((task) => task.status === 'todo') || todayTasks.find((task) => task.status === 'todo');
+    const todoTasks = todayTasks.filter((task) => task.status === 'todo');
+    const nextTask = priorities.find((task) => task.status === 'todo') || todoTasks[0];
+    const workload = workloadSummary(todoTasks);
     const customAreas = new Set(['写作', '运动', '英语', '播客']);
     const filter = state().ui.taskFilter;
     const ordinary = todayTasks.filter((task) => !task.priority).filter((task) => {
@@ -659,9 +684,10 @@
             <div class="task-list">${priorities.length ? priorities.map((task) => taskRow(task)).join('') : emptyState('还没有重点任务', '添加今天最值得完成的一件事。', `<button type="button" class="text-button" data-action="task-new">添加重点</button>`)}</div>
           </section>
           <section class="next-panel">
-            <span class="note-tab">接下来</span>
-            <div><h2>${esc(nextTask?.title || '先选一件值得投入的事')}</h2><p>${nextTask ? `${esc(nextTask.area)} · ${nextTask.minutes} 分钟` : '新建任务后，这里会给出下一步。'}</p></div>
-            ${nextTask ? `<button type="button" class="primary-button" data-action="focus-from-task" data-id="${attr(nextTask.id)}">${icon('focus')}开始专注</button>` : `<button type="button" class="primary-button" data-action="planner-open">${icon('today')}生成今日方案</button>`}
+            <span class="note-tab">先做 5 分钟</span>
+            <div class="next-panel-copy"><small>现在只管这一件</small><h2>${esc(nextTask?.title || '先选一件值得投入的事')}</h2><p>${nextTask ? esc(starterStepForTask(nextTask)) : '告诉我今天有多少时间，就会给出三套可执行方案。'}</p></div>
+            <div class="workload-badge ${workload.tone}">${icon('today')}<span>${esc(workload.label)}</span></div>
+            ${nextTask ? `<div class="next-panel-actions"><button type="button" class="primary-button" data-action="lazy-start" data-id="${attr(nextTask.id)}">${icon('play')}立即开工</button><button type="button" class="secondary-button" data-action="focus-from-task" data-id="${attr(nextTask.id)}">自选时长</button></div>` : `<button type="button" class="primary-button" data-action="planner-open">${icon('today')}生成今日方案</button>`}
           </section>
         </div>
         <section class="smart-planning-bar" aria-label="快捷安排">
@@ -788,14 +814,24 @@
     return Math.max(0, (Number(timer.remainingSeconds) || 0) - elapsed);
   }
 
-  const FOCUS_ASSET_VERSION = '2026.09-immersive-room';
+  const FOCUS_ASSET_VERSION = '2026.09-collection-v3';
   const FOCUS_ROOMS = Object.freeze([
-    { id: 'leaf-rain', name: '窗叶听雨', eyebrow: 'RAIN & LEAVES', note: '雨落叶尖，陪你慢慢写完这一页。', image: 'assets/scenes/focus-leaf-rain.webp', ambienceId: 'leaf-rain', rain: true, position: 'center' },
-    { id: 'library', name: '深夜图书馆', eyebrow: 'NIGHT LIBRARY', note: '木质书桌与克制的室内低频。', image: 'assets/scenes/focus-library.webp', ambienceId: 'library', rain: false, position: 'center' },
-    { id: 'cafe', name: '雨晨咖啡厅', eyebrow: 'QUIET CAFE', note: '模糊人声留在远处，眼前只剩纸笔。', image: 'assets/scenes/focus-cafe.webp', ambienceId: 'cafe', rain: true, position: 'center' },
-    { id: 'magic-bookshop', name: '月灯书屋', eyebrow: 'MOONLIT BOOKSHOP', note: '旧书、炉火与一盏不熄的灯。', image: 'assets/scenes/focus-magic-bookshop.webp', ambienceId: 'hearth', rain: false, position: 'center' },
-    { id: 'celestial', name: '云上天宫', eyebrow: 'ABOVE THE CLOUDS', note: '远山与云风，让思绪变得开阔。', image: 'assets/scenes/focus-celestial.webp', ambienceId: 'cloud-wind', rain: false, position: 'center' },
-    { id: 'temple', name: '山寺晨光', eyebrow: 'MOUNTAIN TEMPLE', note: '松风、薄雾与很远的一声钟。', image: 'assets/scenes/focus-temple.webp', ambienceId: 'temple', rain: false, position: 'center' }
+    { id: 'leaf-rain', name: '窗叶听雨', eyebrow: '雨落叶尖', note: '雨落叶尖，陪你慢慢写完这一页。', image: 'assets/scenes/focus-leaf-rain.webp', ambienceId: 'leaf-rain', rain: true, position: 'center' },
+    { id: 'library', name: '深夜图书馆', eyebrow: '深夜书页', note: '木质书桌与克制的室内低频。', image: 'assets/scenes/focus-library.webp', ambienceId: 'library', rain: false, position: 'center' },
+    { id: 'cafe', name: '雨晨咖啡厅', eyebrow: '雨晨一隅', note: '模糊人声留在远处，眼前只剩纸笔。', image: 'assets/scenes/focus-cafe.webp', ambienceId: 'cafe', rain: true, position: 'center' },
+    { id: 'magic-bookshop', name: '月灯书屋', eyebrow: '月灯长明', note: '旧书、炉火与一盏不熄的灯。', image: 'assets/scenes/focus-magic-bookshop.webp', ambienceId: 'hearth', rain: false, position: 'center' },
+    { id: 'celestial', name: '云上天宫', eyebrow: '云海之上', note: '远山与云风，让思绪变得开阔。', image: 'assets/scenes/focus-celestial.webp', ambienceId: 'cloud-wind', rain: false, position: 'center' },
+    { id: 'temple', name: '山寺晨光', eyebrow: '松风疏钟', note: '松风、薄雾与很远的一声钟。', image: 'assets/scenes/focus-temple.webp', ambienceId: 'temple', rain: false, position: 'center' },
+    { id: 'forest-glasshouse', name: '雾林花房', eyebrow: '雾林雨声', note: '玻璃外是湿润松林，适合恢复注意力。', image: 'assets/scenes/focus-forest-glasshouse.webp', ambienceId: 'glasshouse-rain', rain: true, position: 'center' },
+    { id: 'snow-cabin', name: '雪夜木屋', eyebrow: '窗外初雪', note: '炉火守着窗外落雪，适合安静长读。', image: 'assets/scenes/focus-snow-cabin.webp', ambienceId: 'snow-wind', rain: false, position: 'center' },
+    { id: 'ocean-cliff', name: '海崖晨光', eyebrow: '潮汐晨光', note: '海面拉开视野，适合清晨梳理与复盘。', image: 'assets/scenes/focus-ocean-cliff.webp', ambienceId: 'ocean-swell', rain: false, position: 'center' },
+    { id: 'night-train', name: '夜行列车', eyebrow: '夜雨远行', note: '窗外灯火缓慢后退，陪你把事情往前推。', image: 'assets/scenes/focus-night-train.webp', ambienceId: 'train-rain', rain: true, position: 'center' },
+    { id: 'atelier-spring', name: '春日画室', eyebrow: '春日留白', note: '留白、花枝与晨光，适合规划和创作。', image: 'assets/scenes/atelier-spring.webp', ambienceId: 'window-rain', rain: false, position: 'center' },
+    { id: 'lakeside-autumn', name: '湖畔书台', eyebrow: '秋湖书页', note: '让湖面拉开思路，适合阅读与复盘。', image: 'assets/scenes/lakeside-autumn.webp', ambienceId: 'ocean-swell', rain: false, position: 'center' },
+    { id: 'conservatory-lavender', name: '薰衣草花房', eyebrow: '花房细雨', note: '玻璃雨声包住桌面，温柔推进不费力。', image: 'assets/scenes/conservatory-lavender.webp', ambienceId: 'glasshouse-rain', rain: true, position: 'center' },
+    { id: 'tram-rain', name: '雨夜电车站', eyebrow: '雨幕车站', note: '雨幕和远行节奏，陪你完成一轮短冲刺。', image: 'assets/scenes/tram-rain.webp', ambienceId: 'train-rain', rain: true, position: 'center' },
+    { id: 'cloud-pavilion-study', name: '云间仙阁', eyebrow: '云间长卷', note: '云海把杂念放远，适合长读与安静书写。', image: 'assets/scenes/cloud-pavilion-study.webp', ambienceId: 'cloud-wind', rain: false, position: 'center' },
+    { id: 'astral-archive', name: '星潮秘库', eyebrow: '星潮秘卷', note: '拨动星盘之前，先把眼前这一页完成。', image: 'assets/scenes/astral-archive.webp', ambienceId: 'library', rain: false, position: 'center' }
   ]);
   const FOCUS_AUDIO_TRACKS = Object.freeze({
     ambience: Object.freeze({
@@ -806,14 +842,25 @@
       cafe: { src: 'assets/scenes/ambience-cafe.mp3', label: '远处咖啡厅', note: '弱化语言的人声底噪' },
       hearth: { src: 'assets/scenes/ambience-hearth.mp3', label: '壁炉轻响', note: '细小木柴声' },
       'cloud-wind': { src: 'assets/scenes/ambience-cloud-wind.mp3', label: '云间柔风', note: '缓慢空气流动' },
-      temple: { src: 'assets/scenes/ambience-temple.mp3', label: '松风远钟', note: '极轻风声与疏钟' }
+      temple: { src: 'assets/scenes/ambience-temple.mp3', label: '松风远钟', note: '极轻风声与疏钟' },
+      'glasshouse-rain': { src: 'assets/scenes/ambience-glasshouse-rain.mp3', label: '花房细雨', note: '玻璃雨点与温室底噪' },
+      'snow-wind': { src: 'assets/scenes/ambience-snow-wind.mp3', label: '雪原微风', note: '低频风声与落雪静感' },
+      'ocean-swell': { src: 'assets/scenes/ambience-ocean-swell.mp3', label: '远岸潮汐', note: '舒缓海浪与崖间风' },
+      'train-rain': { src: 'assets/scenes/ambience-train-rain.mp3', label: '雨夜行车', note: '车厢低频与窗外雨幕' }
     }),
     music: Object.freeze({
       'star-rain': { src: 'assets/scenes/star-rain.mp3', label: '星雨琴音', note: '轻钢琴 · 原创' },
       graphite: { src: 'assets/scenes/music-graphite.mp3', label: '静默铅笔', note: '低存在感 Lo-fi' },
       'quiet-books': { src: 'assets/scenes/music-quiet-books.mp3', label: '书页微光', note: '温暖书店节拍' },
       constellations: { src: 'assets/scenes/music-constellations.mp3', label: '温柔星群', note: '轻柔梦境氛围' },
-      'temple-dawn': { src: 'assets/scenes/music-temple-dawn.mp3', label: '晨钟之前', note: '东方安静氛围' }
+      'temple-dawn': { src: 'assets/scenes/music-temple-dawn.mp3', label: '晨钟之前', note: '东方安静氛围' },
+      'rain-brushstrokes': { src: 'assets/scenes/music-rain-brushstrokes.mp3', label: '雨中笔触', note: '克制琴键 · 低干扰' },
+      'breezy-terrace': { src: 'assets/scenes/music-breezy-terrace.mp3', label: '风过露台', note: '轻爵士感 · 不含人声' },
+      'lamplight-chapter': { src: 'assets/scenes/music-lamplight-chapter.mp3', label: '灯下章节', note: '温暖书页氛围' },
+      'glasshouse-ghosts': { src: 'assets/scenes/music-glasshouse-ghosts.mp3', label: '雾中花房', note: '朦胧环境乐' },
+      'snow-needle': { src: 'assets/scenes/music-snow-needle.mp3', label: '雪落唱针', note: '冬夜慢拍' },
+      'sea-glass': { src: 'assets/scenes/music-sea-glass.mp3', label: '海玻璃暮光', note: '开阔轻氛围' },
+      'last-train': { src: 'assets/scenes/music-last-train.mp3', label: '末班车灯', note: '持续推进节拍' }
     })
   });
 
@@ -1125,7 +1172,7 @@
           <div class="focus-mode-status"><span><i></i>${sessionState}</span><small>${currentLabel || '先选好这一轮要完成的事'}</small></div>
           <div class="focus-fields"><label>当前任务<select id="focus-task" ${timer ? 'disabled' : ''}><option value="">自定义专注</option>${tasks.map((task) => `<option value="${attr(task.id)}" ${(timer?.taskId || focusDraftTaskId) === task.id ? 'selected' : ''}>${esc(task.title)}</option>`).join('')}</select></label><label>这一轮只做<input id="focus-label" maxlength="80" value="${attr(currentLabel)}" placeholder="例如：CPA 审计专题六" ${timer ? 'disabled' : ''}></label></div>
           <div class="timer-ring" style="--progress:${progress}" role="timer" aria-label="剩余时间 ${formatClock(remaining)}"><svg viewBox="0 0 160 160" aria-hidden="true"><circle cx="80" cy="80" r="70"/><circle class="timer-progress" cx="80" cy="80" r="70" data-timer-ring/></svg><strong data-timer-clock>${formatClock(remaining)}</strong><span>${timer?.status === 'paused' ? '已暂停' : '保持此刻'}</span></div>
-          <div class="duration-switch ${timer ? 'disabled' : ''}" aria-label="专注时长">${[25, 45, 60].map((minutes) => `<button type="button" data-action="focus-duration" data-value="${minutes}" class="${!timer && focusDuration === minutes || timer?.durationSeconds === minutes * 60 ? 'active' : ''}" aria-pressed="${!timer && focusDuration === minutes || timer?.durationSeconds === minutes * 60}" ${timer ? 'disabled' : ''}>${minutes}<small>分钟</small></button>`).join('')}</div>
+          <div class="duration-switch ${timer ? 'disabled' : ''}" aria-label="专注时长">${[5, 25, 45, 60].map((minutes) => `<button type="button" data-action="focus-duration" data-value="${minutes}" class="${!timer && focusDuration === minutes || timer?.durationSeconds === minutes * 60 ? 'active' : ''}" aria-pressed="${!timer && focusDuration === minutes || timer?.durationSeconds === minutes * 60}" ${timer ? 'disabled' : ''}>${minutes}<small>分钟</small></button>`).join('')}</div>
           <div class="timer-actions">${!timer ? `<button type="button" class="primary-button" data-action="focus-start">${icon('play')}开始</button>` : timer.status === 'paused' ? `<button type="button" class="primary-button" data-action="focus-resume">${icon('play')}继续</button>` : `<button type="button" class="primary-button" data-action="focus-pause">${icon('pause')}暂停</button>`}<button type="button" class="secondary-button" data-action="focus-end" ${timer ? '' : 'disabled'}>${icon('stop')}结束</button></div>
           <section class="focus-soundscape" aria-label="专注氛围声音">
             <header><div><span>自习室声音</span><b>${soundState}</b></div><button type="button" class="sound-master ${focusAudioPlaying || focusAudioStarting ? 'active' : ''}" data-action="focus-audio-master" aria-pressed="${focusAudioPlaying || focusAudioStarting}" ${audioSupported ? '' : 'disabled'}>${icon(focusAudioPlaying ? 'muted' : 'volume')}<span>${focusAudioPlaying ? '关闭' : focusAudioStarting ? '连接中' : timer ? '开启' : '试听'}</span></button></header>
@@ -1138,7 +1185,7 @@
           <div class="focus-totals"><span><small>今日累计</small><b>${formatMinutes(todaySeconds / 60)}</b></span><span><small>今日番茄</small><b>${todaySessions.length}</b></span></div>
         </div>
       </section>
-      <section class="focus-history">${sectionHead('今日专注记录', `${todaySessions.length} 次`)}${todaySessions.length ? `<div>${[...todaySessions].reverse().map((session) => `<p><time>${timeLabel(session.endedAt)}</time><span>${esc(session.label)}</span><b>${formatMinutes(sessionSeconds(session) / 60)}</b></p>`).join('')}</div>` : emptyState('今天还没有专注记录', '选一个时长，安静地开始。')}</section>
+      <section class="focus-history">${sectionHead('今日专注记录', `${todaySessions.length} 次`)}${todaySessions.length ? `<div class="focus-session-list">${[...todaySessions].reverse().map((session) => `<p><time>${timeLabel(session.endedAt)}</time><span>${esc(session.label)}</span><b>${formatMinutes(sessionSeconds(session) / 60)}</b></p>`).join('')}</div>` : emptyState('今天还没有专注记录', '选一个时长，安静地开始。')}</section>
     </div>`;
   }
 
@@ -1276,8 +1323,8 @@
       return outfit.release === filter;
     });
     return `<div class="wardrobe-tab">
-      <section class="character-intro"><button type="button" class="character-featured" data-action="outfit-open" data-id="${featuredOutfit.id}" aria-label="查看当前展示卡面 ${attr(featuredOutfit.name)}">${img(featuredOutfit.image, `${featuredOutfit.name}当前展示卡面`, 853, 1844)}<span>${icon('check')}当前展示</span></button><div><span class="character-kicker">我的角色卡面</span><h2>${esc(featuredOutfit.name)}</h2><p>${esc(featuredOutfit.series)} · ${esc(featuredOutfit.hair)}<br>卡面会随主题改变服装、发型、配饰、动作与背景；解锁后可切换当前展示。</p><dl><div><dt>已收藏</dt><dd>${state().collection.outfits.length}/10</dd></div><div><dt>可用金币</dt><dd>${state().rewards.coins}</dd></div></dl><button type="button" class="text-button character-view-button" data-action="outfit-open" data-id="${featuredOutfit.id}">查看完整卡面${icon('next')}</button></div></section>
-      <section class="outfit-shop">${sectionHead('限定卡面衣橱', '十套独立高清收藏')}
+      <section class="character-intro"><button type="button" class="character-featured" data-action="outfit-open" data-id="${featuredOutfit.id}" aria-label="查看当前展示卡面 ${attr(featuredOutfit.name)}">${img(featuredOutfit.image, `${featuredOutfit.name}当前展示卡面`, 853, 1844)}<span>${icon('check')}当前展示</span></button><div><span class="character-kicker">我的角色卡面</span><h2>${esc(featuredOutfit.name)}</h2><p>${esc(featuredOutfit.series)} · ${esc(featuredOutfit.hair)}<br>卡面会随主题改变服装、发型、配饰、动作与背景；解锁后可切换当前展示。</p><dl><div><dt>已收藏</dt><dd>${state().collection.outfits.length}/${Core.OUTFITS.length}</dd></div><div><dt>可用金币</dt><dd>${state().rewards.coins}</dd></div></dl><button type="button" class="text-button character-view-button" data-action="outfit-open" data-id="${featuredOutfit.id}">查看完整卡面${icon('next')}</button></div></section>
+      <section class="outfit-shop">${sectionHead('限定卡面衣橱', `共 ${Core.OUTFITS.length} 套独立高清卡面`)}
         <div class="segmented wardrobe-filters">${[['all', '全部'], ['new', '新品'], ['basic', '基础'], ['limited', '限定'], ['owned', '已拥有'], ['favorite', '喜欢']].map(([value, label]) => `<button type="button" data-action="wardrobe-filter" data-value="${value}" class="${filter === value ? 'active' : ''}" aria-pressed="${filter === value}">${label}</button>`).join('')}</div>
         <div class="outfit-grid">${filtered.length ? filtered.map(outfitCard).join('') : emptyState('这个分类还没有卡面')}</div>
       </section>
@@ -1285,7 +1332,7 @@
   }
 
   function stickersTab() {
-    return `<section class="collection-sheet sticker-collection">${sectionHead('贴纸册', `${state().collection.stickers.length}/${Core.STICKERS.length} 已解锁`)}<p class="sticker-book-note">每一枚都来自真实完成的事情，按获得顺序收进固定收藏位。</p><div class="sticker-book">${Core.STICKERS.map((sticker) => {
+    return `<section class="collection-sheet sticker-collection">${sectionHead('贴纸册', `${state().collection.stickers.length}/${Core.STICKERS.length} 已解锁`)}<div class="sticker-book-intro"><div><h2>把认真生活的证据贴进这一页</h2><p class="sticker-book-note">每一枚都来自真实完成的事情，按获得顺序收进固定收藏位。纸片、植物标本与邮戳会陪它们慢慢长成一本手账。</p></div>${img('assets/journal/ephemera-cluster.svg', '信笺、植物标本与邮戳组成的手账拼贴', 420, 240)}</div><div class="sticker-book">${Core.STICKERS.map((sticker) => {
       const owned = state().collection.stickers.includes(sticker.id);
       return `<article class="sticker-tile ${owned ? 'owned' : 'locked'}"><div class="sticker-pocket"><i aria-hidden="true"></i>${img(sticker.image, sticker.name, 200, 200)}${owned ? '' : `<div class="locked-art" aria-label="未解锁">${icon('lock')}</div>`}</div><div class="sticker-meta"><h3>${esc(sticker.name)}</h3><p>${esc(sticker.hint)}</p></div></article>`;
     }).join('')}</div></section>`;
@@ -1297,6 +1344,19 @@
       const hidden = badge.hidden && !owned;
       return `<article class="badge-tile ${owned ? 'owned' : 'locked'}">${owned ? img(badge.image, badge.name, 180, 180) : `<div class="locked-badge">${icon('lock')}</div>`}<h3>${hidden ? '隐藏成就' : esc(badge.name)}</h3><p>${hidden ? '继续成长，它会在合适的时候出现。' : esc(badge.hint)}</p></article>`;
     }).join('')}</div></section>`;
+  }
+
+  function scenesTab() {
+    const ownedCount = state().collection.scenes.length;
+    return `<section class="collection-sheet scene-collection">${sectionHead('沉浸场景册', `${ownedCount}/${Core.SCENES.length} 已拥有`)}
+      <div class="scene-collection-note"><div><span>场景手记</span><h2>从日常书桌，到云海与星穹</h2><p>室内、户外、昼夜、四季与幻想空间各有自己的构图、环境声和轻音乐。16 间自习室可直接使用，纪念场景会随真实完成自然解锁。</p></div><span class="scene-orbit" aria-hidden="true"><i></i><i></i><i></i></span></div>
+      <div class="scene-gallery">${Core.SCENES.map((scene, index) => {
+        const owned = state().collection.scenes.includes(scene.id);
+        const roomId = scene.id.startsWith('focus-') ? scene.id.slice(6) : scene.id;
+        const focusRoom = FOCUS_ROOMS.find((room) => room.id === roomId);
+        return `<article class="scene-card ${owned ? 'owned' : 'locked'}" style="--scene-index:${index}">${img(scene.image, scene.name, scene.width || 1586, scene.height || 992)}<div class="scene-card-shade"></div><div class="scene-card-copy"><small>${owned ? '已收入场景册' : '成长中解锁'}</small><strong>${esc(scene.name)}</strong><span>${esc(scene.hint || (owned ? '一处可以安静停留的地方' : '继续完成真实记录，它会在合适的时候出现'))}</span></div>${owned && focusRoom ? `<button type="button" data-action="scene-enter" data-id="${attr(focusRoom.id)}" aria-label="进入${attr(scene.name)}自习室">进入${icon('next')}</button>` : owned ? '<em>已收藏</em>' : `<b>${icon('lock')}待解锁</b>`}</article>`;
+      }).join('')}</div>
+    </section>`;
   }
 
   function monthStats(key) {
@@ -1330,7 +1390,6 @@
       <section class="monthly-editor"><div class="monthly-paper"><span class="month-ribbon">月度纪念</span><h2>${currentMonth.replace('-', ' · ')}</h2><div class="monthly-paper-grid"><div><div class="monthly-facts"><p><span>完成任务</span><b>${stats.completedTasks}</b></p><p><span>专注时间</span><b>${formatMinutes(stats.focusMinutes)}</b></p><p><span>成长领域</span><b>${esc(stats.growthArea)}</b></p></div><div class="paper-stickers">${stickerSlots(3, memoryStickers)}</div></div><figure class="monthly-character-card" data-monthly-outfit-preview>${img(selectedOutfit.image, `${selectedOutfit.name}本月角色卡面`, 853, 1844)}${selectedBadge ? `<span class="monthly-character-badge" title="${attr(selectedBadge.name)}">${img(selectedBadge.image, selectedBadge.name, 180, 180)}</span>` : ''}<figcaption>${esc(selectedOutfit.name)}</figcaption></figure></div></div>
         <form data-form="monthly"><div class="monthly-collection-fields"><label>本月角色卡面<select name="outfitId" aria-describedby="monthly-outfit-hint">${ownedOutfits.map((outfit) => `<option value="${attr(outfit.id)}" ${outfit.id === selectedOutfit.id ? 'selected' : ''}>${esc(outfit.name)}</option>`).join('')}</select><small id="monthly-outfit-hint">选择后，上方卡面会即时预览</small></label><label>本月徽章<select name="badgeId"><option value="">暂不放置</option>${ownedBadges.map((badge) => `<option value="${attr(badge.id)}" ${badge.id === selectedBadge?.id ? 'selected' : ''}>${esc(badge.name)}</option>`).join('')}</select></label></div><label>本月关键词<input name="keyword" maxlength="24" value="${attr(saved.keyword || '')}" placeholder="例如：稳定"></label><label>本月总结<textarea name="summary" rows="5" maxlength="480" placeholder="这个月，我想记住……">${esc(saved.summary || '')}</textarea></label><button type="submit" class="primary-button">保存本月纪念页</button></form>
       </section>
-      <section class="scene-collection">${sectionHead('场景收藏', `${state().collection.scenes.length}/${Core.SCENES.length} 已拥有`)}<div>${Core.SCENES.map((scene) => { const owned = state().collection.scenes.includes(scene.id); return `<article class="scene-card ${owned ? '' : 'locked'}">${img(scene.image, scene.name, scene.width || 1586, scene.height || 992)}<span>${owned ? esc(scene.name) : `${icon('lock')}待解锁`}</span></article>`; }).join('')}</div></section>
       <section class="history-months">${sectionHead('历史月份', `${months.length} 页永久保存`)}${months.length ? `<div>${historyCards}</div>` : emptyState('还没有月度纪念页', '保存这个月，第一本成长册就会出现。')}</section>
       <section class="data-vault">${sectionHead('数据保管', '为很多年后的自己留一份副本')}
         <div class="data-vault-row"><span class="data-vault-mark">${icon('shield')}</span><div class="data-vault-copy"><h3>这本成长册保存在当前设备</h3><p>最近保存 ${backupTimeLabel(state().updatedAt)} · ${archiveStats.tasks} 个任务 · ${archiveStats.notes} 篇笔记 · ${archiveStats.memories} 页月度纪念</p></div><div class="backup-actions"><button type="button" class="secondary-button" data-action="backup-export">${icon('download')}导出备份</button><button type="button" class="primary-button" data-action="backup-import-select">${icon('upload')}恢复备份</button><input id="backup-file-input" class="backup-file-input" type="file" accept=".json,application/json" data-backup-file aria-label="选择小小生长册备份文件"></div></div>
@@ -1341,8 +1400,8 @@
 
   function collectionPage() {
     const tab = state().ui.collectionTab;
-    const content = { wardrobe: wardrobeTab, stickers: stickersTab, badges: badgesTab, memories: memoriesTab }[tab]?.() || wardrobeTab();
-    return `<div class="page inner-page collection-page">${pageHeader('ARCHIVE', '收藏', '衣橱、贴纸、徽章与每个月留下的纪念。')}<div class="collection-tabs" role="tablist">${[['wardrobe', '衣橱'], ['stickers', '贴纸'], ['badges', '徽章'], ['memories', '纪念']].map(([value, label]) => `<button type="button" id="collection-tab-${value}" role="tab" data-action="collection-tab" data-tab="${value}" aria-controls="collection-panel-${value}" aria-selected="${tab === value}" tabindex="${tab === value ? '0' : '-1'}" class="${tab === value ? 'active' : ''}">${label}</button>`).join('')}</div><div id="collection-panel-${tab}" role="tabpanel" aria-labelledby="collection-tab-${tab}">${content}</div></div>`;
+    const content = { wardrobe: wardrobeTab, stickers: stickersTab, badges: badgesTab, scenes: scenesTab, memories: memoriesTab }[tab]?.() || wardrobeTab();
+    return `<div class="page inner-page collection-page">${pageHeader('成长收藏', '收藏', '衣橱、贴纸、徽章、场景与每个月留下的纪念。')}<div class="collection-tabs" role="tablist">${[['wardrobe', '衣橱'], ['stickers', '贴纸'], ['badges', '徽章'], ['scenes', '场景'], ['memories', '纪念']].map(([value, label]) => `<button type="button" id="collection-tab-${value}" role="tab" data-action="collection-tab" data-tab="${value}" aria-controls="collection-panel-${value}" aria-selected="${tab === value}" tabindex="${tab === value ? '0' : '-1'}" class="${tab === value ? 'active' : ''}">${label}</button>`).join('')}</div><div id="collection-panel-${tab}" role="tabpanel" aria-labelledby="collection-tab-${tab}">${content}</div></div>`;
   }
 
   const areaOptions = (selected = '学习') => Object.keys(Core.AREA_META).map((area) => `<option value="${area}" ${area === selected ? 'selected' : ''}>${area}</option>`).join('');
@@ -1452,7 +1511,7 @@
   function shell() {
     const pages = { today: todayPage, inbox: inboxPage, project: projectPage, calendar: calendarPage, focus: focusPage, habits: habitsPage, review: reviewPage, notes: notesPage, collection: collectionPage };
     const current = pages[state().ui.page] || todayPage;
-    return `<div class="app-shell ${state().ui.sidebarCollapsed ? 'sidebar-collapsed' : ''} ${drawerOpen ? 'drawer-open' : ''}"><button type="button" class="drawer-scrim" data-action="drawer-close" aria-label="关闭项目抽屉"></button>${sidebar()}<main class="main-shell">${topbar()}<div id="view">${current()}</div></main><button type="button" class="global-fab" data-action="quick-open" aria-label="快速添加">${icon('plus')}</button>${renderModal()}<div class="toast ${toastMessage ? 'show' : ''}" role="status">${icon('logo')}<span>${esc(toastMessage)}</span></div></div>`;
+    return `<div class="app-shell ${state().ui.sidebarCollapsed ? 'sidebar-collapsed' : ''} ${drawerOpen ? 'drawer-open' : ''}"><button type="button" class="drawer-scrim" data-action="drawer-close" aria-label="关闭项目抽屉"></button>${sidebar()}<main class="main-shell">${topbar()}<div id="view">${current()}</div></main>${state().ui.page === 'focus' ? '' : `<button type="button" class="global-fab" data-action="quick-open" aria-label="快速添加">${icon('plus')}</button>`}${renderModal()}<div class="toast ${toastMessage ? 'show' : ''}" role="status">${icon('logo')}<span>${esc(toastMessage)}</span></div></div>`;
   }
 
   function render(options = {}) {
@@ -1566,24 +1625,27 @@
     saveAndRender('task-cancel', '任务已取消');
   }
 
-  function startFocus() {
+  function startFocus(options = {}) {
     if (state().timer) return;
     const select = document.querySelector('#focus-task');
-    const taskId = select?.value || focusDraftTaskId || null;
+    const taskId = options.taskId || select?.value || focusDraftTaskId || null;
     const task = taskId ? taskById(taskId) : null;
-    const label = document.querySelector('#focus-label')?.value.trim() || task?.title || '专注';
+    const label = options.label || document.querySelector('#focus-label')?.value.trim() || task?.title || '专注';
+    const durationMinutes = Core.clamp(options.minutes || focusDuration, 1, 1440);
     const now = Date.now();
+    if (options.openFocusPage) state().ui.page = 'focus';
     state().timer = {
       id: Core.uid('timer'),
       status: 'running',
       taskId,
       label,
-      durationSeconds: focusDuration * 60,
-      remainingSeconds: focusDuration * 60,
+      durationSeconds: durationMinutes * 60,
+      remainingSeconds: durationMinutes * 60,
       createdAt: now,
       lastStartedAt: now
     };
     focusDraftTaskId = taskId || '';
+    focusDuration = durationMinutes;
     const soundAttempt = startFocusAudio();
     void requestFocusWakeLock();
     saveAndRender('focus-start', `专注开始 · 已进入${selectedFocusRoom().name}`);
@@ -1800,6 +1862,12 @@
     if (action === 'calendar-today') { state().ui.calendarCursor = Core.monthKey(); state().ui.selectedDate = TODAY(); return saveAndRender('calendar-today'); }
     if (action === 'calendar-select') { state().ui.selectedDate = target.dataset.date; return saveAndRender('calendar-select'); }
     if (action === 'focus-from-task') { focusDraftTaskId = id; state().ui.page = 'focus'; return saveAndRender('focus-route', '', false); }
+    if (action === 'lazy-start') {
+      const task = taskById(id);
+      if (!task) return;
+      if (state().timer) { state().ui.page = 'focus'; return saveAndRender('focus-route', '已有一轮专注正在进行', false); }
+      return startFocus({ taskId: task.id, label: starterStepForTask(task), minutes: 5, openFocusPage: true });
+    }
     if (action === 'focus-duration') { focusDuration = Number(target.dataset.value) || 25; return render({ preserveScroll: true }); }
     if (action === 'focus-start') return startFocus();
     if (action === 'focus-pause') return pauseFocus();
@@ -1807,15 +1875,42 @@
     if (action === 'focus-end') return finishFocus(false);
     if (action === 'focus-audio-master') return toggleFocusAudio();
     if (action === 'focus-sound-toggle') return toggleFocusSound(target.dataset.channel);
+    if (action === 'scene-enter') {
+      const room = FOCUS_ROOMS.find((item) => item.id === id);
+      const preset = room && Core.FOCUS_SOUND_PRESETS[room.id];
+      if (!room || !preset) return;
+      state().focusSettings.roomId = room.id;
+      Object.assign(state().focusSettings, {
+        ambienceId: preset.ambienceId,
+        ambienceEnabled: true,
+        ambienceVolume: preset.ambienceVolume,
+        musicId: preset.musicId,
+        musicEnabled: true,
+        musicVolume: preset.musicVolume,
+        soundscapePresetVersion: 2
+      });
+      state().ui.page = 'focus';
+      announce(`已进入${room.name}，推荐声音也准备好了`);
+      return saveAndRender('scene-enter', '', false);
+    }
     if (action === 'focus-room-select') {
       const room = FOCUS_ROOMS.find((item) => item.id === id);
       if (!room || room.id === state().focusSettings.roomId) return;
       const shouldResumeAudio = focusAudioPlaying || focusAudioStarting;
+      const preset = Core.FOCUS_SOUND_PRESETS[room.id];
       state().focusSettings.roomId = room.id;
-      state().focusSettings.ambienceId = room.ambienceId;
+      Object.assign(state().focusSettings, {
+        ambienceId: preset.ambienceId,
+        ambienceEnabled: true,
+        ambienceVolume: preset.ambienceVolume,
+        musicId: preset.musicId,
+        musicEnabled: true,
+        musicVolume: preset.musicVolume,
+        soundscapePresetVersion: 2
+      });
       Core.save('focus-room');
       const soundAttempt = shouldResumeAudio ? startFocusAudio() : null;
-      announce(`已进入${room.name}`);
+      announce(`已进入${room.name}，并应用推荐声音与音乐`);
       render({ preserveScroll: true });
       soundAttempt?.then((started) => {
         if (state().ui.page !== 'focus' || started) return;
