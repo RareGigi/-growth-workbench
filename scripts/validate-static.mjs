@@ -7,7 +7,7 @@ const info = [];
 const file = (path) => resolve(root, path);
 const read = (path) => readFileSync(file(path), 'utf8');
 const assert = (condition, message) => { if (!condition) errors.push(message); };
-const assertFile = (path, label = path) => assert(existsSync(file(path)), `缺少文件：${label} (${path})`);
+const assertFile = (path, label = path) => assert(Boolean(path) && existsSync(file(path)), `缺少文件：${label} (${path || 'empty'})`);
 
 const requiredRootFiles = [
   'index.html',
@@ -25,6 +25,12 @@ const requiredRootFiles = [
 ];
 requiredRootFiles.forEach((path) => assertFile(path));
 
+const arrayCount = (source, name) => {
+  const block = source.match(new RegExp(`const ${name} = Object\\.freeze\\(\\[([\\s\\S]*?)\\]\\);`));
+  if (!block) return null;
+  return block[1].split('\n').map((line) => line.trim()).filter((line) => line.startsWith('{ id:')).length;
+};
+
 if (!errors.length) {
   const index = read('index.html');
   const localRefs = [...index.matchAll(/(?:src|href)="([^"?#]+)(?:[?#][^"]*)?"/g)]
@@ -36,6 +42,12 @@ if (!errors.length) {
   assert(/rel="apple-touch-icon"[^>]+icon-180\.png/.test(index), 'index.html 未使用 180px Apple Touch Icon');
   assert(!index.includes('focus-preset-sync.js'), 'index.html 仍引用已合并的 focus-preset-sync.js');
   assert(!index.includes('focus-room-discovery.js'), 'index.html 仍引用已合并的 focus-room-discovery.js');
+
+  const touchIcon = readFileSync(file('icon-180.png'));
+  assert(touchIcon.length > 24 && touchIcon.toString('ascii', 1, 4) === 'PNG', 'icon-180.png 不是有效 PNG');
+  if (touchIcon.length > 24) {
+    assert(touchIcon.readUInt32BE(16) === 180 && touchIcon.readUInt32BE(20) === 180, 'icon-180.png 必须为 180×180');
+  }
 
   try {
     const manifest = JSON.parse(read('manifest.webmanifest'));
@@ -55,8 +67,10 @@ if (!errors.length) {
   assert(/aria-modal/.test(overlayA11y), 'focus overlay 未声明 aria-modal');
   assert(/event\.key !== 'Tab'/.test(overlayA11y), 'focus overlay 缺少 Tab 焦点约束');
   assert(/lastOpener/.test(overlayA11y), 'focus overlay 缺少关闭后的焦点恢复');
+  assert(/mutationNeedsSync/.test(overlayA11y), 'focus overlay 观察器未过滤无关 DOM 更新');
 
   const app = read('app.js');
+  const core = read('core.js');
   const experience = read('focus-room-experience.js');
   const roomBlock = experience.match(/const ROOMS = Object\.freeze\(\[([\s\S]*?)\]\);\s*\n\s*const FILTERS/);
   assert(Boolean(roomBlock), '无法读取 focus-room-experience.js 的 ROOMS 配置');
@@ -108,13 +122,39 @@ if (!errors.length) {
   const audioPaths = [...app.matchAll(/src:\s*'(assets\/scenes\/[^']+\.mp3)'/g)].map((match) => match[1]);
   [...new Set(audioPaths)].forEach((path) => assertFile(path, '专注音频'));
 
+  const inventory = {
+    OUTFITS: arrayCount(core, 'OUTFITS'),
+    STICKERS: arrayCount(core, 'STICKERS'),
+    BADGES: arrayCount(core, 'BADGES'),
+    SCENES: arrayCount(core, 'SCENES')
+  };
+  assert(inventory.OUTFITS === 10, `卡面应为 10 套，当前 ${inventory.OUTFITS}`);
+  assert(inventory.STICKERS === 17, `贴纸应为 17 枚，当前 ${inventory.STICKERS}`);
+  assert(inventory.BADGES === 6, `徽章应为 6 枚，当前 ${inventory.BADGES}`);
+  assert(Number.isInteger(inventory.SCENES) && inventory.SCENES >= 10, `收藏场景数量异常：${inventory.SCENES}`);
+  assert(/tasks:\s*\[\]/.test(core), '默认状态不应预填已完成任务');
+  assert(/focusSessions:\s*\[\]/.test(core), '默认状态不应预填专注会话');
+
+  const assetSources = [
+    'core.js', 'app.js', 'app.css', 'accessibility.css',
+    'focus-immersive.css', 'focus-immersive.js', 'focus-room-experience.js'
+  ];
+  const assetRefs = new Set();
+  for (const source of assetSources) {
+    const text = read(source);
+    for (const match of text.matchAll(/assets\/[A-Za-z0-9._/-]+/g)) assetRefs.add(match[0]);
+  }
+  [...assetRefs].forEach((path) => assertFile(path, '全站本地素材'));
+
   const tooSmall = [...experience.matchAll(/font-size:\s*(\d+(?:\.\d+)?)px/g)]
     .map((match) => Number(match[1]))
     .filter((value) => value < 12);
   assert(tooSmall.length === 0, `focus-room-experience.js 出现小于 12px 的正式文字：${tooSmall.join(', ')}`);
 
   info.push(`index 本地引用 ${localRefs.length} 项`);
+  info.push(`全站本地素材引用 ${assetRefs.size} 项`);
   info.push(`专注音频 ${new Set(audioPaths).size} 个文件`);
+  info.push(`收藏清单：卡面 ${inventory.OUTFITS} / 贴纸 ${inventory.STICKERS} / 徽章 ${inventory.BADGES} / 场景 ${inventory.SCENES}`);
   info.push('移动端表单字号、reduced-motion、焦点约束与 Apple Touch Icon 已检查');
 }
 
