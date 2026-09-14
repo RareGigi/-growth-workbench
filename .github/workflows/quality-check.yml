@@ -27,6 +27,7 @@ jobs:
           node --check app.js
           node --check focus-immersive.js
           node --check focus-room-experience.js
+          node --check focus-overlay-a11y.js
           node --check scripts/validate-static.mjs
 
       - name: Validate local assets and focus presets
