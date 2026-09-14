@@ -18,6 +18,7 @@
     ['eastern', '东方']
   ]);
 
+  const OWN_UI_SELECTOR = '[data-focus-room-sheet], .focus-room-discovery';
   let activeFilter = 'all';
   let scheduled = false;
 
@@ -62,6 +63,7 @@
         .focus-room-now { margin-bottom:8px; padding:9px 10px; border-radius:13px; }
         .focus-room-filters { gap:6px; padding-bottom:9px; }
         .focus-room-filter { min-height:32px; padding:0 11px; font-size:9px; }
+        .focus-room-card[data-now-recommended="true"] .focus-room-card-media::after { backdrop-filter:none; -webkit-backdrop-filter:none; }
       }
     `;
     document.head.appendChild(style);
@@ -121,6 +123,16 @@
     requestAnimationFrame(scan);
   }
 
+  function mutationNeedsScan(records) {
+    return records.some((record) => {
+      const target = record.target?.nodeType === 1 ? record.target : record.target?.parentElement;
+      if (!target?.closest) return true;
+      if (target.matches('[data-timer-clock]') || target.closest('[data-timer-clock]')) return false;
+      if (target.matches(OWN_UI_SELECTOR) || target.closest(OWN_UI_SELECTOR)) return false;
+      return Array.from(record.addedNodes || []).some((node) => node.nodeType === 1 && (node.matches?.('[data-focus-room-sheet]') || node.querySelector?.('[data-focus-room-sheet]')));
+    });
+  }
+
   document.addEventListener('click', (event) => {
     const filter = event.target.closest('[data-focus-room-filter]');
     if (filter) {
@@ -139,7 +151,9 @@
     }
   }, true);
 
-  const observer = new MutationObserver(scheduleScan);
+  const observer = new MutationObserver((records) => {
+    if (mutationNeedsScan(records)) scheduleScan();
+  });
   observer.observe(document.querySelector('#app') || document.body, { childList: true, subtree: true });
   document.addEventListener('visibilitychange', () => { if (!document.hidden) scheduleScan(); });
   window.addEventListener('pagehide', () => observer.disconnect(), { once: true });
