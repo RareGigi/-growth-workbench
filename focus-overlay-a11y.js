@@ -10,6 +10,7 @@
     '[tabindex]:not([tabindex="-1"])'
   ].join(',');
 
+  const PANEL_SELECTOR = '[data-focus-room-sheet], [data-immersive-sheet]';
   let lastOpener = null;
   let activePanel = null;
   let wasOpen = false;
@@ -59,6 +60,16 @@
     frame = requestAnimationFrame(syncPanelFocus);
   }
 
+  function mutationNeedsSync(records) {
+    return records.some((record) => {
+      if (record.type === 'attributes' && record.target === document.body) return true;
+      return [...(record.addedNodes || [])].some((node) => {
+        if (node.nodeType !== 1) return false;
+        return node.matches?.(PANEL_SELECTOR) || node.querySelector?.(PANEL_SELECTOR);
+      });
+    });
+  }
+
   document.addEventListener('click', (event) => {
     const opener = event.target.closest('[data-focus-v2-action="rooms"], [data-focus-v2-action="adjust"]');
     if (opener) lastOpener = opener;
@@ -81,7 +92,9 @@
     }
   }, true);
 
-  const observer = new MutationObserver(scheduleSync);
+  const observer = new MutationObserver((records) => {
+    if (mutationNeedsSync(records)) scheduleSync();
+  });
   observer.observe(document.body, { attributes: true, attributeFilter: ['class'], childList: true, subtree: true });
   window.addEventListener('pagehide', () => observer.disconnect(), { once: true });
   scheduleSync();
