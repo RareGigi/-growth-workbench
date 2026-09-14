@@ -18,8 +18,10 @@ const requiredRootFiles = [
   'focus-immersive.css',
   'focus-immersive.js',
   'focus-room-experience.js',
+  'focus-overlay-a11y.js',
   'manifest.webmanifest',
-  'icon.svg'
+  'icon.svg',
+  'icon-180.png'
 ];
 requiredRootFiles.forEach((path) => assertFile(path));
 
@@ -30,6 +32,8 @@ if (!errors.length) {
     .filter((path) => !/^(?:https?:|data:|#)/.test(path));
   localRefs.forEach((path) => assertFile(path, `index.html 引用`));
   assert(index.includes('accessibility.css'), 'index.html 未加载 accessibility.css');
+  assert(index.includes('focus-overlay-a11y.js'), 'index.html 未加载 focus-overlay-a11y.js');
+  assert(/rel="apple-touch-icon"[^>]+icon-180\.png/.test(index), 'index.html 未使用 180px Apple Touch Icon');
   assert(!index.includes('focus-preset-sync.js'), 'index.html 仍引用已合并的 focus-preset-sync.js');
   assert(!index.includes('focus-room-discovery.js'), 'index.html 仍引用已合并的 focus-room-discovery.js');
 
@@ -46,6 +50,11 @@ if (!errors.length) {
   assert(/@media\s*\(max-width:\s*900px\)/.test(accessibility), 'accessibility.css 缺少移动端规则');
   assert(/font-size:\s*16px\s*!important/.test(accessibility), 'accessibility.css 未防止 iOS 小字号表单缩放');
   assert(/prefers-reduced-motion:\s*reduce/.test(accessibility), 'accessibility.css 缺少 reduced-motion 兜底');
+
+  const overlayA11y = read('focus-overlay-a11y.js');
+  assert(/aria-modal/.test(overlayA11y), 'focus overlay 未声明 aria-modal');
+  assert(/event\.key !== 'Tab'/.test(overlayA11y), 'focus overlay 缺少 Tab 焦点约束');
+  assert(/lastOpener/.test(overlayA11y), 'focus overlay 缺少关闭后的焦点恢复');
 
   const app = read('app.js');
   const experience = read('focus-room-experience.js');
@@ -106,7 +115,7 @@ if (!errors.length) {
 
   info.push(`index 本地引用 ${localRefs.length} 项`);
   info.push(`专注音频 ${new Set(audioPaths).size} 个文件`);
-  info.push('移动端表单字号与 reduced-motion 兜底已检查');
+  info.push('移动端表单字号、reduced-motion、焦点约束与 Apple Touch Icon 已检查');
 }
 
 if (errors.length) {
