@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1672 941" role="img" aria-label="江南雨阁书桌场景">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#182941"/><stop offset=".55" stop-color="#456275"/><stop offset="1" stop-color="#9eabb0"/></linearGradient>
+    <linearGradient id="river" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#253e50"/><stop offset="1" stop-color="#6f8790"/></linearGradient>
+    <linearGradient id="wood" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#241c1a"/><stop offset=".55" stop-color="#4b3730"/><stop offset="1" stop-color="#705246"/></linearGradient>
+    <radialGradient id="lamp"><stop stop-color="#ffd996" stop-opacity=".96"/><stop offset="1" stop-color="#d99445" stop-opacity="0"/></radialGradient>
+    <filter id="blur"><feGaussianBlur stdDeviation="18"/></filter>
+    <filter id="soft"><feGaussianBlur stdDeviation="4"/></filter>
+  </defs>
+  <rect width="1672" height="941" fill="url(#sky)"/>
+  <circle cx="1330" cy="146" r="88" fill="#d9e1dd" opacity=".38" filter="url(#soft)"/>
+  <path d="M0 402 C225 310 350 360 512 286 C680 210 837 326 1010 255 C1200 176 1370 258 1672 126 V514 H0Z" fill="#233b45" opacity=".8"/>
+  <path d="M0 442 C210 356 370 426 557 350 C773 262 912 405 1128 334 C1329 268 1470 318 1672 230 V559 H0Z" fill="#3d5861" opacity=".7"/>
+  <rect y="498" width="1672" height="443" fill="url(#river)"/>
+  <g opacity=".3" stroke="#d5e0df" stroke-width="4"><path d="M85 603h520"/><path d="M890 664h595"/><path d="M236 735h910"/><path d="M1010 545h450"/></g>
+  <g opacity=".9"><path d="M0 0h1672v76H0z" fill="#171312"/><path d="M0 65h1672l-124 95H118L0 110z" fill="#28201d"/><path d="M0 131h113v810H0zM1559 131h113v810h-113z" fill="#1d1918"/><path d="M113 131h1446v31H113z" fill="#3a2925"/></g>
+  <g opacity=".75"><rect x="235" y="164" width="28" height="365" fill="#372824"/><rect x="514" y="164" width="24" height="350" fill="#372824"/><rect x="1128" y="164" width="24" height="353" fill="#372824"/><rect x="1405" y="164" width="28" height="365" fill="#372824"/></g>
+  <g fill="#f1b460"><circle cx="315" cy="260" r="88" fill="url(#lamp)"/><rect x="292" y="223" width="47" height="69" rx="10"/><circle cx="1352" cy="272" r="95" fill="url(#lamp)"/><rect x="1327" y="232" width="50" height="76" rx="10"/></g>
+  <g stroke="#bfd0d3" stroke-linecap="round" opacity=".38"><path d="M170 142l-76 402M245 124l-82 449M326 108l-86 470M420 120l-82 436M522 115l-74 401M628 99l-74 422M760 104l-82 438M894 110l-80 421M1030 104l-83 452M1160 108l-78 438M1280 98l-87 467M1410 110l-82 454M1540 98l-91 481" stroke-width="4"/></g>
+  <path d="M0 772 C345 719 535 783 776 742 C1047 697 1278 764 1672 688 V941 H0Z" fill="#101a20" opacity=".32"/>
+  <g transform="translate(310 610)"><rect x="0" y="142" width="1052" height="54" rx="7" fill="url(#wood)"/><rect x="78" y="192" width="54" height="149" fill="#2b211f"/><rect x="910" y="192" width="54" height="149" fill="#2b211f"/><rect x="360" y="91" width="338" height="62" rx="4" fill="#e6d8ba" transform="rotate(-2 529 122)"/><path d="M374 111h290M374 125h236" stroke="#7b6a54" stroke-width="4" opacity=".55"/><rect x="732" y="66" width="52" height="88" rx="9" fill="#a86d41"/><ellipse cx="758" cy="66" rx="35" ry="10" fill="#d2a16c"/><circle cx="814" cy="86" r="76" fill="url(#lamp)"/><path d="M823 58v90M793 86h58" stroke="#4b3328" stroke-width="7"/><path d="M248 130q57-104 115 0" fill="none" stroke="#c7c0a5" stroke-width="9"/><rect x="225" y="128" width="162" height="12" rx="6" fill="#d9ceb1"/></g>
+  <g fill="#101b21" opacity=".9"><path d="M102 618q80-168 161 0z"/><path d="M1380 590q92-194 181 0z"/></g>
+  <g fill="#d9e5e1" opacity=".52" filter="url(#blur)"><ellipse cx="493" cy="526" rx="230" ry="38"/><ellipse cx="1210" cy="475" rx="310" ry="42"/></g>
+</svg>
