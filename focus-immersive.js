@@ -45,6 +45,14 @@
   let scheduled = false;
   let observer = null;
 
+  const ENHANCED_UI_SELECTOR = [
+    '[data-immersive-dock]',
+    '[data-focus-room-launcher]',
+    '[data-focus-room-sheet]',
+    '[data-immersive-sheet]',
+    '[data-focus-v2-backdrop]'
+  ].join(',');
+
   const state = () => Core.state;
   const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
   const room = (id) => ROOMS.find((item) => item.id === id) || ROOMS[0];
@@ -148,16 +156,20 @@
         .focus-room-launcher-copy span { max-width:54vw; }
         .focus-room-launcher button span { display:none; }
         .focus-room-launcher button { width:44px; padding:0; }
-        .focus-room-sheet { right:0; bottom:0; left:0; width:100%; max-height:min(78dvh,720px); border-radius:24px 24px 0 0; transform:translateY(22px); }
+        .focus-overlay-backdrop { background:rgba(7,11,18,.48); transition:none; backdrop-filter:none; -webkit-backdrop-filter:none; }
+        .focus-room-sheet { right:0; bottom:0; left:0; width:100%; max-height:min(78vh,720px); max-height:min(78svh,720px); border-radius:24px 24px 0 0; background:#f8f9fd; transform:translate3d(0,22px,0); transition:none; backdrop-filter:none; -webkit-backdrop-filter:none; }
         body.focus-room-open .focus-room-sheet { transform:none; }
         .focus-room-sheet > header { padding:15px 14px 11px 16px; }
         .focus-room-sheet > header p { max-width:75vw; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-        .focus-room-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; max-height:calc(78dvh - 84px); padding:12px 12px calc(16px + env(safe-area-inset-bottom)); }
+        .focus-room-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; max-height:calc(78vh - 84px); max-height:calc(78svh - 84px); padding:12px 12px calc(16px + env(safe-area-inset-bottom)); }
         .focus-room-card { border-radius:15px; }
+        .focus-room-card:hover .focus-room-card-media img { transform:none; }
+        .focus-room-card-media img { transition:none; }
+        .focus-room-card-current { background:rgba(250,251,255,.96); backdrop-filter:none; -webkit-backdrop-filter:none; }
         .focus-room-card-copy { min-height:86px; padding:9px 9px 10px; }
         .focus-room-card-copy strong { font-size:12px; }
         .focus-room-card-copy span { font-size:9px; }
-        body.focus-immersive-active .focus-room-sheet { bottom:0; max-height:72dvh; }
+        body.focus-immersive-active .focus-room-sheet { bottom:0; max-height:72vh; max-height:72svh; }
         body.focus-immersive-active .immersive-dock { grid-template-columns:1fr !important; gap:7px !important; min-height:0 !important; padding:8px !important; border-radius:20px !important; }
         body.focus-immersive-active .immersive-dock-status { display:none !important; }
         body.focus-immersive-active .immersive-dock-actions { grid-template-columns:repeat(5,minmax(0,1fr)) !important; }
@@ -211,7 +223,7 @@
       </header>
       <div class="focus-room-grid">
         ${ROOMS.map((item) => `<button type="button" class="focus-room-card ${item.id === currentId ? 'active' : ''}" data-focus-v2-action="room" data-id="${item.id}" aria-pressed="${item.id === currentId}">
-          <span class="focus-room-card-media"><img src="${item.image}?v=${ASSET_VERSION}" alt="${esc(item.name)}场景预览" width="640" height="360" loading="lazy" decoding="async">${item.id === currentId ? '<i class="focus-room-card-current">当前</i>' : ''}</span>
+          <span class="focus-room-card-media"><img src="${item.image}?v=${ASSET_VERSION}" alt="${esc(item.name)}场景预览" width="640" height="360" loading="eager" decoding="async">${item.id === currentId ? '<i class="focus-room-card-current">当前</i>' : ''}</span>
           <span class="focus-room-card-copy"><strong>${esc(item.name)}</strong><em>${esc(item.tag)}</em><span>${esc(item.note)}</span></span>
         </button>`).join('')}
       </div>
@@ -306,6 +318,24 @@
     if (scheduled) return;
     scheduled = true;
     requestAnimationFrame(enhance);
+  }
+
+  function mutationNeedsEnhance(records) {
+    return records.some((record) => {
+      const target = record.target?.nodeType === 1 ? record.target : record.target?.parentElement;
+      if (!target?.closest) return true;
+
+      // The canonical timer replaces its text node four times a second. Rebuilding the
+      // room sheet for those ticks makes iPhone Safari repeatedly recompose the fixed,
+      // image-heavy panel and produces visible flashing.
+      if (target.matches('[data-timer-clock]') || target.closest('[data-timer-clock]')) return false;
+
+      // Changes made inside the enhancement already have their own direct handlers and
+      // must not cause the enhancement layer to tear itself down and mount again.
+      if (target.matches(ENHANCED_UI_SELECTOR) || target.closest(ENHANCED_UI_SELECTOR)) return false;
+
+      return true;
+    });
   }
 
   function forwardClick(selector) {
@@ -415,7 +445,9 @@
     if (event.key === 'Escape' && (adjustOpen || roomOpen)) closePanels();
   });
 
-  observer = new MutationObserver(scheduleEnhance);
+  observer = new MutationObserver((records) => {
+    if (mutationNeedsEnhance(records)) scheduleEnhance();
+  });
   observer.observe(document.querySelector('#app') || document.body, { childList: true, subtree: true });
   document.addEventListener('visibilitychange', () => { if (!document.hidden) scheduleEnhance(); });
   window.addEventListener('pagehide', () => observer.disconnect(), { once: true });
