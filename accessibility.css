@@ -1,0 +1,53 @@
+/* Product-wide accessibility and mobile compatibility layer. */
+
+/* Normal informational text in the focus experience should never drop below the 12px design floor. */
+.focus-weather small,
+.focus-weather em,
+.focus-scene-caption span,
+.focus-mode-status small,
+.focus-fields label,
+.duration-switch button small,
+.focus-soundscape > header span,
+.sound-channel label > span,
+.sound-channel > button b,
+.sound-channel > button small,
+.sound-channel output,
+.focus-soundscape > .sound-help {
+  font-size: 12px !important;
+}
+
+.sound-channel .sound-track-choice,
+.sound-master,
+.focus-stage-time small,
+.focus-stage-time span {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+
+/* Preserve 44px touch targets for the compact focus controls. */
+.sound-master,
+.duration-switch button,
+.sound-channel > button,
+.focus-motion-toggle {
+  min-height: 44px;
+}
+
+/* iOS Safari zooms the page when form controls are focused below 16px. */
+@media (max-width: 900px) {
+  input,
+  textarea,
+  select,
+  .immersive-channel select,
+  .focus-fields input,
+  .focus-fields select {
+    font-size: 16px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .focus-room-card-media img,
+  .focus-room-sheet,
+  .focus-overlay-backdrop {
+    transition: none !important;
+  }
+}
