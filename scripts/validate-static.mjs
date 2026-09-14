@@ -21,7 +21,9 @@ const requiredRootFiles = [
   'focus-overlay-a11y.js',
   'manifest.webmanifest',
   'icon.svg',
-  'icon-180.png'
+  'icon-180.png',
+  'icon-192.png',
+  'icon-512.png'
 ];
 requiredRootFiles.forEach((path) => assertFile(path));
 
@@ -29,6 +31,14 @@ const arrayCount = (source, name) => {
   const block = source.match(new RegExp(`const ${name} = Object\\.freeze\\(\\[([\\s\\S]*?)\\]\\);`));
   if (!block) return null;
   return block[1].split('\n').map((line) => line.trim()).filter((line) => line.startsWith('{ id:')).length;
+};
+
+const validatePng = (path, size) => {
+  const image = readFileSync(file(path));
+  assert(image.length > 24 && image.toString('ascii', 1, 4) === 'PNG', `${path} 不是有效 PNG`);
+  if (image.length > 24) {
+    assert(image.readUInt32BE(16) === size && image.readUInt32BE(20) === size, `${path} 必须为 ${size}×${size}`);
+  }
 };
 
 if (!errors.length) {
@@ -43,17 +53,18 @@ if (!errors.length) {
   assert(!index.includes('focus-preset-sync.js'), 'index.html 仍引用已合并的 focus-preset-sync.js');
   assert(!index.includes('focus-room-discovery.js'), 'index.html 仍引用已合并的 focus-room-discovery.js');
 
-  const touchIcon = readFileSync(file('icon-180.png'));
-  assert(touchIcon.length > 24 && touchIcon.toString('ascii', 1, 4) === 'PNG', 'icon-180.png 不是有效 PNG');
-  if (touchIcon.length > 24) {
-    assert(touchIcon.readUInt32BE(16) === 180 && touchIcon.readUInt32BE(20) === 180, 'icon-180.png 必须为 180×180');
-  }
+  validatePng('icon-180.png', 180);
+  validatePng('icon-192.png', 192);
+  validatePng('icon-512.png', 512);
 
   try {
     const manifest = JSON.parse(read('manifest.webmanifest'));
     assert(manifest.name && manifest.short_name, 'manifest 缺少 name / short_name');
     assert(manifest.start_url === './', 'manifest start_url 应保持为 ./');
-    (manifest.icons || []).forEach((icon) => assertFile(icon.src, 'manifest 图标'));
+    const manifestIcons = manifest.icons || [];
+    manifestIcons.forEach((icon) => assertFile(icon.src, 'manifest 图标'));
+    assert(manifestIcons.some((icon) => icon.src === 'icon-192.png' && icon.sizes === '192x192'), 'manifest 缺少 192×192 PNG 图标');
+    assert(manifestIcons.some((icon) => icon.src === 'icon-512.png' && icon.sizes === '512x512'), 'manifest 缺少 512×512 PNG 图标');
   } catch (error) {
     errors.push(`manifest.webmanifest 不是有效 JSON：${error.message}`);
   }
@@ -155,7 +166,7 @@ if (!errors.length) {
   info.push(`全站本地素材引用 ${assetRefs.size} 项`);
   info.push(`专注音频 ${new Set(audioPaths).size} 个文件`);
   info.push(`收藏清单：卡面 ${inventory.OUTFITS} / 贴纸 ${inventory.STICKERS} / 徽章 ${inventory.BADGES} / 场景 ${inventory.SCENES}`);
-  info.push('移动端表单字号、reduced-motion、焦点约束与 Apple Touch Icon 已检查');
+  info.push('移动端表单字号、reduced-motion、焦点约束与 180/192/512 图标已检查');
 }
 
 if (errors.length) {
