@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1672 941" role="img" aria-label="奇幻星穹观测室书桌场景">
+  <defs>
+    <linearGradient id="room" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#0b1024"/><stop offset=".58" stop-color="#22264b"/><stop offset="1" stop-color="#51466a"/></linearGradient>
+    <radialGradient id="window"><stop stop-color="#c9e4ff" stop-opacity=".82"/><stop offset=".55" stop-color="#6688d5" stop-opacity=".46"/><stop offset="1" stop-color="#172347" stop-opacity="0"/></radialGradient>
+    <radialGradient id="lamp"><stop stop-color="#f4d9a6" stop-opacity=".95"/><stop offset="1" stop-color="#b47b52" stop-opacity="0"/></radialGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="10"/></filter>
+  </defs>
+  <rect width="1672" height="941" fill="url(#room)"/>
+  <path d="M120 690V260C120 115 320 35 836 35s716 80 716 225v430" fill="#111832" stroke="#5e668d" stroke-width="18"/>
+  <ellipse cx="836" cy="251" rx="512" ry="214" fill="#172141" stroke="#67739f" stroke-width="12"/>
+  <ellipse cx="836" cy="251" rx="430" ry="162" fill="#081027"/>
+  <ellipse cx="836" cy="251" rx="452" ry="182" fill="url(#window)"/>
+  <g fill="#d7e7ff"><circle cx="554" cy="196" r="4"/><circle cx="646" cy="132" r="5"/><circle cx="739" cy="244" r="3"/><circle cx="865" cy="112" r="4"/><circle cx="1004" cy="202" r="5"/><circle cx="1113" cy="149" r="3"/><circle cx="1210" cy="278" r="4"/><circle cx="925" cy="286" r="3"/><circle cx="771" cy="178" r="2.5"/><circle cx="625" cy="296" r="3"/></g>
+  <g stroke="#9ab7ef" fill="none" opacity=".55"><path d="M552 197L646 132l93 112 126-132 139 90 109-53" stroke-width="2"/><ellipse cx="836" cy="252" rx="280" ry="106" stroke-width="2"/></g>
+  <g fill="#222b51"><rect x="120" y="544" width="1432" height="397"/><rect x="160" y="574" width="285" height="326" rx="10"/><rect x="1227" y="574" width="285" height="326" rx="10"/></g>
+  <g fill="#454e72"><rect x="188" y="605" width="229" height="24"/><rect x="188" y="675" width="229" height="24"/><rect x="188" y="745" width="229" height="24"/><rect x="1255" y="605" width="229" height="24"/><rect x="1255" y="675" width="229" height="24"/><rect x="1255" y="745" width="229" height="24"/></g>
+  <g fill="#7c7394"><rect x="201" y="570" width="26" height="35"/><rect x="238" y="558" width="24" height="47"/><rect x="275" y="573" width="27" height="32"/><rect x="316" y="551" width="22" height="54"/><rect x="354" y="565" width="29" height="40"/><rect x="1268" y="563" width="26" height="42"/><rect x="1307" y="548" width="24" height="57"/><rect x="1345" y="570" width="30" height="35"/><rect x="1388" y="554" width="25" height="51"/><rect x="1424" y="572" width="31" height="33"/></g>
+  <g transform="translate(615 355)"><path d="M0 123l237-91 21 47-237 91z" fill="#8897bc"/><rect x="204" y="48" width="34" height="188" rx="16" fill="#667397" transform="rotate(-18 221 142)"/><circle cx="55" cy="150" r="86" fill="#2d365c" stroke="#7787b6" stroke-width="10"/><circle cx="55" cy="150" r="37" fill="#111a39"/></g>
+  <g transform="translate(428 640)"><rect x="0" y="112" width="816" height="54" rx="8" fill="#322c44"/><rect x="64" y="165" width="49" height="119" fill="#25213a"/><rect x="702" y="165" width="49" height="119" fill="#25213a"/><rect x="250" y="63" width="318" height="55" rx="5" fill="#ddd8cb"/><path d="M272 83h266M272 99h214" stroke="#746d7d" stroke-width="4" opacity=".55"/><circle cx="626" cy="72" r="70" fill="url(#lamp)"/><path d="M627 28v86M600 51h55" stroke="#c39368" stroke-width="7"/><rect x="150" y="84" width="59" height="35" rx="4" fill="#6e6683"/><circle cx="679" cy="91" r="8" fill="#b9d7ff" filter="url(#glow)"/></g>
+  <g fill="#adc8ff" opacity=".28" filter="url(#glow)"><circle cx="539" cy="445" r="38"/><circle cx="1139" cy="436" r="32"/><circle cx="835" cy="322" r="24"/></g>
+</svg>
