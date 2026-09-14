@@ -12,6 +12,7 @@ const assertFile = (path, label = path) => assert(existsSync(file(path)), `缺�
 const requiredRootFiles = [
   'index.html',
   'app.css',
+  'accessibility.css',
   'app.js',
   'core.js',
   'focus-immersive.css',
@@ -28,6 +29,7 @@ if (!errors.length) {
     .map((match) => match[1])
     .filter((path) => !/^(?:https?:|data:|#)/.test(path));
   localRefs.forEach((path) => assertFile(path, `index.html 引用`));
+  assert(index.includes('accessibility.css'), 'index.html 未加载 accessibility.css');
   assert(!index.includes('focus-preset-sync.js'), 'index.html 仍引用已合并的 focus-preset-sync.js');
   assert(!index.includes('focus-room-discovery.js'), 'index.html 仍引用已合并的 focus-room-discovery.js');
 
@@ -39,6 +41,11 @@ if (!errors.length) {
   } catch (error) {
     errors.push(`manifest.webmanifest 不是有效 JSON：${error.message}`);
   }
+
+  const accessibility = read('accessibility.css');
+  assert(/@media\s*\(max-width:\s*900px\)/.test(accessibility), 'accessibility.css 缺少移动端规则');
+  assert(/font-size:\s*16px\s*!important/.test(accessibility), 'accessibility.css 未防止 iOS 小字号表单缩放');
+  assert(/prefers-reduced-motion:\s*reduce/.test(accessibility), 'accessibility.css 缺少 reduced-motion 兜底');
 
   const app = read('app.js');
   const experience = read('focus-room-experience.js');
@@ -99,6 +106,7 @@ if (!errors.length) {
 
   info.push(`index 本地引用 ${localRefs.length} 项`);
   info.push(`专注音频 ${new Set(audioPaths).size} 个文件`);
+  info.push('移动端表单字号与 reduced-motion 兜底已检查');
 }
 
 if (errors.length) {
