@@ -143,6 +143,8 @@ if (!errors.length) {
     });
     assert(/touch-action:\s*pan-y/.test(immersive), '手机房间列表没有明确启用纵向触控滚动');
     assert(/overflow-y:\s*auto/.test(immersive), '房间网格没有独立纵向滚动');
+    assert(/grid-auto-rows:\s*max-content/.test(immersive), '房间卡片行仍可能被压缩而无法形成滚动内容');
+    assert(/align-content:\s*start/.test(immersive), '房间卡片没有从网格顶部自然展开');
     assert(/data-focus-v2-action="filter"/.test(immersive), '房间风格筛选未接线');
   }
 

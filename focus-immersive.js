@@ -4,7 +4,7 @@
   const Core = window.GrowthCore;
   if (!Core) return;
 
-  const ASSET_VERSION = '2026.09-focus-polish-v1';
+  const ASSET_VERSION = '2026.09-focus-polish-v2';
   const ROOMS = [
     { id:'leaf-rain', name:'窗叶听雨', image:'assets/scenes/focus-leaf-rain.webp', note:'贴近窗边的雨声与纸笔感，适合做题和长时间专注。', tag:'写实 · 雨夜', groups:['real','rain'], motion:'rain' },
     { id:'library', name:'深夜图书馆', image:'assets/scenes/focus-library.webp', note:'安静木质书库，氛围更稳，适合阅读与整理。', tag:'写实 · 安静', groups:['real'], motion:'dust' },
@@ -153,7 +153,7 @@
       .focus-room-filters::-webkit-scrollbar { display:none; }
       .focus-room-filter { flex:0 0 auto; min-height:40px; padding:0 14px; border:1px solid #dce2ed; border-radius:999px; background:#fff; color:#687389; font-size:12px; font-weight:650; }
       .focus-room-filter.active { border-color:#9badd4; background:#eaf0fb; color:#4f69a3; }
-      .focus-room-grid { display:grid; min-height:0; flex:1 1 auto; grid-template-columns:repeat(3,minmax(0,1fr)); gap:11px; overflow-y:auto; overflow-x:hidden; padding:15px 18px max(22px, env(safe-area-inset-bottom)); overscroll-behavior-y:contain; touch-action:pan-y; -webkit-overflow-scrolling:touch; }
+      .focus-room-grid { display:grid; min-height:0; flex:1 1 auto; grid-template-columns:repeat(3,minmax(0,1fr)); grid-auto-rows:max-content; align-content:start; gap:11px; overflow-y:auto; overflow-x:hidden; padding:15px 18px max(22px, env(safe-area-inset-bottom)); overscroll-behavior-y:contain; touch-action:pan-y; -webkit-overflow-scrolling:touch; }
       .focus-room-card { position:relative; min-width:0; overflow:hidden; padding:0; border:1px solid #dfe4ef; border-radius:17px; background:#fff; color:#4c566b; text-align:left; box-shadow:0 6px 18px rgba(61,76,108,.05); -webkit-tap-highlight-color:transparent; }
       .focus-room-card.active { border-color:#95a9d6; box-shadow:0 0 0 2px rgba(92,118,177,.09), 0 8px 24px rgba(61,76,108,.08); }
       .focus-room-card-media { position:relative; display:block; aspect-ratio:16/9; overflow:hidden; background:#e8ebf2; }
