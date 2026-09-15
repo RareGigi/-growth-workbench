@@ -17,7 +17,6 @@ const requiredRootFiles = [
   'core.js',
   'focus-immersive.css',
   'focus-immersive.js',
-  'focus-room-experience.js',
   'focus-overlay-a11y.js',
   'manifest.webmanifest',
   'icon.svg',
@@ -48,7 +47,8 @@ if (!errors.length) {
     .filter((path) => !/^(?:https?:|data:|#)/.test(path));
   localRefs.forEach((path) => assertFile(path, `index.html 引用`));
   assert(index.includes('accessibility.css'), 'index.html 未加载 accessibility.css');
-  assert(index.includes('focus-room-experience.js'), 'index.html 未加载统一自习室体验层');
+  assert(index.includes('focus-immersive.js'), 'index.html 未加载统一自习室体验层');
+  assert(!index.includes('focus-room-experience.js'), 'index.html 仍加载会覆盖房间列表的旧体验层');
   assert(index.includes('focus-overlay-a11y.js'), 'index.html 未加载 focus-overlay-a11y.js');
   assert(/rel="apple-touch-icon"[^>]+icon-180\.png/.test(index), 'index.html 未使用 180px Apple Touch Icon');
   assert(!index.includes('focus-preset-sync.js'), 'index.html 仍引用已合并的 focus-preset-sync.js');
@@ -83,9 +83,10 @@ if (!errors.length) {
 
   const app = read('app.js');
   const core = read('core.js');
-  const experience = read('focus-room-experience.js');
-  const roomBlock = experience.match(/const ROOMS = Object\.freeze\(\[([\s\S]*?)\]\);\s*\n\s*const FILTERS/);
-  assert(Boolean(roomBlock), '无法读取 focus-room-experience.js 的 ROOMS 配置');
+  const immersive = read('focus-immersive.js');
+  const immersiveCss = read('focus-immersive.css');
+  const roomBlock = immersive.match(/const ROOMS = \[([\s\S]*?)\];\s*\n\s*const FILTERS/);
+  assert(Boolean(roomBlock), '无法读取 focus-immersive.js 的 ROOMS 配置');
 
   if (roomBlock) {
     const roomLines = roomBlock[1].split('\n').map((line) => line.trim()).filter((line) => line.startsWith('{ id:'));
@@ -105,10 +106,7 @@ if (!errors.length) {
     for (const line of roomLines) {
       const id = line.match(/id:\s*'([^']+)'/)?.[1];
       const image = line.match(/image:\s*'([^']+)'/)?.[1];
-      const ambience = line.match(/ambience:\s*'([^']+)'/)?.[1];
-      const music = line.match(/music:\s*'([^']+)'/)?.[1];
-      const ambienceVolume = Number(line.match(/ambienceVolume:\s*([.\d]+)/)?.[1]);
-      const musicVolume = Number(line.match(/musicVolume:\s*([.\d]+)/)?.[1]);
+      const motion = line.match(/motion:\s*'([^']+)'/)?.[1];
       const groupText = line.match(/groups:\s*\[([^\]]+)\]/)?.[1] || '';
       [...groupText.matchAll(/'([^']+)'/g)].forEach((match) => groups.add(match[1]));
 
@@ -116,19 +114,19 @@ if (!errors.length) {
       assert(!seen.has(id), `房间 id 重复：${id}`);
       seen.add(id);
       assertFile(image, `房间 ${id} 场景图`);
-      assert(appTrackIds.has(ambience), `房间 ${id} 使用了不存在的环境声：${ambience}`);
-      assert(appTrackIds.has(music), `房间 ${id} 使用了不存在的音乐：${music}`);
-      assert(Number.isFinite(ambienceVolume) && ambienceVolume >= 0 && ambienceVolume <= 1, `房间 ${id} 环境声音量无效`);
-      assert(Number.isFinite(musicVolume) && musicVolume >= 0 && musicVolume <= 1, `房间 ${id} 音乐音量无效`);
-      assert(musicVolume <= ambienceVolume, `房间 ${id} 默认音乐不应盖过环境声`);
-      const soundPair = `${ambience}+${music}`;
-      assert(!soundPairs.has(soundPair), `房间 ${id} 与其他房间重复使用完整声景组合：${soundPair}`);
-      soundPairs.add(soundPair);
+      assert(Boolean(motion), `房间 ${id} 缺少逐场景动态`);
+      assert(new RegExp(`data-motion="${motion}"`).test(immersiveCss), `房间 ${id} 的动态 ${motion} 没有样式实现`);
       const preset = corePresets.get(id);
       assert(Boolean(preset), `core.js 缺少房间 ${id} 的正式声景预设`);
       if (preset) {
-        assert(preset.ambience === ambience && preset.music === music, `房间 ${id} 的体验层与正式声景曲目不一致`);
-        assert(preset.ambienceVolume === ambienceVolume && preset.musicVolume === musicVolume, `房间 ${id} 的体验层与正式声景音量不一致`);
+        assert(appTrackIds.has(preset.ambience), `房间 ${id} 使用了不存在的环境声：${preset.ambience}`);
+        assert(appTrackIds.has(preset.music), `房间 ${id} 使用了不存在的音乐：${preset.music}`);
+        assert(preset.ambienceVolume >= 0 && preset.ambienceVolume <= 1, `房间 ${id} 环境声音量无效`);
+        assert(preset.musicVolume >= 0 && preset.musicVolume <= 1, `房间 ${id} 音乐音量无效`);
+        assert(preset.musicVolume <= preset.ambienceVolume, `房间 ${id} 默认音乐不应盖过环境声`);
+        const soundPair = `${preset.ambience}+${preset.music}`;
+        assert(!soundPairs.has(soundPair), `房间 ${id} 与其他房间重复使用完整声景组合：${soundPair}`);
+        soundPairs.add(soundPair);
       }
 
       if (image && extname(image) === '.svg' && existsSync(file(image))) {
@@ -143,9 +141,19 @@ if (!errors.length) {
     ['real', 'ancient', 'xuanhuan', 'fantasy', 'rain'].forEach((group) => {
       assert(groups.has(group), `房间库缺少分组：${group}`);
     });
-    const recommendationIds = [...experience.matchAll(/return '([^']+)';/g)].map((match) => match[1]);
-    recommendationIds.forEach((id) => assert(seen.has(id), `时段推荐仍指向已移除房间：${id}`));
+    assert(/touch-action:\s*pan-y/.test(immersive), '手机房间列表没有明确启用纵向触控滚动');
+    assert(/overflow-y:\s*auto/.test(immersive), '房间网格没有独立纵向滚动');
+    assert(/data-focus-v2-action="filter"/.test(immersive), '房间风格筛选未接线');
   }
+
+  assert(!/沉浸场景册/.test(app), '收藏页仍包含沉浸场景册');
+  assert(!/data-tab="scenes"/.test(app), '收藏页仍暴露场景页签');
+  assert(!/scene-enter/.test(app), '收藏场景进入专注的旧操作仍然存在');
+  assert(!/unlocked\.scenes\.map/.test(app), '不可见的收藏场景仍会显示解锁提醒');
+  assert(/data-action="focus-pick-task"/.test(app), '专注页缺少“替我选”快捷功能');
+  assert(/data-action="focus-quick-start"/.test(app), '专注页缺少“五分钟开工”快捷功能');
+  assert(/data-action="focus-resume-last"/.test(app), '专注页缺少“接着上次”快捷功能');
+  assert(/\[5,'先开始'\].*\[15,'短冲刺'\].*\[25,'一小轮'\].*\[45,'沉浸'\].*\[60,'长读'\]/.test(app), '专注时长没有按 5 / 15 / 25 / 45 / 60 排列');
 
   const audioPaths = [...app.matchAll(/src:\s*'(assets\/scenes\/[^']+\.mp3)'/g)].map((match) => match[1]);
   [...new Set(audioPaths)].forEach((path) => assertFile(path, '专注音频'));
@@ -161,14 +169,14 @@ if (!errors.length) {
   assert(inventory.OUTFITS === 16, `卡面应为 16 套，当前 ${inventory.OUTFITS}`);
   assert(inventory.STICKERS === 25, `贴纸应为 25 枚，当前 ${inventory.STICKERS}`);
   assert(inventory.BADGES === 12, `徽章应为 12 枚，当前 ${inventory.BADGES}`);
-  assert(inventory.SCENES === 20, `收藏场景应为 20 个，当前 ${inventory.SCENES}`);
+  assert(inventory.SCENES === 20, `兼容场景素材应为 20 个，当前 ${inventory.SCENES}`);
   assertFile('assets/journal/ephemera-cluster.svg', '贴纸册复杂手账拼贴');
   assert(/tasks:\s*\[\]/.test(core), '默认状态不应预填已完成任务');
   assert(/focusSessions:\s*\[\]/.test(core), '默认状态不应预填专注会话');
 
   const assetSources = [
     'core.js', 'app.js', 'app.css', 'accessibility.css',
-    'focus-immersive.css', 'focus-immersive.js', 'focus-room-experience.js'
+    'focus-immersive.css', 'focus-immersive.js'
   ];
   const assetRefs = new Set();
   for (const source of assetSources) {
@@ -177,15 +185,15 @@ if (!errors.length) {
   }
   [...assetRefs].forEach((path) => assertFile(path, '全站本地素材'));
 
-  const tooSmall = [...experience.matchAll(/font-size:\s*(\d+(?:\.\d+)?)px/g)]
+  const tooSmall = [...immersive.matchAll(/font-size:\s*(\d+(?:\.\d+)?)px/g)]
     .map((match) => Number(match[1]))
     .filter((value) => value < 12);
-  assert(tooSmall.length === 0, `focus-room-experience.js 出现小于 12px 的正式文字：${tooSmall.join(', ')}`);
+  assert(tooSmall.length === 0, `focus-immersive.js 出现小于 12px 的正式文字：${tooSmall.join(', ')}`);
 
   info.push(`index 本地引用 ${localRefs.length} 项`);
   info.push(`全站本地素材引用 ${assetRefs.size} 项`);
   info.push(`专注音频 ${new Set(audioPaths).size} 个文件`);
-  info.push(`收藏清单：卡面 ${inventory.OUTFITS} / 贴纸 ${inventory.STICKERS} / 徽章 ${inventory.BADGES} / 场景 ${inventory.SCENES}`);
+  info.push(`收藏清单：卡面 ${inventory.OUTFITS} / 贴纸 ${inventory.STICKERS} / 徽章 ${inventory.BADGES}；兼容场景素材 ${inventory.SCENES}`);
   info.push('移动端表单字号、reduced-motion、焦点约束与 180/192/512 图标已检查');
 }
 

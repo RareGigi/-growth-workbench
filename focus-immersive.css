@@ -72,6 +72,118 @@ body.focus-immersive-active .focus-scene-shade {
     linear-gradient(90deg, rgba(7, 11, 20, 0.16), transparent 36%, transparent 66%, rgba(7, 11, 20, 0.1));
 }
 
+/* Each room gets a restrained motion language instead of one shared video. */
+.focus-scene-motion {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+.focus-scene-motion::before,
+.focus-scene-motion::after,
+.focus-scene-motion > i {
+  position: absolute;
+  content: "";
+  opacity: 0;
+}
+
+.focus-scene-motion[data-motion="rain"]::before,
+.focus-scene-motion[data-motion="soft-rain"]::before,
+.focus-scene-motion[data-motion="glass-rain"]::before,
+.focus-scene-motion[data-motion="city-rain"]::before,
+.focus-scene-motion[data-motion="train"]::before {
+  inset: -24% -10%;
+  opacity: .24;
+  background: repeating-linear-gradient(104deg, transparent 0 12px, rgba(216,231,255,.46) 13px 14px, transparent 15px 30px);
+  background-size: 240px 360px;
+  animation: room-rain 1.05s linear infinite;
+}
+
+.focus-scene-motion[data-motion="soft-rain"]::before { opacity:.13; animation-duration:1.65s; }
+.focus-scene-motion[data-motion="glass-rain"]::before { opacity:.18; filter:blur(.5px); animation-duration:1.35s; }
+.focus-scene-motion[data-motion="city-rain"]::before { opacity:.31; animation-duration:.8s; }
+.focus-scene-motion[data-motion="train"]::after {
+  top: 18%; right: -30%; width: 48%; height: 8%; opacity: .22;
+  background: linear-gradient(90deg, transparent, rgba(255,221,162,.85), transparent);
+  filter: blur(10px);
+  animation: room-train-light 7s ease-in-out infinite;
+}
+
+.focus-scene-motion[data-motion="snow"]::before,
+.focus-scene-motion[data-motion="snow"]::after {
+  inset: -18% 0 0;
+  opacity:.52;
+  background-image: radial-gradient(circle, rgba(255,255,255,.9) 0 1.5px, transparent 2px), radial-gradient(circle, rgba(255,255,255,.7) 0 1px, transparent 1.6px);
+  background-position: 16px 18px, 74px 82px;
+  background-size: 96px 110px, 142px 154px;
+  animation: room-snow 12s linear infinite;
+}
+.focus-scene-motion[data-motion="snow"]::after { opacity:.28; transform:scale(1.35); animation-duration:19s; }
+
+.focus-scene-motion[data-motion="cloud"]::before,
+.focus-scene-motion[data-motion="mist"]::before {
+  inset: 34% -22% -12%;
+  opacity:.24;
+  background: radial-gradient(ellipse at 30% 50%, rgba(235,243,255,.8), transparent 55%), radial-gradient(ellipse at 72% 55%, rgba(255,255,255,.62), transparent 50%);
+  filter: blur(18px);
+  animation: room-cloud 18s ease-in-out infinite alternate;
+}
+.focus-scene-motion[data-motion="mist"]::before { opacity:.15; animation-duration:24s; }
+
+.focus-scene-motion[data-motion="stars"]::before,
+.focus-scene-motion[data-motion="dust"]::before {
+  inset: 0;
+  opacity:.46;
+  background-image: radial-gradient(circle, rgba(235,241,255,.9) 0 1px, transparent 1.6px), radial-gradient(circle, rgba(255,224,158,.75) 0 1px, transparent 1.5px);
+  background-position: 18% 22%, 74% 31%;
+  background-size: 86px 92px, 132px 118px;
+  animation: room-twinkle 5.5s ease-in-out infinite alternate;
+}
+.focus-scene-motion[data-motion="dust"]::before { opacity:.14; filter:blur(.4px); animation-duration:9s; }
+
+.focus-scene-motion[data-motion="ember"]::before {
+  right: 8%; bottom: 0; width: 44%; height: 52%; opacity:.22;
+  background: radial-gradient(circle at 55% 86%, rgba(255,181,94,.95), transparent 44%);
+  filter:blur(7px);
+  animation: room-ember 4s ease-in-out infinite alternate;
+}
+
+.focus-scene-motion[data-motion="ocean"]::before,
+.focus-scene-motion[data-motion="lake"]::before {
+  right:-10%; bottom:7%; left:-10%; height:35%; opacity:.17;
+  background:repeating-linear-gradient(174deg, transparent 0 15px, rgba(217,241,255,.7) 16px 17px, transparent 18px 31px);
+  filter:blur(2px);
+  animation:room-water 9s ease-in-out infinite alternate;
+}
+.focus-scene-motion[data-motion="lake"]::before { opacity:.1; animation-duration:14s; }
+
+.focus-scene-motion[data-motion="petal"]::before {
+  inset:-15%; opacity:.26;
+  background-image:radial-gradient(ellipse, rgba(255,215,228,.9) 0 2px, transparent 3px);
+  background-size:72px 88px;
+  animation:room-petal 16s linear infinite;
+}
+
+.focus-scene-motion.is-paused *,
+.focus-scene-motion.is-paused::before,
+.focus-scene-motion.is-paused::after { animation-play-state:paused !important; opacity:0 !important; }
+
+@keyframes room-rain { to { background-position:-70px 360px; } }
+@keyframes room-snow { to { background-position:48px 420px, -42px 480px; } }
+@keyframes room-cloud { to { transform:translate3d(10%, -2%, 0) scale(1.04); } }
+@keyframes room-twinkle { 40% { opacity:.2; } 75% { opacity:.58; } }
+@keyframes room-ember { to { opacity:.34; transform:scale(1.05); } }
+@keyframes room-water { to { transform:translate3d(3%, 2%, 0) skewY(-1deg); } }
+@keyframes room-petal { to { background-position:110px 520px; transform:rotate(2deg); } }
+@keyframes room-train-light { 50%,100% { right:100%; opacity:0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .focus-scene-motion { display:none !important; }
+}
+
 body.focus-immersive-active .focus-weather {
   top: max(18px, env(safe-area-inset-top));
   left: max(18px, env(safe-area-inset-left));

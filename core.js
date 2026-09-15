@@ -342,7 +342,7 @@
 
     const rawUi = objectOrEmpty(state.ui);
     const pages = new Set(['today', 'inbox', 'project', 'calendar', 'focus', 'habits', 'review', 'notes', 'collection']);
-    const collectionTabs = new Set(['wardrobe', 'stickers', 'badges', 'scenes', 'memories']);
+    const collectionTabs = new Set(['wardrobe', 'stickers', 'badges', 'memories']);
     const wardrobeFilters = new Set(['all', 'new', 'basic', 'limited', 'owned', 'favorite']);
     state.ui = {
       ...base.ui,
@@ -621,14 +621,6 @@
     });
     Object.entries(badgeRules).forEach(([id, eligible]) => {
       if (eligible && !state.collection.badges.includes(id)) { state.collection.badges.push(id); unlocked.badges.push(id); }
-    });
-    const sceneRules = {
-      'focus-night': summary.focusMinutes >= 60,
-      'cafe-afternoon': summary.focusMinutes >= 180,
-      'garden-morning': summary.streak >= 7
-    };
-    Object.entries(sceneRules).forEach(([id, eligible]) => {
-      if (eligible && !state.collection.scenes.includes(id)) { state.collection.scenes.push(id); unlocked.scenes.push(id); }
     });
     return unlocked;
   };

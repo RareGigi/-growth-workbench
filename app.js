@@ -178,6 +178,12 @@
     if (/整理|收拾|清理|打扫/.test(text)) return `只整理 ${title} 最显眼的一小块`;
     return `打开需要的材料，只做 ${title} 的第一小步`;
   };
+  const lazyFocusTask = () => activeTasks()
+    .filter((task) => task.status === 'todo')
+    .sort((a, b) => Number(Boolean(b.priority)) - Number(Boolean(a.priority))
+      || Number(b.postponedCount || 0) - Number(a.postponedCount || 0)
+      || Number(a.minutes || 25) - Number(b.minutes || 25)
+      || Number(a.createdAt || 0) - Number(b.createdAt || 0))[0] || null;
   const workloadSummary = (tasks) => {
     const minutes = tasks.reduce((sum, task) => sum + (Number(task.minutes) || 0), 0);
     if (!minutes) return { minutes: 0, label: '今天还没有待办', tone: 'empty' };
@@ -431,11 +437,10 @@
 
   function saveAndRender(reason, message = '', preserveScroll = true) {
     const unlocked = Core.save(reason);
-    const count = unlocked.stickers.length + unlocked.badges.length + unlocked.scenes.length;
+    const count = unlocked.stickers.length + unlocked.badges.length;
     const unlockedNames = [
       ...unlocked.stickers.map((id) => Core.STICKERS.find((item) => item.id === id)?.name),
-      ...unlocked.badges.map((id) => Core.BADGES.find((item) => item.id === id)?.name),
-      ...unlocked.scenes.map((id) => Core.SCENES.find((item) => item.id === id)?.name)
+      ...unlocked.badges.map((id) => Core.BADGES.find((item) => item.id === id)?.name)
     ].filter(Boolean);
     const unlockMessage = count > 2 ? `新解锁 ${count} 件收藏` : unlockedNames.length ? `新收藏：${unlockedNames.join('、')}` : '';
     const storageMessage = unlocked.persisted === false ? '浏览器未允许本地保存' : '';
@@ -1144,6 +1149,8 @@
     const todaySessions = state().focusSessions.filter((session) => session.date === TODAY());
     const todaySeconds = todaySessions.reduce((sum, session) => sum + sessionSeconds(session), 0);
     const tasks = activeTasks().filter((task) => task.status === 'todo');
+    const suggestedTask = lazyFocusTask();
+    const lastSession = [...state().focusSessions].reverse().find((session) => session.label);
     const currentLabel = timer?.label || taskById(timer?.taskId)?.title || '';
     const settings = state().focusSettings;
     const room = selectedFocusRoom();
@@ -1172,7 +1179,12 @@
           <div class="focus-mode-status"><span><i></i>${sessionState}</span><small>${currentLabel || '先选好这一轮要完成的事'}</small></div>
           <div class="focus-fields"><label>当前任务<select id="focus-task" ${timer ? 'disabled' : ''}><option value="">自定义专注</option>${tasks.map((task) => `<option value="${attr(task.id)}" ${(timer?.taskId || focusDraftTaskId) === task.id ? 'selected' : ''}>${esc(task.title)}</option>`).join('')}</select></label><label>这一轮只做<input id="focus-label" maxlength="80" value="${attr(currentLabel)}" placeholder="例如：CPA 审计专题六" ${timer ? 'disabled' : ''}></label></div>
           <div class="timer-ring" style="--progress:${progress}" role="timer" aria-label="剩余时间 ${formatClock(remaining)}"><svg viewBox="0 0 160 160" aria-hidden="true"><circle cx="80" cy="80" r="70"/><circle class="timer-progress" cx="80" cy="80" r="70" data-timer-ring/></svg><strong data-timer-clock>${formatClock(remaining)}</strong><span>${timer?.status === 'paused' ? '已暂停' : '保持此刻'}</span></div>
-          <div class="duration-switch ${timer ? 'disabled' : ''}" aria-label="专注时长">${[5, 25, 45, 60].map((minutes) => `<button type="button" data-action="focus-duration" data-value="${minutes}" class="${!timer && focusDuration === minutes || timer?.durationSeconds === minutes * 60 ? 'active' : ''}" aria-pressed="${!timer && focusDuration === minutes || timer?.durationSeconds === minutes * 60}" ${timer ? 'disabled' : ''}>${minutes}<small>分钟</small></button>`).join('')}</div>
+          ${!timer ? `<section class="lazy-focus-tools" aria-label="一键开工">
+            <div><span>不想安排也没关系</span><small>${suggestedTask ? `建议先做：${esc(suggestedTask.title)}` : '先开始五分钟，状态会慢慢跟上。'}</small></div>
+            <div class="lazy-focus-actions"><button type="button" data-action="focus-pick-task" ${suggestedTask ? '' : 'disabled'}>${icon('today')}替我选</button><button type="button" class="primary-button" data-action="focus-quick-start">${icon('play')}先做5分钟</button><button type="button" data-action="focus-resume-last" ${lastSession ? '' : 'disabled'}>${icon('back')}接着上次</button></div>
+          </section>` : ''}
+          <div class="duration-heading"><span>选择专注时间</span><small>不用选最久，只选现在能开始的。</small></div>
+          <div class="duration-switch ${timer ? 'disabled' : ''}" aria-label="专注时长">${[[5,'先开始'],[15,'短冲刺'],[25,'一小轮'],[45,'沉浸'],[60,'长读']].map(([minutes,label]) => `<button type="button" data-action="focus-duration" data-value="${minutes}" class="${!timer && focusDuration === minutes || timer?.durationSeconds === minutes * 60 ? 'active' : ''}" aria-pressed="${!timer && focusDuration === minutes || timer?.durationSeconds === minutes * 60}" ${timer ? 'disabled' : ''}><b>${minutes}</b><small>${label}</small></button>`).join('')}</div>
           <div class="timer-actions">${!timer ? `<button type="button" class="primary-button" data-action="focus-start">${icon('play')}开始</button>` : timer.status === 'paused' ? `<button type="button" class="primary-button" data-action="focus-resume">${icon('play')}继续</button>` : `<button type="button" class="primary-button" data-action="focus-pause">${icon('pause')}暂停</button>`}<button type="button" class="secondary-button" data-action="focus-end" ${timer ? '' : 'disabled'}>${icon('stop')}结束</button></div>
           <section class="focus-soundscape" aria-label="专注氛围声音">
             <header><div><span>自习室声音</span><b>${soundState}</b></div><button type="button" class="sound-master ${focusAudioPlaying || focusAudioStarting ? 'active' : ''}" data-action="focus-audio-master" aria-pressed="${focusAudioPlaying || focusAudioStarting}" ${audioSupported ? '' : 'disabled'}>${icon(focusAudioPlaying ? 'muted' : 'volume')}<span>${focusAudioPlaying ? '关闭' : focusAudioStarting ? '连接中' : timer ? '开启' : '试听'}</span></button></header>
@@ -1346,19 +1358,6 @@
     }).join('')}</div></section>`;
   }
 
-  function scenesTab() {
-    const ownedCount = state().collection.scenes.length;
-    return `<section class="collection-sheet scene-collection">${sectionHead('沉浸场景册', `${ownedCount}/${Core.SCENES.length} 已拥有`)}
-      <div class="scene-collection-note"><div><span>场景手记</span><h2>从日常书桌，到云海与星穹</h2><p>室内、户外、昼夜、四季与幻想空间各有自己的构图、环境声和轻音乐。16 间自习室可直接使用，纪念场景会随真实完成自然解锁。</p></div><span class="scene-orbit" aria-hidden="true"><i></i><i></i><i></i></span></div>
-      <div class="scene-gallery">${Core.SCENES.map((scene, index) => {
-        const owned = state().collection.scenes.includes(scene.id);
-        const roomId = scene.id.startsWith('focus-') ? scene.id.slice(6) : scene.id;
-        const focusRoom = FOCUS_ROOMS.find((room) => room.id === roomId);
-        return `<article class="scene-card ${owned ? 'owned' : 'locked'}" style="--scene-index:${index}">${img(scene.image, scene.name, scene.width || 1586, scene.height || 992)}<div class="scene-card-shade"></div><div class="scene-card-copy"><small>${owned ? '已收入场景册' : '成长中解锁'}</small><strong>${esc(scene.name)}</strong><span>${esc(scene.hint || (owned ? '一处可以安静停留的地方' : '继续完成真实记录，它会在合适的时候出现'))}</span></div>${owned && focusRoom ? `<button type="button" data-action="scene-enter" data-id="${attr(focusRoom.id)}" aria-label="进入${attr(scene.name)}自习室">进入${icon('next')}</button>` : owned ? '<em>已收藏</em>' : `<b>${icon('lock')}待解锁</b>`}</article>`;
-      }).join('')}</div>
-    </section>`;
-  }
-
   function monthStats(key) {
     const start = `${key}-01`;
     const [year, month] = key.split('-').map(Number);
@@ -1399,9 +1398,10 @@
   }
 
   function collectionPage() {
-    const tab = state().ui.collectionTab;
-    const content = { wardrobe: wardrobeTab, stickers: stickersTab, badges: badgesTab, scenes: scenesTab, memories: memoriesTab }[tab]?.() || wardrobeTab();
-    return `<div class="page inner-page collection-page">${pageHeader('成长收藏', '收藏', '衣橱、贴纸、徽章、场景与每个月留下的纪念。')}<div class="collection-tabs" role="tablist">${[['wardrobe', '衣橱'], ['stickers', '贴纸'], ['badges', '徽章'], ['scenes', '场景'], ['memories', '纪念']].map(([value, label]) => `<button type="button" id="collection-tab-${value}" role="tab" data-action="collection-tab" data-tab="${value}" aria-controls="collection-panel-${value}" aria-selected="${tab === value}" tabindex="${tab === value ? '0' : '-1'}" class="${tab === value ? 'active' : ''}">${label}</button>`).join('')}</div><div id="collection-panel-${tab}" role="tabpanel" aria-labelledby="collection-tab-${tab}">${content}</div></div>`;
+    const tabs = [['wardrobe', '衣橱'], ['stickers', '贴纸'], ['badges', '徽章'], ['memories', '纪念']];
+    const tab = tabs.some(([value]) => value === state().ui.collectionTab) ? state().ui.collectionTab : 'wardrobe';
+    const content = { wardrobe: wardrobeTab, stickers: stickersTab, badges: badgesTab, memories: memoriesTab }[tab]();
+    return `<div class="page inner-page collection-page">${pageHeader('成长收藏', '收藏', '衣橱、贴纸、徽章与每个月留下的纪念。')}<div class="collection-tabs" role="tablist">${tabs.map(([value, label]) => `<button type="button" id="collection-tab-${value}" role="tab" data-action="collection-tab" data-tab="${value}" aria-controls="collection-panel-${value}" aria-selected="${tab === value}" tabindex="${tab === value ? '0' : '-1'}" class="${tab === value ? 'active' : ''}">${label}</button>`).join('')}</div><div id="collection-panel-${tab}" role="tabpanel" aria-labelledby="collection-tab-${tab}">${content}</div></div>`;
   }
 
   const areaOptions = (selected = '学习') => Object.keys(Core.AREA_META).map((area) => `<option value="${area}" ${area === selected ? 'selected' : ''}>${area}</option>`).join('');
@@ -1868,6 +1868,29 @@
       if (state().timer) { state().ui.page = 'focus'; return saveAndRender('focus-route', '已有一轮专注正在进行', false); }
       return startFocus({ taskId: task.id, label: starterStepForTask(task), minutes: 5, openFocusPage: true });
     }
+    if (action === 'focus-pick-task') {
+      const task = lazyFocusTask();
+      if (!task) return announce('今天还没有可安排的任务');
+      focusDraftTaskId = task.id;
+      focusDuration = Number(task.minutes || 25) <= 15 ? 15 : Number(task.minutes || 25) >= 45 ? 45 : 25;
+      saveAndRender('focus-pick-task', `已经替你选好：${task.title}`, false);
+      requestAnimationFrame(() => {
+        const label = document.querySelector('#focus-label');
+        if (label) label.value = starterStepForTask(task);
+      });
+      return;
+    }
+    if (action === 'focus-quick-start') {
+      const selectedId = document.querySelector('#focus-task')?.value || focusDraftTaskId;
+      const task = taskById(selectedId) || lazyFocusTask();
+      return startFocus({ taskId: task?.id || null, label: starterStepForTask(task), minutes: 5 });
+    }
+    if (action === 'focus-resume-last') {
+      const last = [...state().focusSessions].reverse().find((session) => session.label);
+      if (!last) return announce('还没有上一轮可以继续');
+      const task = taskById(last.taskId);
+      return startFocus({ taskId: task?.status === 'todo' ? task.id : null, label: last.label, minutes: Core.clamp(Number(last.plannedMinutes) || 25, 5, 45) });
+    }
     if (action === 'focus-duration') { focusDuration = Number(target.dataset.value) || 25; return render({ preserveScroll: true }); }
     if (action === 'focus-start') return startFocus();
     if (action === 'focus-pause') return pauseFocus();
@@ -1875,24 +1898,6 @@
     if (action === 'focus-end') return finishFocus(false);
     if (action === 'focus-audio-master') return toggleFocusAudio();
     if (action === 'focus-sound-toggle') return toggleFocusSound(target.dataset.channel);
-    if (action === 'scene-enter') {
-      const room = FOCUS_ROOMS.find((item) => item.id === id);
-      const preset = room && Core.FOCUS_SOUND_PRESETS[room.id];
-      if (!room || !preset) return;
-      state().focusSettings.roomId = room.id;
-      Object.assign(state().focusSettings, {
-        ambienceId: preset.ambienceId,
-        ambienceEnabled: true,
-        ambienceVolume: preset.ambienceVolume,
-        musicId: preset.musicId,
-        musicEnabled: true,
-        musicVolume: preset.musicVolume,
-        soundscapePresetVersion: 2
-      });
-      state().ui.page = 'focus';
-      announce(`已进入${room.name}，推荐声音也准备好了`);
-      return saveAndRender('scene-enter', '', false);
-    }
     if (action === 'focus-room-select') {
       const room = FOCUS_ROOMS.find((item) => item.id === id);
       if (!room || room.id === state().focusSettings.roomId) return;
@@ -1921,7 +1926,7 @@
     }
     if (action === 'focus-motion-toggle') {
       state().focusSettings.motionEnabled = !state().focusSettings.motionEnabled;
-      return saveAndRender('focus-motion', state().focusSettings.motionEnabled ? '手写动态已开启' : '已切换为静态画面');
+      return saveAndRender('focus-motion', state().focusSettings.motionEnabled ? '场景动态已开启' : '已切换为静态画面');
     }
     if (action === 'habit-new') return openModal({ type: 'habit' });
     if (action === 'habit-toggle') {

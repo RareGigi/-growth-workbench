@@ -4,19 +4,27 @@
   const Core = window.GrowthCore;
   if (!Core) return;
 
-  const ASSET_VERSION = '2026.09-soundscape-v2';
+  const ASSET_VERSION = '2026.09-focus-polish-v1';
   const ROOMS = [
-    { id: 'leaf-rain', name: '窗叶听雨', image: 'assets/scenes/focus-leaf-rain.webp', note: '贴近窗边的雨声与纸笔感，适合做题和长时间专注。', tag: '雨夜 · 深度学习' },
-    { id: 'library', name: '深夜图书馆', image: 'assets/scenes/focus-library.webp', note: '安静木质书库，氛围更稳，适合阅读与整理。', tag: '安静 · 阅读' },
-    { id: 'cafe', name: '雨晨咖啡厅', image: 'assets/scenes/focus-cafe.webp', note: '带一点生活感的雨晨，适合轻任务和写作。', tag: '雨晨 · 轻专注' },
-    { id: 'magic-bookshop', name: '月灯书屋', image: 'assets/scenes/focus-magic-bookshop.webp', note: '暖灯与旧书气息，适合夜间学习和沉浸写作。', tag: '暖灯 · 夜读' },
-    { id: 'celestial', name: '云上天宫', image: 'assets/scenes/focus-celestial.webp', note: '云气和远景更开阔，适合想换脑子时重新进入状态。', tag: '云间 · 放空后专注' },
-    { id: 'temple', name: '山寺晨光', image: 'assets/scenes/focus-temple.webp', note: '晨光、木色与松风感，适合早起学习和复盘。', tag: '晨光 · 清醒' },
-    { id: 'forest-glasshouse', name: '雾林花房', image: 'assets/scenes/focus-forest-glasshouse.webp', note: '湿润松林与玻璃花房，让疲惫的大脑先慢慢安静。', tag: '自然 · 恢复注意' },
-    { id: 'snow-cabin', name: '雪夜木屋', image: 'assets/scenes/focus-snow-cabin.webp', note: '落雪、木头与炉火带来稳定包裹感，适合长时间阅读。', tag: '落雪 · 安静长读' },
-    { id: 'ocean-cliff', name: '海崖晨光', image: 'assets/scenes/focus-ocean-cliff.webp', note: '低饱和海面和宽阔远景，适合清晨规划与重新理清思路。', tag: '海风 · 清醒复盘' },
-    { id: 'night-train', name: '夜行列车', image: 'assets/scenes/focus-night-train.webp', note: '雨窗与远处灯火保留一点旅途感，适合推进拖延已久的任务。', tag: '旅途 · 持续推进' }
+    { id:'leaf-rain', name:'窗叶听雨', image:'assets/scenes/focus-leaf-rain.webp', note:'贴近窗边的雨声与纸笔感，适合做题和长时间专注。', tag:'写实 · 雨夜', groups:['real','rain'], motion:'rain' },
+    { id:'library', name:'深夜图书馆', image:'assets/scenes/focus-library.webp', note:'安静木质书库，氛围更稳，适合阅读与整理。', tag:'写实 · 安静', groups:['real'], motion:'dust' },
+    { id:'cafe', name:'雨晨咖啡厅', image:'assets/scenes/focus-cafe.webp', note:'带一点生活感的雨晨，适合轻任务和写作。', tag:'写实 · 雨晨', groups:['real','rain'], motion:'soft-rain' },
+    { id:'magic-bookshop', name:'月灯书屋', image:'assets/scenes/focus-magic-bookshop.webp', note:'暖灯与旧书气息，适合夜间学习和沉浸写作。', tag:'奇幻 · 暖灯', groups:['fantasy'], motion:'ember' },
+    { id:'celestial', name:'云上天宫', image:'assets/scenes/focus-celestial.webp', note:'云气和远景更开阔，适合想换脑子时重新进入状态。', tag:'玄幻 · 云间', groups:['xuanhuan'], motion:'cloud' },
+    { id:'temple', name:'山寺晨光', image:'assets/scenes/focus-temple.webp', note:'晨光、木色与松风感，适合早起学习和复盘。', tag:'古风 · 晨光', groups:['ancient'], motion:'mist' },
+    { id:'forest-glasshouse', name:'雾林花房', image:'assets/scenes/focus-forest-glasshouse.webp', note:'湿润松林与玻璃花房，让疲惫的大脑先慢慢安静。', tag:'写实 · 雾林雨', groups:['real','rain'], motion:'glass-rain' },
+    { id:'snow-cabin', name:'雪夜木屋', image:'assets/scenes/focus-snow-cabin.webp', note:'落雪、木头与炉火带来稳定包裹感，适合长时间阅读。', tag:'写实 · 雪夜', groups:['real'], motion:'snow' },
+    { id:'ocean-cliff', name:'海崖晨光', image:'assets/scenes/focus-ocean-cliff.webp', note:'低饱和海面和宽阔远景，适合清晨规划与重新理清思路。', tag:'写实 · 海岸', groups:['real'], motion:'ocean' },
+    { id:'night-train', name:'夜行列车', image:'assets/scenes/focus-night-train.webp', note:'雨窗与远处灯火保留一点旅途感，适合推进拖延已久的任务。', tag:'写实 · 雨夜列车', groups:['real','rain'], motion:'train' },
+    { id:'atelier-spring', name:'春日画室', image:'assets/scenes/atelier-spring.webp', note:'留白、花枝与晨光，适合规划和创作。', tag:'写实 · 春日', groups:['real'], motion:'petal' },
+    { id:'lakeside-autumn', name:'湖畔书台', image:'assets/scenes/lakeside-autumn.webp', note:'让湖面拉开思路，适合阅读与复盘。', tag:'写实 · 秋湖', groups:['real'], motion:'lake' },
+    { id:'conservatory-lavender', name:'薰衣草花房', image:'assets/scenes/conservatory-lavender.webp', note:'玻璃雨声包住桌面，温柔推进不费力。', tag:'写实 · 花房雨', groups:['real','rain'], motion:'glass-rain' },
+    { id:'tram-rain', name:'雨夜电车站', image:'assets/scenes/tram-rain.webp', note:'雨幕和远行节奏，陪你完成一轮短冲刺。', tag:'写实 · 城市雨', groups:['real','rain'], motion:'city-rain' },
+    { id:'cloud-pavilion-study', name:'云间仙阁', image:'assets/scenes/cloud-pavilion-study.webp', note:'云海把杂念放远，适合长读与安静书写。', tag:'古风玄幻 · 云海', groups:['ancient','xuanhuan'], motion:'cloud' },
+    { id:'astral-archive', name:'星潮秘库', image:'assets/scenes/astral-archive.webp', note:'拨动星盘之前，先把眼前这一页完成。', tag:'奇幻 · 星图', groups:['fantasy'], motion:'stars' }
   ];
+
+  const FILTERS = [['all','全部'],['real','写实'],['ancient','古风'],['xuanhuan','玄幻'],['fantasy','奇幻'],['rain','雨景']];
 
   const AMBIENCE = [
     ['window-rain', '窗边细雨'],
@@ -50,6 +58,7 @@
 
   let adjustOpen = false;
   let roomOpen = false;
+  let activeFilter = 'all';
   let scheduled = false;
   let observer = null;
 
@@ -57,6 +66,7 @@
     '[data-immersive-dock]',
     '[data-focus-room-launcher]',
     '[data-focus-room-sheet]',
+    '[data-focus-scene-motion]',
     '[data-immersive-sheet]',
     '[data-focus-v2-backdrop]'
   ].join(',');
@@ -93,7 +103,6 @@
     style.textContent = `
       /* V2: do not fake handwriting by laying one shared clip over every room. */
       .focus-writing-video { display: none !important; }
-      .focus-motion-toggle { display: none !important; }
       .focus-room-picker { display: none !important; }
 
       .immersive-dock-actions { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; }
@@ -104,13 +113,13 @@
         background:rgba(255,255,255,.78); box-shadow:0 10px 30px rgba(65,78,110,.06);
       }
       .focus-room-launcher-copy { min-width:0; }
-      .focus-room-launcher-copy small { display:block; margin-bottom:3px; color:#707a8f; font-size:10px; font-weight:750; letter-spacing:.11em; }
+      .focus-room-launcher-copy small { display:block; margin-bottom:3px; color:#707a8f; font-size:12px; font-weight:700; letter-spacing:.08em; }
       .focus-room-launcher-copy strong { display:block; color:#3e4658; font-size:14px; }
-      .focus-room-launcher-copy span { display:block; margin-top:3px; overflow:hidden; color:#70798b; font-size:11px; text-overflow:ellipsis; white-space:nowrap; }
+      .focus-room-launcher-copy span { display:block; margin-top:3px; overflow:hidden; color:#70798b; font-size:12px; text-overflow:ellipsis; white-space:nowrap; }
       .focus-room-launcher button {
         flex:0 0 auto; display:flex; min-height:44px; align-items:center; justify-content:center; gap:7px;
         padding:0 14px; border:1px solid #d9e0ef; border-radius:13px; background:#f3f6fc; color:#536ba3;
-        font-size:11px; font-weight:750; -webkit-tap-highlight-color:transparent;
+        font-size:12px; font-weight:700; -webkit-tap-highlight-color:transparent;
       }
       .focus-room-launcher button svg { width:17px; height:17px; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
 
@@ -123,36 +132,40 @@
 
       .focus-room-sheet {
         position:fixed; z-index:175; left:50%; bottom:max(18px, env(safe-area-inset-bottom));
-        width:min(760px, calc(100vw - 36px)); max-height:min(720px, calc(100dvh - 36px)); overflow:hidden;
+        display:flex; width:min(760px, calc(100vw - 36px)); max-height:min(720px, calc(100dvh - 36px)); overflow:hidden; flex-direction:column;
         border:1px solid rgba(255,255,255,.42); border-radius:26px; background:rgba(248,249,253,.96); color:#293246;
         box-shadow:0 30px 100px rgba(0,0,0,.3); opacity:0; pointer-events:none;
         transform:translate(-50%, 18px) scale(.985); transition:opacity .18s ease, transform .18s ease;
         backdrop-filter:blur(24px) saturate(1.05); -webkit-backdrop-filter:blur(24px) saturate(1.05);
       }
       body.focus-room-open .focus-room-sheet { opacity:1; pointer-events:auto; transform:translate(-50%,0) scale(1); }
-      .focus-room-sheet > header { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:16px 18px 12px 20px; border-bottom:1px solid rgba(70,83,112,.09); }
+      .focus-room-sheet > header { display:flex; flex:0 0 auto; align-items:center; justify-content:space-between; gap:14px; padding:16px 18px 12px 20px; border-bottom:1px solid rgba(70,83,112,.09); }
       .focus-room-sheet > header > div:first-child { min-width:0; }
-      .focus-room-sheet > header small { display:block; color:#70798d; font-size:10px; font-weight:800; letter-spacing:.12em; }
+      .focus-room-sheet > header small { display:block; color:#70798d; font-size:12px; font-weight:700; letter-spacing:.08em; }
       .focus-room-sheet > header h2 { margin:3px 0 0; color:#30384a; font-size:19px; letter-spacing:-.02em; }
-      .focus-room-sheet > header p { margin:4px 0 0; color:#6e788b; font-size:11px; }
+      .focus-room-sheet > header p { margin:4px 0 0; color:#6e788b; font-size:12px; }
       .focus-room-sheet > header button,
       .immersive-sheet > header button { display:grid; width:44px; height:44px; flex:0 0 auto; place-items:center; border:0; border-radius:14px; background:#eef1f7; color:#59647a; }
       .focus-room-sheet > header svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:1.75; stroke-linecap:round; stroke-linejoin:round; }
       .focus-room-sheet-actions { display:flex; flex:0 0 auto; align-items:center; gap:7px; }
-      .focus-room-sheet > header .focus-room-surprise { display:flex; width:auto; gap:6px; padding:0 11px; color:#526da8; font-size:10px; font-weight:750; }
-      .focus-room-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:11px; max-height:calc(100dvh - 170px); overflow:auto; padding:15px 18px 18px; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; }
+      .focus-room-sheet > header .focus-room-surprise { display:flex; width:auto; gap:6px; padding:0 11px; color:#526da8; font-size:12px; font-weight:700; }
+      .focus-room-filters { display:flex; flex:0 0 auto; gap:7px; overflow-x:auto; padding:10px 18px; border-bottom:1px solid rgba(70,83,112,.07); scrollbar-width:none; -webkit-overflow-scrolling:touch; }
+      .focus-room-filters::-webkit-scrollbar { display:none; }
+      .focus-room-filter { flex:0 0 auto; min-height:40px; padding:0 14px; border:1px solid #dce2ed; border-radius:999px; background:#fff; color:#687389; font-size:12px; font-weight:650; }
+      .focus-room-filter.active { border-color:#9badd4; background:#eaf0fb; color:#4f69a3; }
+      .focus-room-grid { display:grid; min-height:0; flex:1 1 auto; grid-template-columns:repeat(3,minmax(0,1fr)); gap:11px; overflow-y:auto; overflow-x:hidden; padding:15px 18px max(22px, env(safe-area-inset-bottom)); overscroll-behavior-y:contain; touch-action:pan-y; -webkit-overflow-scrolling:touch; }
       .focus-room-card { position:relative; min-width:0; overflow:hidden; padding:0; border:1px solid #dfe4ef; border-radius:17px; background:#fff; color:#4c566b; text-align:left; box-shadow:0 6px 18px rgba(61,76,108,.05); -webkit-tap-highlight-color:transparent; }
       .focus-room-card.active { border-color:#95a9d6; box-shadow:0 0 0 2px rgba(92,118,177,.09), 0 8px 24px rgba(61,76,108,.08); }
       .focus-room-card-media { position:relative; display:block; aspect-ratio:16/9; overflow:hidden; background:#e8ebf2; }
       .focus-room-card-media img { width:100%; height:100%; display:block; object-fit:cover; filter:saturate(.92) contrast(.99); transition:transform .2s ease, filter .2s ease; }
       .focus-room-card:hover .focus-room-card-media img { transform:scale(1.025); }
-      .focus-room-card-current { position:absolute; top:9px; right:9px; padding:5px 8px; border-radius:999px; background:rgba(250,251,255,.9); color:#5068a1; font-size:9px; font-weight:800; backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); }
+      .focus-room-card-current { position:absolute; top:9px; right:9px; padding:5px 8px; border-radius:999px; background:rgba(250,251,255,.9); color:#5068a1; font-size:12px; font-weight:700; backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); }
       .focus-room-card-copy { display:block; min-height:96px; padding:10px 11px 12px; }
       .focus-room-card-copy strong { display:block; color:#3b4458; font-size:14px; }
-      .focus-room-card-copy em { display:block; margin-top:3px; color:#667493; font-size:10px; font-style:normal; font-weight:700; letter-spacing:.02em; }
-      .focus-v2-recommend { display:flex; width:100%; min-height:44px; align-items:center; justify-content:center; gap:7px; margin-top:12px; border:1px solid #dce3f0; border-radius:12px; background:#eef3fd; color:#536ba6; font-size:10px; font-weight:750; }
+      .focus-room-card-copy em { display:block; margin-top:3px; color:#667493; font-size:12px; font-style:normal; font-weight:650; letter-spacing:.01em; }
+      .focus-v2-recommend { display:flex; width:100%; min-height:44px; align-items:center; justify-content:center; gap:7px; margin-top:12px; border:1px solid #dce3f0; border-radius:12px; background:#eef3fd; color:#536ba6; font-size:12px; font-weight:700; }
       .focus-v2-recommend svg { width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:1.75; stroke-linecap:round; stroke-linejoin:round; }
-      .focus-room-card-copy span { display:-webkit-box; margin-top:7px; overflow:hidden; color:#6e788b; font-size:11px; line-height:1.45; -webkit-box-orient:vertical; -webkit-line-clamp:2; }
+      .focus-room-card-copy span { display:-webkit-box; margin-top:7px; overflow:hidden; color:#6e788b; font-size:12px; line-height:1.45; -webkit-box-orient:vertical; -webkit-line-clamp:2; }
 
       body.focus-immersive-active .focus-room-launcher { display:none !important; }
       body.focus-immersive-active .focus-room-sheet { bottom:calc(112px + env(safe-area-inset-bottom)); max-height:calc(100dvh - 148px); }
@@ -168,27 +181,29 @@
         .focus-room-launcher button span { display:none; }
         .focus-room-launcher button { width:44px; padding:0; }
         .focus-overlay-backdrop { background:rgba(7,11,18,.48); transition:none; backdrop-filter:none; -webkit-backdrop-filter:none; }
-        .focus-room-sheet { right:0; bottom:0; left:0; width:100%; max-height:min(78vh,720px); max-height:min(78svh,720px); border-radius:24px 24px 0 0; background:#f8f9fd; transform:translate3d(0,22px,0); transition:none; backdrop-filter:none; -webkit-backdrop-filter:none; }
+        .focus-room-sheet { right:0; bottom:0; left:0; width:100%; height:min(82svh,760px); max-height:calc(100svh - max(20px, env(safe-area-inset-top))); border-radius:24px 24px 0 0; background:#f8f9fd; transform:translate3d(0,22px,0); transition:none; backdrop-filter:none; -webkit-backdrop-filter:none; }
         .focus-room-sheet::before { content:''; display:block; width:36px; height:4px; margin:8px auto 0; border-radius:999px; background:#d3d9e5; }
         body.focus-room-open .focus-room-sheet { transform:none; }
         .focus-room-sheet > header { padding:15px 14px 11px 16px; }
         .focus-room-sheet > header p { max-width:75vw; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
         .focus-room-sheet > header .focus-room-surprise { width:44px; padding:0; }
         .focus-room-surprise span { display:none; }
-        .focus-room-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; max-height:calc(78vh - 84px); max-height:calc(78svh - 84px); padding:12px 12px calc(16px + env(safe-area-inset-bottom)); }
+        .focus-room-filters { padding:9px 12px; }
+        .focus-room-filter { min-height:38px; padding:0 13px; }
+        .focus-room-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; padding:12px 12px calc(88px + env(safe-area-inset-bottom)); }
         .focus-room-card { border-radius:15px; }
         .focus-room-card:hover .focus-room-card-media img { transform:none; }
         .focus-room-card-media img { transition:none; }
         .focus-room-card-current { background:rgba(250,251,255,.96); backdrop-filter:none; -webkit-backdrop-filter:none; }
         .focus-room-card-copy { min-height:88px; padding:9px 9px 10px; }
         .focus-room-card-copy strong { font-size:13px; }
-        .focus-room-card-copy span { font-size:10px; }
-        body.focus-immersive-active .focus-room-sheet { bottom:0; max-height:72vh; max-height:72svh; }
+        .focus-room-card-copy span { font-size:12px; }
+        body.focus-immersive-active .focus-room-sheet { bottom:0; height:min(82svh,760px); max-height:calc(100svh - max(20px, env(safe-area-inset-top))); }
         body.focus-immersive-active .immersive-dock { grid-template-columns:1fr !important; gap:7px !important; min-height:0 !important; padding:8px !important; border-radius:20px !important; }
         body.focus-immersive-active .immersive-dock-status { display:none !important; }
         body.focus-immersive-active .immersive-dock-actions { grid-template-columns:repeat(5,minmax(0,1fr)) !important; }
         body.focus-immersive-active .immersive-dock-actions button { min-height:52px !important; padding:0 4px !important; }
-        body.focus-immersive-active .immersive-dock-actions button span { font-size:9px !important; }
+        body.focus-immersive-active .immersive-dock-actions button span { font-size:12px !important; }
       }
 
       @media (max-width: 390px) {
@@ -223,21 +238,23 @@
   function buildLauncher() {
     const current = room(state().focusSettings?.roomId);
     return `<div class="focus-room-launcher" data-focus-room-launcher>
-      <div class="focus-room-launcher-copy"><small>CURRENT STUDY ROOM</small><strong>${esc(current.name)}</strong><span>${esc(current.tag)}</span></div>
+      <div class="focus-room-launcher-copy"><small>当前自习室</small><strong>${esc(current.name)}</strong><span>${esc(current.tag)}</span></div>
       <button type="button" data-focus-v2-action="rooms" aria-expanded="${roomOpen}">${icon('room')}<span>切换自习室</span></button>
     </div>`;
   }
 
   function buildRoomSheet() {
     const currentId = state().focusSettings?.roomId || ROOMS[0].id;
+    const visibleRooms = activeFilter === 'all' ? ROOMS : ROOMS.filter((item) => item.groups.includes(activeFilter));
     return `<section class="focus-room-sheet" data-focus-room-sheet aria-label="选择自习室" aria-hidden="${!roomOpen}">
       <header>
-        <div><small>STUDY ROOMS</small><h2>换一个自习室</h2><p>选择后自动切换最适配的环境声与轻音乐。</p></div>
+        <div><small>16 间自习室</small><h2>换一处，继续专注</h2><p>场景会自动带上最适合的环境声与轻音乐。</p></div>
         <div class="focus-room-sheet-actions"><button type="button" class="focus-room-surprise" data-focus-v2-action="surprise" aria-label="随机换一间自习室">${icon('spark')}<span>随便选</span></button><button type="button" data-focus-v2-action="close-rooms" aria-label="收起自习室选择">${icon('close')}</button></div>
       </header>
+      <div class="focus-room-filters" role="group" aria-label="筛选自习室风格">${FILTERS.map(([id,label]) => `<button type="button" class="focus-room-filter ${id === activeFilter ? 'active' : ''}" data-focus-v2-action="filter" data-filter="${id}" aria-pressed="${id === activeFilter}">${label}</button>`).join('')}</div>
       <div class="focus-room-grid">
-        ${ROOMS.map((item) => `<button type="button" class="focus-room-card ${item.id === currentId ? 'active' : ''}" data-focus-v2-action="room" data-id="${item.id}" aria-pressed="${item.id === currentId}">
-          <span class="focus-room-card-media"><img src="${item.image}?v=${ASSET_VERSION}" alt="${esc(item.name)}场景预览" width="640" height="360" loading="eager" decoding="async">${item.id === currentId ? '<i class="focus-room-card-current">当前</i>' : ''}</span>
+        ${visibleRooms.map((item) => `<button type="button" class="focus-room-card ${item.id === currentId ? 'active' : ''}" data-focus-v2-action="room" data-id="${item.id}" aria-pressed="${item.id === currentId}">
+          <span class="focus-room-card-media"><img src="${item.image}?v=${ASSET_VERSION}" alt="${esc(item.name)}场景预览" width="640" height="360" loading="${item.id === currentId ? 'eager' : 'lazy'}" decoding="async">${item.id === currentId ? '<i class="focus-room-card-current">当前</i>' : ''}</span>
           <span class="focus-room-card-copy"><strong>${esc(item.name)}</strong><em>${esc(item.tag)}</em><span>${esc(item.note)}</span></span>
         </button>`).join('')}
       </div>
@@ -278,7 +295,29 @@
       video.remove();
     });
     const motionToggle = page.querySelector('.focus-motion-toggle');
-    if (motionToggle) motionToggle.setAttribute('aria-hidden', 'true');
+    if (motionToggle) {
+      motionToggle.removeAttribute('aria-hidden');
+      motionToggle.setAttribute('aria-label', `${state().focusSettings?.motionEnabled ? '关闭' : '开启'}场景动态`);
+      const label = motionToggle.querySelector('[data-motion-status]');
+      if (label) label.textContent = state().focusSettings?.motionEnabled ? '场景动态' : '静态画面';
+    }
+  }
+
+  function applyRoomMotion(page) {
+    const scene = page.querySelector('.focus-scene');
+    if (!scene) return;
+    let layer = scene.querySelector('[data-focus-scene-motion]');
+    if (!layer) {
+      layer = document.createElement('div');
+      layer.className = 'focus-scene-motion';
+      layer.dataset.focusSceneMotion = '';
+      layer.setAttribute('aria-hidden', 'true');
+      layer.innerHTML = '<i></i><i></i><i></i>';
+      scene.querySelector('.focus-scene-shade')?.before(layer);
+    }
+    const current = room(state().focusSettings?.roomId);
+    layer.dataset.motion = current.motion;
+    layer.classList.toggle('is-paused', !state().focusSettings?.motionEnabled || state().timer?.status === 'paused');
   }
 
   function enhance() {
@@ -302,6 +341,7 @@
       }
 
       removeSharedHandwriting(page);
+      applyRoomMotion(page);
       page.querySelector('[data-immersive-dock]')?.remove();
       page.querySelector('[data-focus-room-launcher]')?.remove();
       page.querySelector('[data-focus-room-sheet]')?.remove();
@@ -439,11 +479,16 @@
     }
     if (action === 'surprise') {
       const currentId = state().focusSettings?.roomId;
-      const choices = ROOMS.filter((item) => item.id !== currentId);
+      const pool = activeFilter === 'all' ? ROOMS : ROOMS.filter((item) => item.groups.includes(activeFilter));
+      const choices = pool.filter((item) => item.id !== currentId);
       const next = choices[Math.floor(Math.random() * choices.length)] || ROOMS[0];
       roomOpen = false;
       forwardClick(`[data-action="focus-room-select"][data-id="${next.id}"]`);
       return scheduleEnhance();
+    }
+    if (action === 'filter') {
+      activeFilter = FILTERS.some(([id]) => id === control.dataset.filter) ? control.dataset.filter : 'all';
+      return enhance();
     }
     if (action === 'toggle-channel') return forwardClick(`[data-action="focus-sound-toggle"][data-channel="${control.dataset.channel}"]`);
     if (action === 'recommend') return applyRecommended();
