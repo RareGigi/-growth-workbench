@@ -6,6 +6,7 @@
   const liveRegion = document.querySelector('#live-region');
   const TODAY = () => Core.localDateKey();
   const state = () => Core.state;
+  const AI_BREAKDOWN_ENDPOINT = String(window.GROWTH_AI_ENDPOINT || '').trim();
   let modal = null;
   let drawerOpen = false;
   let searchQuery = '';
@@ -147,6 +148,7 @@
   const backupStats = (value) => ({
     tasks: Array.isArray(value?.tasks) ? value.tasks.length : 0,
     projects: Array.isArray(value?.projects) ? value.projects.length : 0,
+    breakdowns: Array.isArray(value?.breakdowns) ? value.breakdowns.length : 0,
     focus: Array.isArray(value?.focusSessions) ? value.focusSessions.length : 0,
     notes: Array.isArray(value?.notes) ? value.notes.length : 0,
     journalDays: value?.journal && typeof value.journal === 'object' && !Array.isArray(value.journal) ? Object.keys(value.journal).length : 0,
@@ -249,6 +251,177 @@
       .trim();
     if (!title) title = track ? `推进${track.name}` : '新任务';
     return { title: title.slice(0, 100), area, minutes, reward: rewardForMinutes(minutes), priority, date, projectId: project?.id || null, trackId: track?.id || null };
+  }
+
+  const breakdownStep = (title, minutes, detail) => ({ id: Core.uid('step'), title, minutes, detail, selected: true });
+
+  function inferBreakdownType(source) {
+    if (/审计底稿|审计项目|函证|盘点|抽样|控制测试|实质性程序|穿行测试|截止测试|审计报告/.test(source)
+      || (/审计/.test(source) && !/CPA|cpa|备考|复习|课程|专题|刷题|考试/.test(source))) return 'audit';
+    if (/考试|备考|复习|学习|课程|刷题|错题|背诵|CPA|税务师|英语/.test(source)) return 'study';
+    if (/写作|文章|报告|方案|论文|小说|脚本|文案|提纲/.test(source)) return 'writing';
+    if (/沟通|联系|会议|汇报|申请|预约|协商|邮件|提交|报销/.test(source)) return 'coordination';
+    return 'generic';
+  }
+
+  function generateLocalBreakdown(source, context = '', overrides = {}) {
+    const parsed = parseSmartTask(source);
+    const type = inferBreakdownType(`${source} ${context}`);
+    const auditProject = type === 'audit' ? state().projects.find((project) => project.area === '工作' && /审计|工作|客户/.test(project.name)) : null;
+    const common = {
+      id: Core.uid('breakdown'), source: String(source).trim(), title: parsed.title, context: String(context).trim(), type,
+      area: type === 'audit' ? '工作' : parsed.area,
+      projectId: overrides.projectId || (type === 'audit' ? auditProject?.id : parsed.projectId) || null,
+      date: overrides.date || parsed.date,
+      mode: 'local', createdAt: Date.now(), updatedAt: Date.now()
+    };
+    const blueprints = {
+      audit: {
+        deliverable: `形成可复核的「${parsed.title}」审计结论与完整底稿索引。`,
+        materials: ['老师、经理或复核人的原始要求', '账套、明细账、总账及科目余额表', '合同、发票、回单、函证或盘点资料', '上期底稿、重要性水平及抽样依据'],
+        steps: [
+          breakdownStep('确认目标与特殊要求', 10, '逐字保留交办要求，明确期间、主体、认定、重要性水平与最终交付物。'),
+          breakdownStep('收齐资料并建立索引', 20, '列资料清单，标记已收、缺失、待确认和对应底稿编号。'),
+          breakdownStep('完成账表核对与数据准备', 25, '核对总账、明细账、报表与辅助资料；记录差异和解释。'),
+          breakdownStep('执行审计程序并留痕', 45, '按目标执行分析、抽样、检查、函证或截止测试，写清样本和证据来源。'),
+          breakdownStep('汇总结果与异常', 20, '每项程序分别记录结果；异常写明金额、原因、影响和责任人。'),
+          breakdownStep('跟进处理并补足证据', 25, '获取解释及补充材料，评价处理是否充分，未解决事项升级。'),
+          breakdownStep('形成结论并交叉索引', 15, '让程序、结果、异常、处理、证据和结论彼此对应，可从结论反查证据。'),
+          breakdownStep('Reviewer 模式复核', 15, '以复核人视角检查数字勾稽、附件、索引、版本和交办要求。')
+        ],
+        risks: ['资料不完整却直接下结论', '样本、证据与结论无法一一对应', '异常有记录但没有处理闭环', '底稿数字与报表或附件不勾稽'],
+        review: ['原始交办要求是否逐项满足', '资料缺口与未决事项是否显式列出', '程序 → 结果 → 异常 → 处理 → 证据 → 结论是否闭环', '数字、附件、索引与版本是否一致']
+      },
+      study: {
+        deliverable: `能用自己的话讲清「${parsed.title}」，并完成一次检验与纠错。`,
+        materials: ['课程或教材对应章节', '题库、真题或练习材料', '现有笔记与错题记录'],
+        steps: [
+          breakdownStep('定下本次学习终点', 5, '写出这轮结束时要会什么，不把“看完”当作掌握。'),
+          breakdownStep('快速扫读并标记难点', 10, '先看目录、标题和例题，圈出不理解的位置。'),
+          breakdownStep('集中学习核心内容', Math.max(15, Math.min(40, parsed.minutes)), '只处理一个知识块，边学边用自己的话做极简笔记。'),
+          breakdownStep('闭卷检验或做题', 20, '不看答案完成回忆、口述或一组题目。'),
+          breakdownStep('订正并留下下一步', 10, '记录错因、正确思路和下次最先复习的内容。')
+        ],
+        risks: ['只输入不检验，产生“已经会了”的错觉', '范围过大导致无法收尾', '错题只看答案，没有记录错因'],
+        review: ['是否能脱离材料复述', '练习是否完成并订正', '是否留下明确的下次入口']
+      },
+      writing: {
+        deliverable: `产出一份可交付、可继续修改的「${parsed.title}」版本。`,
+        materials: ['受众、用途与字数/格式要求', '事实、数据、引用或人物设定', '参考范例与已有草稿'],
+        steps: [
+          breakdownStep('明确读者与交付标准', 8, '确认这份内容写给谁、解决什么问题、何时算完成。'),
+          breakdownStep('收集素材并搭骨架', 15, '把论点、情节或信息排列成 3—7 个段落节点。'),
+          breakdownStep('完成不打断的初稿', 35, '先完成再优化，遇到缺口用占位符标记。'),
+          breakdownStep('结构与内容修订', 20, '检查顺序、重复、论据、节奏和信息缺口。'),
+          breakdownStep('语言润色与交付检查', 15, '统一语气、格式、标题、引用和文件版本。')
+        ],
+        risks: ['边写边精修导致迟迟没有初稿', '素材没有来源或事实未经核验', '版本混乱、交付格式遗漏'],
+        review: ['开头是否快速进入主题', '每一部分是否服务最终目标', '事实、格式与版本是否可交付']
+      },
+      coordination: {
+        deliverable: `让「${parsed.title}」获得明确答复、责任人和下一节点。`,
+        materials: ['背景与当前状态', '相关人员和联系方式', '时间限制、所需附件与可接受方案'],
+        steps: [
+          breakdownStep('写清期望结果', 5, '明确希望对方确认、提供、批准或选择什么。'),
+          breakdownStep('整理事实与附件', 10, '只保留对方作决定所需的信息，检查附件和权限。'),
+          breakdownStep('发出可直接回复的沟通', 10, '说明背景、请求、截止时间，并给出明确选项。'),
+          breakdownStep('记录答复与责任人', 5, '把结论、负责人和承诺时间写回任务。'),
+          breakdownStep('设置跟进与完成条件', 5, '没有答复时按约定提醒；收到结果后归档。')
+        ],
+        risks: ['请求模糊，对方不知道要做什么', '缺少附件、权限或截止时间', '发出后没有跟进节点'],
+        review: ['请求是否一句话可回答', '责任人与期限是否明确', '答复和附件是否已归档']
+      },
+      generic: {
+        deliverable: `完成一个可验收的「${parsed.title}」结果，而不只是开始做。`,
+        materials: ['最终结果的样例或完成标准', '已有资料、工具与账号权限', '时间限制和可能协助的人'],
+        steps: [
+          breakdownStep('把完成标准写成一句话', 5, '说明最终要得到什么，以及如何判断真的完成。'),
+          breakdownStep('盘点资料与阻碍', 10, '列出现有资源、缺少内容、依赖和最可能卡住的地方。'),
+          breakdownStep('做一个最小可见成果', 15, '先产出能看见、能检验的一小块结果。'),
+          breakdownStep('完成主体工作', Math.max(20, Math.min(60, parsed.minutes)), '按最小成果验证后的方向继续推进。'),
+          breakdownStep('检查、交付并留下一步', 10, '按完成标准验收，归档结果；未完成项转成明确任务。')
+        ],
+        risks: ['任务描述太大，无法判断何时完成', '依赖未确认就开始投入', '做到一半没有验收或收尾'],
+        review: ['最终结果是否看得见、可验证', '依赖和异常是否已有处理', '交付位置与下一步是否明确']
+      }
+    };
+    const plan = blueprints[type];
+    const special = String(context).trim();
+    if (special) plan.review = [`特殊要求：${special}`, ...plan.review];
+    return { ...common, ...plan, firstAction: `先用 5 分钟：${plan.steps[0].detail}` };
+  }
+
+  function saveBreakdown(item) {
+    const copy = { ...item, updatedAt: Date.now(), steps: item.steps.map((step) => ({ ...step })) };
+    const index = state().breakdowns.findIndex((saved) => saved.id === copy.id);
+    if (index >= 0) state().breakdowns[index] = copy; else state().breakdowns.push(copy);
+    state().breakdowns = state().breakdowns.slice(-30);
+    return copy;
+  }
+
+  function adoptBreakdown(startFocus = false) {
+    const item = modal?.breakdown;
+    if (!item) return;
+    const selected = item.steps.filter((step) => step.selected);
+    if (!selected.length) return announce('请至少选择一个步骤');
+    let priorityCount = state().tasks.filter((task) => task.date === item.date && task.priority && task.status !== 'cancelled').length;
+    const added = [];
+    selected.forEach((step, index) => {
+      const duplicate = state().tasks.find((task) => task.date === item.date && task.projectId === item.projectId && task.title.trim().toLowerCase() === step.title.trim().toLowerCase() && task.status !== 'cancelled');
+      if (duplicate) { added.push(duplicate); return; }
+      const task = {
+        id: Core.uid('task'), title: step.title, area: item.area, minutes: step.minutes, reward: rewardForMinutes(step.minutes),
+        priority: index === 0 && priorityCount < 3, status: 'todo', date: item.date, projectId: item.projectId || null,
+        createdAt: Date.now(), updatedAt: Date.now(), completedAt: null, rewardGranted: false, actualMinutes: 0, postponedCount: 0
+      };
+      if (task.priority) priorityCount += 1;
+      state().tasks.push(task);
+      added.push(task);
+    });
+    saveBreakdown(item);
+    modal = null;
+    if (startFocus && added[0]) { focusDraftTaskId = added[0].id; state().ui.page = 'focus'; }
+    return saveAndRender('breakdown-adopt', startFocus ? '步骤已加入，带你进入专注' : `已加入 ${added.length} 个执行步骤`, false);
+  }
+
+  async function requestAiBreakdown() {
+    const item = modal?.breakdown;
+    if (!item) return;
+    if (!AI_BREAKDOWN_ENDPOINT) {
+      modal = { ...modal, aiStatus: 'AI 服务尚未连接；任务内容没有发送。当前本地方案仍可直接使用。' };
+      return render({ preserveScroll: true });
+    }
+    modal = { ...modal, aiLoading: true, aiStatus: '正在请求 AI 深度推导…' };
+    render({ preserveScroll: true });
+    try {
+      const response = await fetch(AI_BREAKDOWN_ENDPOINT, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ task: item.source, context: item.context, localPlan: item })
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const result = await response.json();
+      if (!result || !Array.isArray(result.steps) || !result.steps.length) throw new Error('返回格式不完整');
+      const list = (value, fallback) => (Array.isArray(value) ? value.map(String).map((entry) => entry.trim()).filter(Boolean).slice(0, 20) : fallback);
+      const steps = result.steps.slice(0, 20).filter(Boolean).map((step) => {
+        const value = typeof step === 'object' ? step : { title: step };
+        return breakdownStep(String(value.title || '').slice(0, 100), Core.clamp(value.minutes || 25, 1, 240), String(value.detail || '').slice(0, 260));
+      }).filter((step) => step.title);
+      const aiPlan = {
+        ...item,
+        title: String(result.title || item.title).slice(0, 100),
+        deliverable: String(result.deliverable || item.deliverable).slice(0, 500),
+        materials: list(result.materials, item.materials),
+        steps,
+        risks: list(result.risks, item.risks),
+        review: list(result.review, item.review),
+        firstAction: String(result.firstAction || item.firstAction).slice(0, 200),
+        id: item.id, mode: 'ai', updatedAt: Date.now()
+      };
+      modal = { ...modal, aiLoading: false, aiStatus: 'AI 深度方案已生成，你仍可选择后再加入任务。', breakdown: aiPlan };
+    } catch (error) {
+      modal = { ...modal, aiLoading: false, aiStatus: `AI 深度推导暂时不可用（${error.message}）；已保留本地方案。` };
+    }
+    render({ preserveScroll: true });
   }
 
   function taskMatchesTrack(task, track) {
@@ -364,6 +537,35 @@
     state().planning.lastInput = String(source || '').trim().slice(0, 160);
     const when = parsed.date === TODAY() ? '今天' : parsed.date === Core.addDays(TODAY(), 1) ? '明天' : dateLabel(parsed.date);
     return { task, message: `已加入${when} · ${parsed.minutes} 分钟${warning}` };
+  }
+
+  function taxAdvisorProject() {
+    return state().projects.find((project) => project.name === '税务师') || ensureTrackProject('tax');
+  }
+
+  function importTaxAdvisorPlan() {
+    const rows = Array.isArray(window.GrowthTaxAdvisorPlan) ? window.GrowthTaxAdvisorPlan : [];
+    if (!rows.length) return { added: 0, existing: 0 };
+    const project = taxAdvisorProject();
+    let added = 0;
+    let existing = 0;
+    rows.forEach((row) => {
+      const importKey = `tax-advisor-2026:${row.date}`;
+      if (state().tasks.some((task) => task.importKey === importKey)) { existing += 1; return; }
+      const detail = [`听课：${row.lesson}`, `刷题：${row.practice}`, `订正：${row.correction}`, row.review ? `周复盘：${row.review}` : ''].filter(Boolean).join('\n');
+      state().tasks.push({
+        id: Core.uid('task'), title: `${row.subject}｜${row.lesson}`.slice(0, 100), detail,
+        area: '学习', minutes: Core.clamp(row.minutes, 1, 1440), reward: rewardForMinutes(row.minutes), priority: false,
+        status: 'todo', date: row.date, projectId: project?.id || null, importKey,
+        createdAt: Date.now(), updatedAt: Date.now(), completedAt: null, rewardGranted: false, actualMinutes: 0, postponedCount: 0
+      });
+      added += 1;
+    });
+    if (project) {
+      project.goal ||= '在 11 月考试前完成税法一、税法二与涉税服务相关法律的两轮学习、模拟与最终回收。';
+      project.nextStep ||= rows.find((row) => row.date >= TODAY())?.lesson || '完成今天的税务师学习任务。';
+    }
+    return { added, existing };
   }
 
   function adoptDailyPlan(planId) {
@@ -604,7 +806,7 @@
     const cancelled = task.status === 'cancelled';
     return `<article class="task-row ${done ? 'done' : ''} ${cancelled ? 'cancelled' : ''}" data-task-row="${attr(task.id)}">
       <button type="button" class="task-check" data-action="task-toggle" data-id="${attr(task.id)}" aria-label="${done ? '设为未完成' : '完成任务'}" ${cancelled ? 'disabled' : ''}>${done ? icon('check') : ''}</button>
-      <div class="task-copy"><b>${esc(task.title)}</b><span><i style="--area:${Core.AREA_META[task.area]?.color || '#718bd1'}"></i>${esc(task.area)} · ${task.minutes} min${project ? ` · ${esc(project.name)}` : ''}</span></div>
+      <div class="task-copy"><b>${esc(task.title)}</b><span><i style="--area:${Core.AREA_META[task.area]?.color || '#718bd1'}"></i>${esc(task.area)} · ${task.minutes} min${project ? ` · ${esc(project.name)}` : ''}</span>${task.detail ? `<small>${esc(task.detail.split('\n')[0])}</small>` : ''}</div>
       <div class="task-reward">${icon('growth')}<span>+${task.reward || 0}</span></div>
       <details class="task-menu"><summary aria-label="任务操作">${icon('more')}</summary><div><button type="button" data-action="task-edit" data-id="${attr(task.id)}">${icon('edit')}编辑</button><button type="button" data-action="task-postpone" data-id="${attr(task.id)}">${icon('delay')}延后一天</button><button type="button" data-action="task-cancel" data-id="${attr(task.id)}">${icon('close')}取消</button></div></details>
     </article>`;
@@ -697,6 +899,7 @@
         </div>
         <section class="smart-planning-bar" aria-label="快捷安排">
           <form data-form="smart-task-inline">${icon('logo')}<input name="text" maxlength="160" autocomplete="off" aria-label="一句话添加任务" placeholder="一句话添加：明晚 CPA 审计 45 分钟" required><button type="submit" aria-label="加入任务">${icon('arrow')}</button></form>
+          <button type="button" class="plan-launch-button breakdown-launch-button" data-action="breakdown-open">${icon('growth')}<span><b>智能拆任务</b><small>从一句话推导完整流程</small></span>${icon('next')}</button>
           <button type="button" class="plan-launch-button" data-action="planner-open">${icon('today')}<span><b>给我方案</b><small>按时间与状态安排</small></span>${icon('next')}</button>
         </section>
         <section class="plain-section ordinary-tasks">
@@ -776,7 +979,7 @@
         <section class="next-chapter"><span class="note-tab">下一步</span><h2>${esc(next || '还没有写下下一步')}</h2><p>${next ? '把它做得足够小，就能开始。' : '编辑项目，写下一件可以立刻行动的事。'}</p></section>
         <section class="weekly-focus"><div class="section-head"><div><h2>本周重点</h2><span>最多 3 项</span></div></div>${weeklyFocus.length ? `<ol>${weeklyFocus.map((item) => `<li>${esc(item)}</li>`).join('')}</ol>` : emptyState('还没有本周重点', '编辑项目时可以写入。')}</section>
       </div>
-      <section class="plain-section project-tasks">${sectionHead('项目任务', `${completed.length}/${tasks.length} 已完成`, `<button type="button" class="round-action" data-action="task-new" data-project-id="${attr(project.id)}" aria-label="添加项目任务">${icon('plus')}</button>`)}<div class="task-list bordered">${tasks.length ? tasks.map((task) => taskRow(task)).join('') : emptyState('这个章节还没有任务', '添加一个真正能推动项目的小步骤。')}</div></section>
+      <section class="plain-section project-tasks">${sectionHead('项目任务', `${completed.length}/${tasks.length} 已完成`, `<div class="project-task-actions">${project.name === '税务师' ? `<button type="button" class="text-button" data-action="tax-plan-import">导入每日打卡表</button>` : ''}<button type="button" class="round-action" data-action="task-new" data-project-id="${attr(project.id)}" aria-label="添加项目任务">${icon('plus')}</button></div>`)}<div class="task-list bordered">${tasks.length ? tasks.map((task) => taskRow(task)).join('') : emptyState('这个章节还没有任务', '添加一个真正能推动项目的小步骤。')}</div></section>
       <section class="project-totals"><div><span>累计投入</span><b>${formatMinutes(completedMinutes + focusMinutes)}</b></div><div><span>完成任务</span><b>${completed.length}</b></div><div><span>连续记录</span><b>${projectStreak(project.id)} 天</b></div></section>
       <section class="plain-section milestones">${sectionHead('重要节点', '勾选后永久留下完成记录')}${milestones.length ? `<div>${milestones.map((milestone) => `<label><input type="checkbox" data-action="milestone-toggle" data-project-id="${attr(project.id)}" data-id="${attr(milestone.id)}" ${milestone.done ? 'checked' : ''}><i></i><time>${esc(milestone.date || '未定日期')}</time><span>${esc(milestone.title)}</span></label>`).join('')}</div>` : emptyState('还没有重要节点', '在项目编辑里添加里程碑。')}</section>
     </div>`;
@@ -1415,17 +1618,49 @@
     const task = data.id ? taskById(data.id) : null;
     const date = task?.date || data.date || TODAY();
     const projectId = task?.projectId || data.projectId || '';
-    return modalFrame(task ? '编辑任务' : '新任务', `<form data-form="task"><input type="hidden" name="id" value="${attr(task?.id || '')}"><div class="form-grid"><label class="wide">任务标题<input name="title" maxlength="100" value="${attr(task?.title || '')}" placeholder="下一件可以完成的小事" required autofocus></label><label>所属领域<select name="area">${areaOptions(task?.area || projectById(projectId)?.area || '学习')}</select></label><label>预计时间<input name="minutes" type="number" inputmode="numeric" min="1" max="1440" value="${task?.minutes || 25}" required></label><label>日期<input name="date" type="date" value="${date}" required></label><label>所属项目<select name="projectId">${projectOptions(projectId)}</select></label><label>成长奖励<input name="reward" type="number" inputmode="numeric" min="0" max="999" value="${task?.reward ?? 10}" required></label><label class="check-label"><input name="priority" type="checkbox" ${task?.priority || data.priority ? 'checked' : ''}><i></i><span>设为今日重点</span></label></div><footer><button type="button" class="secondary-button" data-action="modal-close">取消</button><button type="submit" class="primary-button">保存任务</button></footer></form>`);
+    return modalFrame(task ? '编辑任务' : '新任务', `<form data-form="task"><input type="hidden" name="id" value="${attr(task?.id || '')}"><div class="form-grid"><label class="wide">任务标题<input name="title" maxlength="100" value="${attr(task?.title || '')}" placeholder="下一件可以完成的小事" required autofocus></label><label class="wide">执行说明（可选）<textarea name="detail" rows="3" maxlength="1200" placeholder="资料来源、交付要求、下一步或注意事项">${esc(task?.detail || '')}</textarea></label><label>所属领域<select name="area">${areaOptions(task?.area || projectById(projectId)?.area || '学习')}</select></label><label>预计时间<input name="minutes" type="number" inputmode="numeric" min="1" max="1440" value="${task?.minutes || 25}" required></label><label>日期<input name="date" type="date" value="${date}" required></label><label>所属项目<select name="projectId">${projectOptions(projectId)}</select></label><label>成长奖励<input name="reward" type="number" inputmode="numeric" min="0" max="999" value="${task?.reward ?? 10}" required></label><label class="check-label"><input name="priority" type="checkbox" ${task?.priority || data.priority ? 'checked' : ''}><i></i><span>设为今日重点</span></label></div><footer><button type="button" class="secondary-button" data-action="modal-close">取消</button><button type="submit" class="primary-button">保存任务</button></footer></form>`);
   }
 
   function quickModal() {
-    const actions = [['smart', 'logo', '一句话任务', '自动识别日期、时间与项目'], ['capture', 'inbox', '快速记录', '先放进收集箱'], ['focus', 'focus', '开始番茄', '直接进入专注室'], ['journal', 'note', '一句话日记', '留下今天的句子'], ['growth', 'growth', '成长记录', '学习、写作、运动或播客']];
+    const actions = [['breakdown', 'growth', '智能拆任务', '从任意任务推导完整执行流程'], ['smart', 'logo', '一句话任务', '自动识别日期、时间与项目'], ['capture', 'inbox', '快速记录', '先放进收集箱'], ['focus', 'focus', '开始番茄', '直接进入专注室'], ['journal', 'note', '一句话日记', '留下今天的句子'], ['growth', 'growth', '成长记录', '学习、写作、运动或播客']];
     return modalFrame('快速添加', `<div class="quick-actions">${actions.map(([kind, iconName, title, description]) => `<button type="button" data-action="quick-choice" data-kind="${kind}"><span>${icon(iconName)}</span><b>${title}</b><small>${description}</small>${icon('next')}</button>`).join('')}</div>`, 'quick-modal');
   }
 
   function smartTaskModal() {
     const examples = ['今晚 CPA 审计 45 分钟 重点', '明天英语 20 分钟', '周六播客 30 分钟', '今晚税务师 30 分钟', '今晚写作 45 分钟'];
     return modalFrame('一句话添加', `<form data-form="smart-task"><label>把任务直接写成一句话<textarea id="smart-task-input" name="text" rows="3" maxlength="160" placeholder="例如：明晚 CPA 审计专题六 45 分钟" required autofocus></textarea></label><div class="smart-examples" aria-label="示例">${examples.map((example) => `<button type="button" data-action="smart-example" data-value="${attr(example)}">${esc(example)}</button>`).join('')}</div><div class="smart-preview" id="smart-task-preview"><span>${icon('logo')}</span><div><small>识别结果</small><strong>输入后会在这里确认</strong><p>日期、时间、领域与项目会自动判断，保存后仍可编辑。</p></div></div><footer><button type="button" class="secondary-button" data-action="modal-close">取消</button><button type="submit" class="primary-button">直接加入</button></footer></form>`);
+  }
+
+  function breakdownModal() {
+    if (modal.step === 'results' && modal.breakdown) {
+      const item = modal.breakdown;
+      const typeName = { audit: '审计闭环', study: '学习备考', writing: '写作输出', coordination: '沟通协作', generic: '通用执行' }[item.type] || '通用执行';
+      const selectedMinutes = item.steps.filter((step) => step.selected).reduce((sum, step) => sum + Number(step.minutes || 0), 0);
+      return modalFrame('智能拆任务', `<div class="breakdown-results">
+        <section class="breakdown-hero"><div><span class="breakdown-mode">${item.mode === 'ai' ? 'AI 深度方案' : '本地推导'} · ${esc(typeName)}</span><h3>${esc(item.title)}</h3><p>${esc(item.deliverable)}</p></div><button type="button" data-action="breakdown-back">修改原任务</button></section>
+        <div class="breakdown-first"><span>${icon('play')}</span><div><small>现在就能开始</small><b>${esc(item.firstAction)}</b></div></div>
+        <div class="breakdown-columns">
+          <section><h4>开始前需要</h4><ul>${item.materials.map((entry) => `<li>${esc(entry)}</li>`).join('')}</ul></section>
+          <section><h4>容易卡住的地方</h4><ul>${item.risks.map((entry) => `<li>${esc(entry)}</li>`).join('')}</ul></section>
+        </div>
+        <section class="breakdown-flow"><div class="breakdown-section-head"><div><small>可执行流程</small><h4>选择要加入任务的步骤</h4></div><b data-breakdown-summary>${item.steps.filter((step) => step.selected).length} 步 · ${formatMinutes(selectedMinutes)}</b></div>
+          <ol>${item.steps.map((step, index) => `<li class="${step.selected ? 'selected' : ''}"><label><input type="checkbox" data-action="breakdown-step" data-id="${attr(step.id)}" ${step.selected ? 'checked' : ''}><i>${step.selected ? icon('check') : index + 1}</i><span><b>${esc(step.title)}</b><small>${esc(step.detail)}</small></span><em>${step.minutes} 分钟</em></label></li>`).join('')}</ol>
+        </section>
+        <section class="breakdown-review"><h4>${icon('review')}完成前，切换 Reviewer 模式</h4><ul>${item.review.map((entry) => `<li>${esc(entry)}</li>`).join('')}</ul></section>
+        <div class="breakdown-ai"><div><b>需要更具体的推导？</b><small>只有点击右侧按钮后，当前任务和补充要求才会发送给已配置的 AI 服务。</small>${modal.aiStatus ? `<p role="status">${esc(modal.aiStatus)}</p>` : ''}</div><button type="button" class="secondary-button" data-action="breakdown-ai" ${modal.aiLoading ? 'disabled' : ''}>${modal.aiLoading ? '推导中…' : 'AI 深度拆解'}</button></div>
+        <footer class="breakdown-actions"><button type="button" class="secondary-button" data-action="breakdown-save">只保存流程</button><button type="button" class="secondary-button" data-action="breakdown-focus">加入并从第一步开始</button><button type="button" class="primary-button" data-action="breakdown-adopt">加入任务</button></footer>
+      </div>`, 'breakdown-modal');
+    }
+    const recent = [...state().breakdowns].reverse().slice(0, 3);
+    return modalFrame('智能拆任务', `<form data-form="breakdown-setup" class="breakdown-setup">
+      <div class="planner-intro breakdown-intro"><span>${icon('growth')}</span><div><b>随便写一句，我来推导怎么做</b><p>默认只在当前设备本地分析；生成后可以挑选步骤加入任务。</p></div></div>
+      <label>你想完成什么？<textarea name="text" rows="4" maxlength="500" placeholder="例如：完成应收账款审计底稿；准备下周的汇报；把论文第一章写完" required autofocus>${esc(modal.source || '')}</textarea></label>
+      <label>补充要求（可选）<textarea name="context" rows="3" maxlength="1000" placeholder="例如：经理要求周五前交付，要包含函证差异处理；老师要求引用三篇文献">${esc(modal.context || '')}</textarea></label>
+      <div class="form-grid breakdown-meta"><label>计划日期<input name="date" type="date" value="${attr(modal.date || TODAY())}" required></label><label>所属项目<select name="projectId">${projectOptions(modal.projectId || '')}</select></label></div>
+      ${recent.length ? `<div class="breakdown-recent"><small>最近保存</small><div>${recent.map((item) => `<button type="button" data-action="breakdown-reuse" data-id="${attr(item.id)}">${esc(item.title)}</button>`).join('')}</div></div>` : ''}
+      <p class="privacy-note">本地模式不会发送任务内容。AI 模式只有在结果页由你明确点击后才会调用，且本站不会在前端保存 API 密钥。</p>
+      <footer><button type="button" class="secondary-button" data-action="modal-close">取消</button><button type="submit" class="primary-button">生成完整流程</button></footer>
+    </form>`, 'breakdown-modal');
   }
 
   function plannerModal() {
@@ -1477,7 +1712,7 @@
   function backupImportModal() {
     if (!pendingBackupImport) return '';
     const details = pendingBackupImport.stats;
-    return modalFrame('恢复前确认', `<div class="backup-preview"><div class="backup-preview-lead"><span>${icon('upload')}</span><div><small>${esc(pendingBackupImport.filename)}</small><h3>找到一份小小生长册</h3><p>${backupTimeLabel(pendingBackupImport.exportedAt)}</p></div></div><dl><div><dt>任务</dt><dd>${details.tasks}</dd></div><div><dt>项目</dt><dd>${details.projects}</dd></div><div><dt>专注记录</dt><dd>${details.focus}</dd></div><div><dt>笔记</dt><dd>${details.notes}</dd></div><div><dt>日记天数</dt><dd>${details.journalDays}</dd></div><div><dt>月度纪念</dt><dd>${details.memories}</dd></div></dl><p class="backup-warning">恢复会用这份备份替换当前设备里的成长册。若当前也有重要内容，请先导出一份。</p><footer class="backup-preview-actions"><button type="button" class="secondary-button" data-action="backup-export">${icon('download')}先备份当前内容</button><button type="button" class="secondary-button" data-action="modal-close">取消</button><button type="button" class="primary-button restore-button" data-action="backup-import-confirm">确认恢复</button></footer></div>`, 'backup-modal');
+    return modalFrame('恢复前确认', `<div class="backup-preview"><div class="backup-preview-lead"><span>${icon('upload')}</span><div><small>${esc(pendingBackupImport.filename)}</small><h3>找到一份小小生长册</h3><p>${backupTimeLabel(pendingBackupImport.exportedAt)}</p></div></div><dl><div><dt>任务</dt><dd>${details.tasks}</dd></div><div><dt>项目</dt><dd>${details.projects}</dd></div><div><dt>拆解流程</dt><dd>${details.breakdowns}</dd></div><div><dt>专注记录</dt><dd>${details.focus}</dd></div><div><dt>笔记</dt><dd>${details.notes}</dd></div><div><dt>日记天数</dt><dd>${details.journalDays}</dd></div><div><dt>月度纪念</dt><dd>${details.memories}</dd></div></dl><p class="backup-warning">恢复会用这份备份替换当前设备里的成长册。若当前也有重要内容，请先导出一份。</p><footer class="backup-preview-actions"><button type="button" class="secondary-button" data-action="backup-export">${icon('download')}先备份当前内容</button><button type="button" class="secondary-button" data-action="modal-close">取消</button><button type="button" class="primary-button restore-button" data-action="backup-import-confirm">确认恢复</button></footer></div>`, 'backup-modal');
   }
 
   function outfitModal(id) {
@@ -1492,6 +1727,7 @@
     if (!modal) return '';
     const renderers = {
       quick: () => quickModal(),
+      breakdown: () => breakdownModal(),
       smart: () => smartTaskModal(),
       planner: () => plannerModal(),
       task: () => taskModal(modal),
@@ -1776,6 +2012,37 @@
     if (action === 'drawer-close') { drawerOpen = false; return render({ preserveScroll: true, focusSelector: '.mobile-projects-button' }); }
     if (action === 'quick-open') return openModal({ type: 'quick' });
     if (action === 'modal-close' || action === 'modal-backdrop' && target === event.target) return closeModal();
+    if (action === 'breakdown-open') return openModal({ type: 'breakdown', step: 'setup' });
+    if (action === 'breakdown-back') return openModal({ type: 'breakdown', step: 'setup', source: modal.breakdown?.source || '', context: modal.breakdown?.context || '', date: modal.breakdown?.date || TODAY(), projectId: modal.breakdown?.projectId || '' });
+    if (action === 'breakdown-reuse') {
+      const breakdown = state().breakdowns.find((item) => item.id === id);
+      if (!breakdown) return;
+      return openModal({ type: 'breakdown', step: 'results', breakdown: { ...breakdown, steps: breakdown.steps.map((step) => ({ ...step })) } });
+    }
+    if (action === 'breakdown-step') {
+      const step = modal.breakdown?.steps.find((item) => item.id === id);
+      if (!step) return;
+      step.selected = target.checked;
+      target.closest('li')?.classList.toggle('selected', step.selected);
+      const marker = target.nextElementSibling;
+      if (marker) marker.innerHTML = step.selected ? icon('check') : String(modal.breakdown.steps.indexOf(step) + 1);
+      const selected = modal.breakdown.steps.filter((item) => item.selected);
+      const summary = document.querySelector('[data-breakdown-summary]');
+      if (summary) summary.textContent = `${selected.length} 步 · ${formatMinutes(selected.reduce((sum, item) => sum + Number(item.minutes || 0), 0))}`;
+      return;
+    }
+    if (action === 'breakdown-save') {
+      saveBreakdown(modal.breakdown);
+      modal = null;
+      return saveAndRender('breakdown-save', '完整流程已保存');
+    }
+    if (action === 'breakdown-adopt') return adoptBreakdown(false);
+    if (action === 'breakdown-focus') return adoptBreakdown(true);
+    if (action === 'breakdown-ai') { void requestAiBreakdown(); return; }
+    if (action === 'tax-plan-import') {
+      const result = importTaxAdvisorPlan();
+      return saveAndRender('tax-advisor-plan-import', result.added ? `已补入 ${result.added} 天税务师打卡任务` : `打卡表已在项目中，共 ${result.existing} 天`);
+    }
     if (action === 'planner-open') return openModal({ type: 'planner', step: 'setup' });
     if (action === 'planner-back') { modal = { ...modal, step: 'setup' }; return render({ preserveScroll: true }); }
     if (action === 'planner-adopt') return adoptDailyPlan(target.dataset.plan);
@@ -2007,6 +2274,15 @@
       modal = null;
       return saveAndRender('smart-task-add', result.message);
     }
+    if (form.dataset.form === 'breakdown-setup') {
+      const source = String(data.text || '').trim();
+      if (!source) return;
+      const context = String(data.context || '').trim();
+      const projectId = state().projects.some((project) => project.id === data.projectId) ? data.projectId : null;
+      const date = /^\d{4}-\d{2}-\d{2}$/.test(String(data.date || '')) ? String(data.date) : TODAY();
+      modal = { type: 'breakdown', step: 'results', breakdown: generateLocalBreakdown(source, context, { projectId, date }) };
+      return render({ preserveScroll: true });
+    }
     if (form.dataset.form === 'planner-setup') {
       const formData = new FormData(form);
       const minutes = Number(formData.get('minutes'));
@@ -2046,6 +2322,7 @@
       if (priority && otherPriorities >= 3) { priority = false; warning = ' · 当天重点已满 3 项，已保存为普通任务'; }
       const values = {
         title,
+        detail: String(data.detail || '').trim().slice(0, 1200),
         area: Core.AREA_META[data.area] ? data.area : '生活',
         minutes: Core.clamp(data.minutes, 1, 1440),
         reward: Core.clamp(data.reward, 0, 999),
@@ -2278,6 +2555,11 @@
     }
   });
 
+  // The attached personal study plan is seeded once per device and is deduplicated by date.
+  if (Array.isArray(window.GrowthTaxAdvisorPlan) && window.GrowthTaxAdvisorPlan.length && !state().tasks.some((task) => task.importKey === 'tax-advisor-2026:2026-09-15')) {
+    const imported = importTaxAdvisorPlan();
+    if (imported.added) Core.save('tax-advisor-plan-seed');
+  }
   render();
   timerLoop = setInterval(syncTimerView, 250);
 })();

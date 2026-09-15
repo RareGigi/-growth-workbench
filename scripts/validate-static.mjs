@@ -155,6 +155,11 @@ if (!errors.length) {
   assert(/data-action="focus-pick-task"/.test(app), '专注页缺少“替我选”快捷功能');
   assert(/data-action="focus-quick-start"/.test(app), '专注页缺少“五分钟开工”快捷功能');
   assert(/data-action="focus-resume-last"/.test(app), '专注页缺少“接着上次”快捷功能');
+  assert(/data-action="breakdown-open"/.test(app), '今日页缺少智能拆任务入口');
+  assert(/function generateLocalBreakdown/.test(app), '缺少本地任务拆解引擎');
+  assert(/procedure|程序/.test(app) && /异常/.test(app) && /证据/.test(app) && /结论/.test(app), '审计拆解缺少执行闭环');
+  assert(/data-action="breakdown-ai"/.test(app) && /GROWTH_AI_ENDPOINT/.test(app), '按需 AI 深度拆解未安全接线');
+  assert(/breakdowns:\s*\[\]/.test(core), '默认状态缺少拆解流程存储');
   assert(/\[5,'先开始'\].*\[15,'短冲刺'\].*\[25,'一小轮'\].*\[45,'沉浸'\].*\[60,'长读'\]/.test(app), '专注时长没有按 5 / 15 / 25 / 45 / 60 排列');
 
   const audioPaths = [...app.matchAll(/src:\s*'(assets\/scenes\/[^']+\.mp3)'/g)].map((match) => match[1]);

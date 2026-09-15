@@ -193,6 +193,7 @@
     growthRecords: [],
     activity: [],
     notes: [],
+    breakdowns: [],
     weeklyReviews: {},
     planning: { defaultMinutes: 60, defaultEnergy: 'steady', lastTracks: ['tax', 'english', 'podcast', 'cpa', 'writing'], lastProjectId: '', lastInput: '', adoptedPlans: [] },
     rewards: { stars: 0, coins: 0 },
@@ -224,6 +225,7 @@
     return {
       id: String(task.id || uid('task')),
       title,
+      detail: String(task.detail ?? task.description ?? '').trim().slice(0, 1200),
       area: AREA_META[task.area] ? task.area : '生活',
       minutes: clamp(task.minutes ?? task.mins ?? task.estimate ?? 25, 1, 1440),
       reward: clamp(task.reward ?? 10, 0, 999),
@@ -236,7 +238,8 @@
       completedAt: completed ? Number(task.completedAt || task.doneAt || task.ts || Date.now()) : null,
       rewardGranted: completed ? true : Boolean(task.rewardGranted),
       actualMinutes: clamp(task.actualMinutes ?? 0, 0, 1440),
-      postponedCount: clamp(task.postponedCount ?? 0, 0, 999)
+      postponedCount: clamp(task.postponedCount ?? 0, 0, 999),
+      importKey: String(task.importKey || '').trim().slice(0, 160)
     };
   };
 
@@ -389,6 +392,40 @@
     if (!projectIds.has(String(rawUi.selectedProjectId || ''))) state.ui.selectedProjectId = state.projects[0].id;
 
     state.tasks = (Array.isArray(state.tasks) ? state.tasks : []).map((task) => normaliseTask(task, task?.date, projectNameToId)).filter(Boolean).map((task) => ({ ...task, projectId: projectIds.has(String(task.projectId || '')) ? String(task.projectId) : null }));
+    state.breakdowns = (Array.isArray(state.breakdowns) ? state.breakdowns : []).map((item) => {
+      if (!item || typeof item !== 'object' || !text(item.title)) return null;
+      const list = (value, limit = 20) => (Array.isArray(value) ? value : []).map((entry) => text(entry)).filter(Boolean).slice(0, limit);
+      const steps = (Array.isArray(item.steps) ? item.steps : []).map((step) => {
+        if (!step || typeof step !== 'object' || !text(step.title)) return null;
+        return {
+          id: text(step.id, uid('step')),
+          title: text(step.title).slice(0, 100),
+          detail: text(step.detail).slice(0, 260),
+          minutes: clamp(step.minutes ?? 25, 1, 240),
+          selected: step.selected !== false
+        };
+      }).filter(Boolean).slice(0, 20);
+      if (!steps.length) return null;
+      return {
+        id: text(item.id, uid('breakdown')),
+        source: text(item.source, item.title).slice(0, 500),
+        title: text(item.title).slice(0, 100),
+        context: text(item.context).slice(0, 1000),
+        type: ['audit', 'study', 'writing', 'coordination', 'generic'].includes(item.type) ? item.type : 'generic',
+        area: AREA_META[item.area] ? item.area : '生活',
+        projectId: projectIds.has(String(item.projectId || '')) ? String(item.projectId) : null,
+        date: validDate(item.date),
+        deliverable: text(item.deliverable).slice(0, 500),
+        materials: list(item.materials),
+        steps,
+        risks: list(item.risks),
+        review: list(item.review),
+        firstAction: text(item.firstAction, steps[0].title).slice(0, 200),
+        mode: item.mode === 'ai' ? 'ai' : 'local',
+        createdAt: Number(item.createdAt) || Date.now(),
+        updatedAt: Number(item.updatedAt) || Date.now()
+      };
+    }).filter(Boolean).slice(-30);
     const rawPlanning = objectOrEmpty(state.planning);
     const allowedPlanMinutes = new Set([30, 60, 90, 120]);
     const allowedEnergy = new Set(['low', 'steady', 'high']);
